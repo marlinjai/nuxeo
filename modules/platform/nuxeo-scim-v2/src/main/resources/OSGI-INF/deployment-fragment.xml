@@ -1,4 +1,43 @@
 <?xml version="1.0"?>
 <fragment version="1">
 
+  <extension target="web#SERVLET">
+
+    <servlet>
+      <servlet-name>Nuxeo SCIM 2.0 WebEngine Servlet</servlet-name>
+      <servlet-class>org.nuxeo.ecm.webengine.app.jersey.WebEngineServlet</servlet-class>
+      <init-param>
+        <param-name>application.name</param-name>
+        <param-value>scimV2</param-value>
+      </init-param>
+    </servlet>
+
+    <servlet-mapping>
+      <servlet-name>Nuxeo SCIM 2.0 WebEngine Servlet</servlet-name>
+      <url-pattern>/scim/v2/*</url-pattern>
+    </servlet-mapping>
+
+    <filter-mapping>
+      <filter-name>NuxeoAuthenticationFilter</filter-name>
+      <url-pattern>/scim/v2/*</url-pattern>
+      <dispatcher>REQUEST</dispatcher>
+      <dispatcher>FORWARD</dispatcher>
+    </filter-mapping>
+
+    <filter-mapping>
+      <filter-name>RequestContextFilter</filter-name>
+      <url-pattern>/scim/v2/*</url-pattern>
+      <dispatcher>REQUEST</dispatcher>
+      <dispatcher>FORWARD</dispatcher>
+    </filter-mapping>
+
+    <filter-mapping>
+      <filter-name>WebContextFilter</filter-name>
+      <url-pattern>/scim/v2/*</url-pattern>
+      <dispatcher>REQUEST</dispatcher>
+      <dispatcher>FORWARD</dispatcher>
+    </filter-mapping>
+
+  </extension>
+
 </fragment>

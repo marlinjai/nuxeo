@@ -103,6 +103,7 @@
     <jmock.version>2.13.1</jmock.version>
     <wro4j.version>1.10.1</wro4j.version>
     <xalan.version>2.7.3</xalan.version>
+    <scim.v2.sdk.version>3.0.0</scim.v2.sdk.version>
 
     <!-- deprecated property since removal of maven-nuxeo-plugin execution -->
     <eclipseVersion>${project.version}</eclipseVersion>
@@ -813,6 +814,11 @@
       <dependency>
         <groupId>org.nuxeo.ecm.platform</groupId>
         <artifactId>nuxeo-scim-server</artifactId>
+        <version>${nuxeo.platform.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.nuxeo.ecm.platform</groupId>
+        <artifactId>nuxeo-scim-v2</artifactId>
         <version>${nuxeo.platform.version}</version>
       </dependency>
       <dependency>
@@ -3611,7 +3617,54 @@
           </exclusion>
         </exclusions>
       </dependency>
-      <!-- SCIM -->
+      <!-- SCIM v2 -->
+      <dependency>
+        <groupId>com.unboundid.product.scim2</groupId>
+        <artifactId>scim2-sdk-common</artifactId>
+        <version>${scim.v2.sdk.version}</version>
+      </dependency>
+      <!-- SCIM v2 - Tests -->
+      <dependency>
+        <groupId>info.simplecloud.scimproxy</groupId>
+        <artifactId>compliance</artifactId>
+        <version>0.2</version>
+        <scope>test</scope>
+        <exclusions>
+          <!-- unused by v2 compliance test suite classes -->
+          <exclusion>
+            <groupId>info.simplecloud</groupId>
+            <artifactId>scimcore</artifactId>
+          </exclusion>
+          <!-- banned -->
+          <exclusion>
+            <groupId>commons-beanutils</groupId>
+            <artifactId>commons-beanutils-core</artifactId>
+          </exclusion>
+          <exclusion>
+            <groupId>org.mortbay.jetty</groupId>
+            <artifactId>servlet-api</artifactId>
+          </exclusion>
+          <exclusion>
+            <groupId>log4j</groupId>
+            <artifactId>log4j</artifactId>
+          </exclusion>
+          <exclusion>
+            <groupId>com.sun.jersey</groupId>
+            <artifactId>jersey-json</artifactId>
+          </exclusion>
+          <exclusion>
+            <groupId>com.sun.jersey</groupId>
+            <artifactId>jersey-server</artifactId>
+          </exclusion>
+        </exclusions>
+      </dependency>
+      <dependency>
+        <groupId>org.wso2.charon</groupId>
+        <artifactId>org.wso2.charon3.core</artifactId>
+        <version>3.0.0</version>
+        <scope>test</scope>
+      </dependency>
+      <!-- SCIM v1-->
       <dependency>
         <artifactId>scim-sdk</artifactId>
         <groupId>com.unboundid.product.scim</groupId>
@@ -3624,7 +3677,7 @@
           </exclusion>
         </exclusions>
       </dependency>
-      <!-- SCIM - Tests -->
+      <!-- SCIM v1 - Tests -->
       <dependency>
         <groupId>org.apache.wink</groupId>
         <artifactId>wink-client-apache-httpclient</artifactId>
@@ -5321,6 +5374,8 @@
                 |The SAX License</licenseMerge>
               <licenseMerge>UnboundID
                 |UnboundID SCIM SDK Free Use License</licenseMerge>
+              <licenseMerge>UnboundID
+                |UnboundID SCIM 2.0 CLIENT SDK Free Use License</licenseMerge>
               <licenseMerge>Unicode
                 |Unicode/ICU License
                 |ICU License</licenseMerge>

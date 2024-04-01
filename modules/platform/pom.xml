@@ -93,6 +93,7 @@
     <module>nuxeo-preview-core</module>
     <module>nuxeo-quota</module>
     <module>nuxeo-scim-server</module>
+    <module>nuxeo-scim-v2</module>
     <module>nuxeo-search</module>
     <module>nuxeo-signature</module>
     <module>nuxeo-target-platforms</module>

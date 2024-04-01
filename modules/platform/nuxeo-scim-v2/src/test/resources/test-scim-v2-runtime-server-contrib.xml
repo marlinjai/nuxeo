@@ -1,0 +1,20 @@
+<?xml version="1.0"?>
+<component name="org.nuxeo.scim.v2.runtime.server.contrib.test">
+
+  <require>org.nuxeo.ecm.webengine.test.WebEngineComponentSetup</require>
+
+  <extension target="org.nuxeo.runtime.server" point="servlet">
+
+    <servlet context="/">
+      <servlet-name>Nuxeo SCIM 2.0 WebEngine Servlet</servlet-name>
+      <servlet-class>org.nuxeo.ecm.webengine.app.jersey.WebEngineServlet</servlet-class>
+      <url-pattern>/scim/v2/*</url-pattern>
+      <init-param>
+        <param-name>application.name</param-name>
+        <param-value>scimV2</param-value>
+      </init-param>
+    </servlet>
+
+  </extension>
+
+</component>
