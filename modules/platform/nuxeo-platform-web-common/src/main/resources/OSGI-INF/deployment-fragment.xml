@@ -171,6 +171,20 @@
 
   </extension>
 
+  <extension target="web#HOST-FILTER">
+    <filter>
+      <display-name>Nuxeo Host Filter</display-name>
+      <filter-name>NuxeoHostFilter</filter-name>
+      <filter-class>
+        org.nuxeo.ecm.platform.web.common.requestcontroller.filter.NuxeoHostFilter
+      </filter-class>
+    </filter>
+    <filter-mapping>
+      <filter-name>NuxeoHostFilter</filter-name>
+      <url-pattern>/*</url-pattern>
+    </filter-mapping>
+  </extension>
+
   <extension target="web#CORS-FILTER">
     <filter>
       <display-name>Nuxeo CORS and CSRF Filter</display-name>

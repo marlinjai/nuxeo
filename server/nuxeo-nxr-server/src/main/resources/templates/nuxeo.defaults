@@ -16,6 +16,9 @@ nuxeo.bind.address=0.0.0.0
 # publicly visible URL
 nuxeo.url=http://localhost:8080/nuxeo
 
+# allowed values for Host HTTP header
+nuxeo.allowed.hosts=
+
 # Application context path
 org.nuxeo.ecm.contextPath=/nuxeo
 

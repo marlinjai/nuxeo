@@ -20,6 +20,8 @@
 package org.nuxeo.ecm.core.io.download;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
+import static org.nuxeo.common.http.HttpHeaders.NUXEO_VIRTUAL_HOST;
+import static org.nuxeo.launcher.config.ConfigurationConstants.PARAM_NUXEO_VIRTUAL_HOST;
 
 import java.io.File;
 import java.io.IOException;
@@ -108,10 +110,6 @@ public class DownloadServiceImpl extends DefaultComponent implements DownloadSer
     public static final String XP_PERMISSIONS = "permissions";
 
     public static final String XP_REDIRECT_RESOLVER = "redirectResolver";
-
-    private static final String NUXEO_VIRTUAL_HOST = "nuxeo-virtual-host";
-
-    private static final String VH_PARAM = "nuxeo.virtual.host";
 
     private static final String FORCE_NO_CACHE_ON_MSIE = "org.nuxeo.download.force.nocache.msie";
 
@@ -920,7 +918,7 @@ public class DownloadServiceImpl extends DefaultComponent implements DownloadSer
         if (!secure) {
             String nvh = request.getHeader(NUXEO_VIRTUAL_HOST);
             if (nvh == null) {
-                nvh = Framework.getProperty(VH_PARAM);
+                nvh = Framework.getProperty(PARAM_NUXEO_VIRTUAL_HOST);
             }
             if (nvh != null) {
                 secure = nvh.startsWith("https");

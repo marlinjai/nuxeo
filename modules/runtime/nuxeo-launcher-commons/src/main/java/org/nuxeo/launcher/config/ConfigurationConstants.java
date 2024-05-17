@@ -46,11 +46,15 @@ public final class ConfigurationConstants {
 
     public static final String PARAM_FORCE_GENERATION = "nuxeo.force.generation";
 
+    public static final String PARAM_NUXEO_ALLOWED_HOSTS = "nuxeo.allowed.hosts";
+
     public static final String PARAM_NUXEO_CONF = "nuxeo.conf";
 
     public static final String PARAM_NUXEO_DEV = "org.nuxeo.dev";
 
     public static final String PARAM_NUXEO_URL = "nuxeo.url";
+
+    public static final String PARAM_NUXEO_VIRTUAL_HOST = "nuxeo.virtual.host";
 
     public static final String PARAM_HTTP_PORT = "nuxeo.server.http.port";
 

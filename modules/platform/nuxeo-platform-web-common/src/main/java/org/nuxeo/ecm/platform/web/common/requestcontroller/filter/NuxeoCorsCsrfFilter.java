@@ -18,11 +18,11 @@
  */
 package org.nuxeo.ecm.platform.web.common.requestcontroller.filter;
 
-import static com.google.common.net.HttpHeaders.ORIGIN;
-import static com.google.common.net.HttpHeaders.REFERER;
 import static javax.servlet.http.HttpServletResponse.SC_FORBIDDEN;
 import static javax.servlet.http.HttpServletResponse.SC_OK;
 import static org.apache.commons.lang3.StringUtils.isBlank;
+import static org.nuxeo.common.http.HttpHeaders.ORIGIN;
+import static org.nuxeo.common.http.HttpHeaders.REFERER;
 
 import java.io.IOException;
 import java.io.Serializable;

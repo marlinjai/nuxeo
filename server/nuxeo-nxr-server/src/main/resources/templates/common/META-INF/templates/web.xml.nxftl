@@ -8,6 +8,8 @@
 
   %{EXCEPTION-FILTER}%
 
+  %{HOST-FILTER}%
+
   %{CORS-FILTER}%
 
   %{AUTH-FILTER}%

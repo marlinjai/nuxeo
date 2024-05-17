@@ -56,6 +56,9 @@ import static org.apache.chemistry.opencmis.commons.data.PermissionMapping.CAN_R
 import static org.apache.chemistry.opencmis.commons.data.PermissionMapping.CAN_SET_CONTENT_DOCUMENT;
 import static org.apache.chemistry.opencmis.commons.data.PermissionMapping.CAN_UPDATE_PROPERTIES_OBJECT;
 import static org.apache.chemistry.opencmis.commons.data.PermissionMapping.CAN_VIEW_CONTENT_OBJECT;
+import static org.nuxeo.common.http.HttpHeaders.NUXEO_VIRTUAL_HOST;
+import static org.nuxeo.common.http.HttpHeaders.X_FORWARDED_HOST;
+import static org.nuxeo.launcher.config.ConfigurationConstants.PARAM_NUXEO_VIRTUAL_HOST;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -135,12 +138,6 @@ public class NuxeoRepository {
     private static final String NUXEO_CONTEXT_PATH_PROP = "org.nuxeo.ecm.contextPath";
 
     private static final String NUXEO_CONTEXT_PATH_DEFAULT = "/nuxeo";
-
-    private static final String X_FORWARDED_HOST = "x-forwarded-host";
-
-    private static final String NUXEO_VH_HEADER = "nuxeo-virtual-host";
-
-    private static final String VH_PARAM = "nuxeo.virtual.host";
 
     public static final String NUXEO_READ_REMOVE = "ReadRemove";
 
@@ -461,9 +458,9 @@ public class NuxeoRepository {
     private static String getServerURL(HttpServletRequest request) {
         String url = null;
         // Detect Nuxeo specific header for VH
-        String nuxeoVH = request.getHeader(NUXEO_VH_HEADER);
+        String nuxeoVH = request.getHeader(NUXEO_VIRTUAL_HOST);
         if (nuxeoVH == null) {
-            nuxeoVH = Framework.getProperty(VH_PARAM);
+            nuxeoVH = Framework.getProperty(PARAM_NUXEO_VIRTUAL_HOST);
         }
         if (nuxeoVH != null && nuxeoVH.startsWith("http")) {
             url = nuxeoVH;

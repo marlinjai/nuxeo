@@ -18,8 +18,6 @@
  */
 package org.nuxeo.ecm.platform.web.requestcontroller.filter;
 
-import static com.google.common.net.HttpHeaders.ORIGIN;
-import static com.google.common.net.HttpHeaders.REFERER;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
@@ -32,6 +30,12 @@ import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
+import static org.nuxeo.common.http.HttpHeaders.NUXEO_VIRTUAL_HOST;
+import static org.nuxeo.common.http.HttpHeaders.ORIGIN;
+import static org.nuxeo.common.http.HttpHeaders.REFERER;
+import static org.nuxeo.common.http.HttpHeaders.X_FORWARDED_HOST;
+import static org.nuxeo.common.http.HttpHeaders.X_FORWARDED_PORT;
+import static org.nuxeo.common.http.HttpHeaders.X_FORWARDED_PROTO;
 
 import java.util.HashMap;
 import java.util.List;
@@ -82,16 +86,6 @@ public class TestNuxeoCorsCsrfFilter {
     protected static final String URL_BASE = SCHEME + "://" + HOST + ":" + PORT + "/";
 
     protected static final String CONTEXT = "/nuxeo";
-
-    protected static final String NUXEO_VIRTUAL_HOST = "nuxeo-virtual-host";
-
-    // lowercase because that's what VirtualHostHelper is using when calling getHeader
-    // (avoids doing a more complex Mockito matcher than Matchers.eq)
-    protected static final String X_FORWARDED_PROTO = "x-forwarded-proto";
-
-    protected static final String X_FORWARDED_HOST = "x-forwarded-host";
-
-    protected static final String X_FORWARDED_PORT = "x-forwarded-port";
 
     @Inject
     protected LogCaptureFeature.Result logCaptureResult;

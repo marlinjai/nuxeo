@@ -21,7 +21,12 @@
 
 package org.nuxeo.ecm.platform.web.common.vh;
 
+import static org.nuxeo.common.http.HttpHeaders.NUXEO_VIRTUAL_HOST;
+import static org.nuxeo.common.http.HttpHeaders.X_FORWARDED_HOST;
+import static org.nuxeo.common.http.HttpHeaders.X_FORWARDED_PORT;
+import static org.nuxeo.common.http.HttpHeaders.X_FORWARDED_PROTO;
 import static org.nuxeo.ecm.platform.ui.web.auth.NXAuthConstants.REQUESTED_URL;
+import static org.nuxeo.launcher.config.ConfigurationConstants.PARAM_NUXEO_VIRTUAL_HOST;
 
 import javax.servlet.ServletRequest;
 import javax.servlet.http.HttpServletRequest;
@@ -39,16 +44,6 @@ public class VirtualHostHelper {
     private static final int HTTP_PORT_NUMBER = 80;
 
     private static final int HTTPS_PORT_NUMBER = 443;
-
-    private static final String X_FORWARDED_HOST = "x-forwarded-host";
-
-    private static final String X_FORWARDED_PROTO = "x-forwarded-proto";
-
-    private static final String X_FORWARDED_PORT = "x-forwarded-port";
-
-    private static final String VH_HEADER = "nuxeo-virtual-host";
-
-    private static final String VH_PARAM = "nuxeo.virtual.host";
 
     // Utility class.
     private VirtualHostHelper() {
@@ -99,9 +94,9 @@ public class VirtualHostHelper {
         HttpServletRequest httpRequest = getHttpServletRequest(request);
         if (httpRequest != null) {
             // Detect Nuxeo specific header for VH
-            String nuxeoVH = httpRequest.getHeader(VH_HEADER);
+            String nuxeoVH = httpRequest.getHeader(NUXEO_VIRTUAL_HOST);
             if (nuxeoVH == null) {
-                nuxeoVH = Framework.getProperty(VH_PARAM);
+                nuxeoVH = Framework.getProperty(PARAM_NUXEO_VIRTUAL_HOST);
             }
             if (!local && nuxeoVH != null && nuxeoVH.contains("http")) {
                 baseURL = nuxeoVH;

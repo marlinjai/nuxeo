@@ -21,6 +21,8 @@
 
 package org.nuxeo.ecm.webengine.servlet;
 
+import org.nuxeo.common.http.HttpHeaders;
+
 import javax.servlet.http.HttpServletResponse;
 
 /**
@@ -221,15 +223,22 @@ public class WebConst {
      */
     public static final int SC_LOCKED = 423;
 
-    /*
+    /**
      * VirtualHosting header provided by reverse-proxies
+     *
+     * @deprecated since 2023.14, use {@link HttpHeaders#X_FORWARDED_HOST} instead
      */
-    public static final String X_FORWARDED_HOST = "x-forwarded-host";
+    @Deprecated(since = "2023.14")
+    public static final String X_FORWARDED_HOST = HttpHeaders.X_FORWARDED_HOST;
 
-    /*
+    /**
      * VirtualHosting header specific to Nuxeo 5 EP
+     *
+     * @deprecated since 2023.14, use {@link HttpHeaders#NUXEO_VIRTUAL_HOST}
+     *             instead
      */
-    public static final String VH_HEADER = "nuxeo-virtual-host";
+    @Deprecated(since = "2023.14")
+    public static final String VH_HEADER = HttpHeaders.NUXEO_VIRTUAL_HOST;
 
     // Constant utility class
     private WebConst() {
