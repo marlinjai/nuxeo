@@ -109,8 +109,6 @@ public class DownloadServiceImpl extends DefaultComponent implements DownloadSer
 
     public static final String XP_REDIRECT_RESOLVER = "redirectResolver";
 
-    protected static final int DOWNLOAD_BUFFER_SIZE = 1024 * 512;
-
     private static final String NUXEO_VIRTUAL_HOST = "nuxeo-virtual-host";
 
     private static final String VH_PARAM = "nuxeo.virtual.host";
