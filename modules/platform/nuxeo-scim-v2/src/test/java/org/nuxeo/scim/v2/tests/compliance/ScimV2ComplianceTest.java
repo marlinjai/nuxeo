@@ -67,7 +67,7 @@ public class ScimV2ComplianceTest {
 
     protected static final List<TestResult> testResults = new ArrayList<>();
 
-    @Inject // NOSONAR
+    @Inject
     protected ScimV2Feature scimV2Feature;
 
     protected ComplianceTestMetaDataHolder complianceTestMetaDataHolder;

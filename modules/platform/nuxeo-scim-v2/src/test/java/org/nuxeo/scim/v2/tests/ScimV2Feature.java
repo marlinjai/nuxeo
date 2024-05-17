@@ -19,6 +19,9 @@
  */
 package org.nuxeo.scim.v2.tests;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+
 import javax.inject.Inject;
 
 import org.nuxeo.ecm.webengine.test.WebEngineFeature;
@@ -26,6 +29,8 @@ import org.nuxeo.runtime.test.runner.Deploy;
 import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.RunnerFeature;
 import org.nuxeo.runtime.test.runner.ServletContainerFeature;
+
+import com.fasterxml.jackson.databind.JsonNode;
 
 /**
  * SCIM 2.0 test feature.
@@ -43,8 +48,15 @@ public class ScimV2Feature implements RunnerFeature {
     @Inject // NOSONAR
     protected ServletContainerFeature servletContainerFeature;
 
-    public String getScimV2URL() {
-        int port = servletContainerFeature.getPort();
-        return "http://localhost:" + port + "/scim/v2";
+    public static void assertError(JsonNode node) {
+        JsonNode schemas = node.get("schemas");
+        assertTrue(schemas.isArray());
+        assertEquals(1, schemas.size());
+        assertEquals("urn:ietf:params:scim:api:messages:2.0:Error", schemas.get(0).asText());
     }
+
+    public String getScimV2URL() {
+        return servletContainerFeature.getHttpUrl() + "/scim/v2";
+    }
+
 }

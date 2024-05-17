@@ -22,11 +22,13 @@ package org.nuxeo.scim.v2.jaxrs.usermanager;
 import org.nuxeo.ecm.core.api.NuxeoPrincipal;
 import org.nuxeo.ecm.platform.usermanager.UserManager;
 import org.nuxeo.ecm.platform.web.common.vh.VirtualHostHelper;
-import org.nuxeo.ecm.webengine.model.exceptions.WebSecurityException;
 import org.nuxeo.ecm.webengine.model.impl.DefaultObject;
 import org.nuxeo.runtime.api.Framework;
 import org.nuxeo.scim.v2.mapper.AbstractMapper;
 import org.nuxeo.scim.v2.mapper.UserMapperFactory;
+
+import com.unboundid.scim2.common.exceptions.ForbiddenException;
+import com.unboundid.scim2.common.exceptions.ScimException;
 
 /**
  * @since 2023.13
@@ -55,10 +57,11 @@ public abstract class ScimV2BaseUMObject extends DefaultObject {
         mapper = UserMapperFactory.getMapper(baseUrl);
     }
 
-    protected void checkUpdateGuardPreconditions() {
+    protected void checkUpdateGuardPreconditions() throws ScimException {
         NuxeoPrincipal principal = getContext().getCoreSession().getPrincipal();
         if (!principal.isAdministrator() && (!principal.isMemberOf("powerusers") || !isAPowerUserEditableArtifact())) {
-            throw new WebSecurityException("User is not allowed to edit users or groups");
+            throw new ForbiddenException(
+                    String.format("User: %s is not allowed to edit users or groups", principal.getName()));
         }
     }
 

@@ -14,41 +14,36 @@
  * limitations under the License.
  *
  * Contributors:
- *     Thierry Delprat
  *     Antoine Taillefer
  */
 package org.nuxeo.scim.v2.jaxrs.marshalling;
 
-import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
-import static javax.ws.rs.core.Response.Status.CREATED;
-import static javax.ws.rs.core.Response.Status.NO_CONTENT;
+import static org.nuxeo.ecm.core.io.registry.reflect.Instantiations.SINGLETON;
+import static org.nuxeo.ecm.core.io.registry.reflect.Priorities.REFERENCE;
 
-import javax.ws.rs.core.Response;
+import java.io.IOException;
 
+import javax.ws.rs.ext.Provider;
+
+import org.nuxeo.ecm.core.io.marshallers.json.AbstractJsonWriter;
+import org.nuxeo.ecm.core.io.registry.reflect.Setup;
+
+import com.fasterxml.jackson.core.JsonGenerator;
 import com.unboundid.scim2.common.messages.ErrorResponse;
+import com.unboundid.scim2.common.utils.JsonUtils;
 
 /**
- * Helper for handling {@link Response}s.
+ * SCIM 2.0 {@link ErrorResponse} JSON writer.
  *
  * @since 2023.13
  */
-public final class ResponseUtils {
+@Provider
+@Setup(mode = SINGLETON, priority = REFERENCE)
+public class ErrorResponseWriter extends AbstractJsonWriter<ErrorResponse> {
 
-    private ResponseUtils() {
-        // helper class
-    }
-
-    public static Response created(Object entity) {
-        return Response.status(CREATED).type(APPLICATION_JSON).entity(entity).build();
-
-    }
-
-    public static Response deleted() {
-        return Response.status(NO_CONTENT).build();
-    }
-
-    public static Response error(ErrorResponse error) {
-        return Response.status(error.getStatus()).type(APPLICATION_JSON).entity(error).build();
+    @Override
+    public void write(ErrorResponse entity, JsonGenerator jg) throws IOException {
+        jg.writeTree(JsonUtils.valueToNode(entity));
     }
 
 }

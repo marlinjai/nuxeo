@@ -19,7 +19,9 @@
  */
 package org.nuxeo.scim.v2.jaxrs.usermanager;
 
+import static com.unboundid.scim2.common.exceptions.BadRequestException.INVALID_SYNTAX;
 import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
+import static org.apache.commons.lang3.StringUtils.isBlank;
 
 import java.net.URISyntaxException;
 
@@ -32,13 +34,15 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.Response;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import org.nuxeo.ecm.core.api.DocumentModel;
 import org.nuxeo.ecm.directory.DirectoryException;
 import org.nuxeo.ecm.webengine.model.WebObject;
 import org.nuxeo.scim.v2.jaxrs.marshalling.ResponseUtils;
 
+import com.unboundid.scim2.common.exceptions.BadRequestException;
+import com.unboundid.scim2.common.exceptions.ResourceNotFoundException;
+import com.unboundid.scim2.common.exceptions.ScimException;
+import com.unboundid.scim2.common.exceptions.ServerErrorException;
 import com.unboundid.scim2.common.types.UserResource;
 
 /**
@@ -50,37 +54,30 @@ import com.unboundid.scim2.common.types.UserResource;
 @Produces(APPLICATION_JSON)
 public class ScimV2UserObject extends ScimV2BaseUMObject {
 
-    private static final Logger log = LogManager.getLogger(ScimV2UserObject.class);
-
     @POST
-    public Response createUser(UserResource user) {
+    public Response createUser(UserResource user) throws ScimException {
         checkUpdateGuardPreconditions();
         return doCreateUser(user);
     }
 
     @GET
     @Path("{uid}")
-    public UserResource getUserResource(@PathParam("uid") String uid) {
+    public UserResource getUserResource(@PathParam("uid") String uid) throws ScimException {
         return resolveUserRessource(uid);
-
     }
 
     @PUT
     @Path("{uid}")
-    public Response updateUser(@PathParam("uid") String uid, UserResource user) {
+    public UserResource updateUser(@PathParam("uid") String uid, UserResource user) throws ScimException {
         checkUpdateGuardPreconditions();
         return doUpdateUser(uid, user);
     }
 
     @DELETE
     @Path("{uid}")
-    public Response deleteUserResource(@PathParam("uid") String uid) {
-        try {
-            um.deleteUser(uid);
-            return ResponseUtils.deleted();
-        } catch (DirectoryException e) {
-            return ResponseUtils.notFound();
-        }
+    public Response deleteUserResource(@PathParam("uid") String uid) throws ScimException {
+        checkUpdateGuardPreconditions();
+        return doDeleteUser(uid);
     }
 
     @Override
@@ -88,40 +85,60 @@ public class ScimV2UserObject extends ScimV2BaseUMObject {
         return "/Users";
     }
 
-    protected Response doCreateUser(UserResource user) {
+    protected Response doCreateUser(UserResource user) throws ScimException {
+        if (user == null) {
+            throw new BadRequestException("Cannot create user without a user resource as request body", INVALID_SYNTAX);
+        }
+        var userName = user.getUserName();
+        if (isBlank(userName)) {
+            throw new BadRequestException("Cannot create user without a username", INVALID_SYNTAX);
+        }
+        DocumentModel newUser = mapper.createNuxeoUserFromUserResource(user);
+        if (newUser == null) {
+            throw new ServerErrorException("Cannot create user from resource: " + user);
+        }
         try {
-            DocumentModel newUser = mapper.createNuxeoUserFromUserResource(user);
             UserResource userResource = mapper.getUserResourceFromNuxeoUser(newUser);
             return ResponseUtils.created(userResource);
         } catch (URISyntaxException e) {
-            log.error("Unable to create user: {}", user.getId(), e);
+            throw new ServerErrorException("Cannot create user: " + userName, null, e);
         }
-        return null;
     }
 
-    protected UserResource resolveUserRessource(String uid) {
-        try {
-            DocumentModel userModel = um.getUserModel(uid);
-            if (userModel != null) {
-                return mapper.getUserResourceFromNuxeoUser(userModel);
-            }
-        } catch (URISyntaxException e) {
-            log.error("Error while resolving user: {}", uid, e);
+    protected UserResource resolveUserRessource(String uid) throws ScimException {
+        DocumentModel userModel = um.getUserModel(uid);
+        if (userModel == null) {
+            throw new ResourceNotFoundException("Cannot find user: " + uid); // NOSONAR
         }
-        return null;
+        try {
+            return mapper.getUserResourceFromNuxeoUser(userModel);
+        } catch (URISyntaxException e) {
+            throw new ServerErrorException("Cannot find user: " + uid, null, e);
+        }
     }
 
-    protected Response doUpdateUser(String uid, UserResource user) {
-        try {
-            DocumentModel userModel = mapper.updateNuxeoUserFromUserResource(uid, user);
-            if (userModel != null) {
-                UserResource userResource = mapper.getUserResourceFromNuxeoUser(userModel);
-                return ResponseUtils.updated(userResource);
-            }
-        } catch (URISyntaxException e) {
-            log.error("Unable to update user: {}", uid, e);
+    protected UserResource doUpdateUser(String uid, UserResource user) throws ScimException {
+        if (user == null) {
+            throw new BadRequestException("Cannot update user without a user resource as request body", INVALID_SYNTAX);
         }
-        return null;
+        DocumentModel userModel = mapper.updateNuxeoUserFromUserResource(uid, user);
+        if (userModel == null) {
+            throw new ResourceNotFoundException("Cannot find user: " + uid);
+        }
+        try {
+            return mapper.getUserResourceFromNuxeoUser(userModel);
+        } catch (URISyntaxException e) {
+            throw new ServerErrorException("Cannot update user: " + uid, null, e);
+        }
+    }
+
+    protected Response doDeleteUser(String uid) throws ScimException {
+        try {
+            um.deleteUser(uid);
+            return ResponseUtils.deleted();
+        } catch (DirectoryException e) {
+            throw new ResourceNotFoundException("Cannot find user: " + uid);
+        }
     }
 
 }

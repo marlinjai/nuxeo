@@ -19,6 +19,7 @@
  */
 package org.nuxeo.scim.v2.jaxrs;
 
+import static javax.servlet.http.HttpServletResponse.SC_INTERNAL_SERVER_ERROR;
 import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
 
 import java.beans.IntrospectionException;
@@ -29,11 +30,17 @@ import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.nuxeo.ecm.webengine.app.jersey.WebEngineServlet;
 import org.nuxeo.ecm.webengine.model.WebObject;
 import org.nuxeo.ecm.webengine.model.impl.ModuleRoot;
+import org.nuxeo.runtime.api.Framework;
+import org.nuxeo.scim.v2.jaxrs.marshalling.ResponseUtils;
 
 import com.unboundid.scim2.common.ScimResource;
+import com.unboundid.scim2.common.exceptions.ScimException;
+import com.unboundid.scim2.common.messages.ErrorResponse;
 import com.unboundid.scim2.common.types.GroupResource;
 import com.unboundid.scim2.common.types.SchemaResource;
 import com.unboundid.scim2.common.types.UserResource;
@@ -52,9 +59,36 @@ import com.unboundid.scim2.common.utils.SchemaUtils;
 @WebObject(type = "scimV2")
 public class ScimV2Root extends ModuleRoot {
 
+    private static final Logger log = LogManager.getLogger(ScimV2Root.class);
+
     public static final String SCIM_V2_SCHEMA_USER = "urn:ietf:params:scim:schemas:core:2.0:User";
 
     public static final String SCIM_V2_SCHEMA_GROUP = "urn:ietf:params:scim:schemas:core:2.0:Group";
+
+    @Override
+    public Object handleError(Throwable t) {
+        ScimException scimException = null;
+        if (t instanceof ScimException e) {
+            scimException = e;
+        } else if (t.getCause() instanceof ScimException e) {
+            scimException = e;
+        } else {
+            return super.handleError(t);
+        }
+        ErrorResponse errorResponse = scimException.getScimError();
+        logError(errorResponse.getStatus(), scimException);
+        return ResponseUtils.error(errorResponse);
+    }
+
+    protected void logError(int statusCode, Throwable throwable) {
+        if (statusCode >= SC_INTERNAL_SERVER_ERROR) {
+            log.error(throwable, throwable);
+        } else if (Framework.isDevModeSet()) {
+            log.warn(throwable, throwable);
+        } else {
+            log.debug(throwable, throwable);
+        }
+    }
 
     @GET
     @Path("/Schemas")
