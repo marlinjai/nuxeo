@@ -1,0 +1,21 @@
+<?xml version="1.0"?>
+<component name="org.nuxeo.scim.v2.auth.contrib.test">
+
+  <require>org.nuxeo.scim.v2.auth.contrib</require>
+
+  <extension
+    target="org.nuxeo.ecm.platform.ui.web.auth.service.PluggableAuthenticationService"
+    point="specificChains">
+
+    <specificAuthenticationChain name="ScimV2Test">
+      <urlPatterns>
+        <url>(.*)/scim/v2/(.*)</url>
+      </urlPatterns>
+
+      <replacementChain>
+        <plugin>AUTOMATION_BASIC_AUTH</plugin>
+      </replacementChain>
+    </specificAuthenticationChain>
+
+  </extension>
+</component>

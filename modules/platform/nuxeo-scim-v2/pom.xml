@@ -83,12 +83,7 @@
     </dependency>
     <dependency>
       <groupId>org.nuxeo.ecm.automation</groupId>
-      <artifactId>nuxeo-automation-core</artifactId>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.nuxeo.ecm.automation</groupId>
-      <artifactId>nuxeo-automation-scripting</artifactId>
+      <artifactId>nuxeo-automation-test</artifactId>
       <scope>test</scope>
     </dependency>
     <dependency>
