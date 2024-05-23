@@ -47,17 +47,12 @@ public abstract class AbstractMapper {
 
     public static final String SCIM_RESOURCE_TYPE_GROUP = "Group";
 
-    protected final String baseUrl;
-
-    protected AbstractMapper(String baseUrl) {
-        this.baseUrl = baseUrl;
-    }
-
     public abstract DocumentModel createNuxeoUserFromUserResource(UserResource user);
 
     public abstract DocumentModel updateNuxeoUserFromUserResource(String uid, UserResource user);
 
-    public abstract UserResource getUserResourceFromNuxeoUser(DocumentModel userModel) throws URISyntaxException;
+    public abstract UserResource getUserResourceFromNuxeoUser(DocumentModel userModel, String baseURL)
+            throws URISyntaxException;
 
     public DocumentModel createNuxeoGroupFromGroupResource(GroupResource group) {
         UserManager um = Framework.getService(UserManager.class);
@@ -87,7 +82,8 @@ public abstract class AbstractMapper {
         return groupModel;
     }
 
-    public GroupResource getGroupResourceFromNuxeoGroup(DocumentModel groupModel) throws URISyntaxException {
+    public GroupResource getGroupResourceFromNuxeoGroup(DocumentModel groupModel, String baseURL)
+            throws URISyntaxException {
         UserManager um = Framework.getService(UserManager.class);
         String groupSchemaName = um.getGroupSchemaName();
         String groupId = (String) groupModel.getProperty(groupSchemaName, um.getGroupIdField());
@@ -97,7 +93,7 @@ public abstract class AbstractMapper {
         groupResource.setExternalId(groupId);
 
         Meta meta = new Meta();
-        URI location = new URI(String.join("/", baseUrl, groupId));
+        URI location = new URI(String.join("/", baseURL, groupId));
         meta.setLocation(location);
         meta.setVersion("1");
         groupResource.setMeta(meta);
@@ -130,13 +126,13 @@ public abstract class AbstractMapper {
         return groupResource;
     }
 
-    protected UserResource getUserResourceFromUserModel(String userId) throws URISyntaxException {
+    protected UserResource getUserResourceFromUserModel(String userId, String baseURL) throws URISyntaxException {
         UserResource userResource = new UserResource();
         userResource.setId(userId);
         userResource.setExternalId(userId);
 
         Meta meta = new Meta();
-        URI location = new URI(String.join("/", baseUrl, userId));
+        URI location = new URI(String.join("/", baseURL, userId));
         meta.setLocation(location);
         meta.setVersion("1");
         userResource.setMeta(meta);

@@ -35,13 +35,13 @@ public final class UserMapperFactory {
         // helper class
     }
 
-    public static synchronized AbstractMapper getMapper(String baseUrl) {
+    public static synchronized AbstractMapper getMapper() {
         if (mapper == null) {
             UserMapperService ums = Framework.getService(UserMapperService.class);
             if (ums != null && ums.getAvailableMappings().contains(ConfigurableUserMapper.SCIM_V2_MAPPING_NAME)) {
-                mapper = new ConfigurableUserMapper(baseUrl);
+                mapper = new ConfigurableUserMapper();
             } else {
-                mapper = new StaticUserMapper(baseUrl);
+                mapper = new StaticUserMapper();
             }
         }
         return mapper;

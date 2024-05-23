@@ -98,7 +98,7 @@ public class ScimV2UserObject extends ScimV2BaseUMObject {
             throw new ServerErrorException("Cannot create user from resource: " + user);
         }
         try {
-            UserResource userResource = mapper.getUserResourceFromNuxeoUser(newUser);
+            UserResource userResource = mapper.getUserResourceFromNuxeoUser(newUser, baseURL);
             return ResponseUtils.created(userResource);
         } catch (URISyntaxException e) {
             throw new ServerErrorException("Cannot create user: " + userName, null, e);
@@ -111,7 +111,7 @@ public class ScimV2UserObject extends ScimV2BaseUMObject {
             throw new ResourceNotFoundException("Cannot find user: " + uid); // NOSONAR
         }
         try {
-            return mapper.getUserResourceFromNuxeoUser(userModel);
+            return mapper.getUserResourceFromNuxeoUser(userModel, baseURL);
         } catch (URISyntaxException e) {
             throw new ServerErrorException("Cannot find user: " + uid, null, e);
         }
@@ -126,7 +126,7 @@ public class ScimV2UserObject extends ScimV2BaseUMObject {
             throw new ResourceNotFoundException("Cannot find user: " + uid);
         }
         try {
-            return mapper.getUserResourceFromNuxeoUser(userModel);
+            return mapper.getUserResourceFromNuxeoUser(userModel, baseURL);
         } catch (URISyntaxException e) {
             throw new ServerErrorException("Cannot update user: " + uid, null, e);
         }

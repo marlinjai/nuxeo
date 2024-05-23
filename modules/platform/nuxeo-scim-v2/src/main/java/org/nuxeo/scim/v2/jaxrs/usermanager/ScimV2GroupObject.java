@@ -98,7 +98,7 @@ public class ScimV2GroupObject extends ScimV2BaseUMObject {
             throw new ServerErrorException("Cannot create group from resource: " + group);
         }
         try {
-            GroupResource groupResource = mapper.getGroupResourceFromNuxeoGroup(newGroup);
+            GroupResource groupResource = mapper.getGroupResourceFromNuxeoGroup(newGroup, baseURL);
             return ResponseUtils.created(groupResource);
         } catch (URISyntaxException e) {
             throw new ServerErrorException("Cannot create group: " + groupName, null, e);
@@ -111,7 +111,7 @@ public class ScimV2GroupObject extends ScimV2BaseUMObject {
             throw new ResourceNotFoundException("Cannot find group: " + uid); // NOSONAR
         }
         try {
-            return mapper.getGroupResourceFromNuxeoGroup(groupModel);
+            return mapper.getGroupResourceFromNuxeoGroup(groupModel, baseURL);
         } catch (URISyntaxException e) {
             throw new ServerErrorException("Cannot find group: " + uid, null, e);
         }
@@ -127,7 +127,7 @@ public class ScimV2GroupObject extends ScimV2BaseUMObject {
             throw new ResourceNotFoundException("Cannot find group: " + uid);
         }
         try {
-            return mapper.getGroupResourceFromNuxeoGroup(groupModel);
+            return mapper.getGroupResourceFromNuxeoGroup(groupModel, baseURL);
         } catch (URISyntaxException e) {
             throw new ServerErrorException("Cannot update group: " + uid, null, e);
         }

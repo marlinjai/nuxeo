@@ -40,10 +40,6 @@ public class ConfigurableUserMapper extends AbstractMapper {
 
     protected static final String SCIM_V2_MAPPING_NAME = "scimV2";
 
-    public ConfigurableUserMapper(String baseUrl) {
-        super(baseUrl);
-    }
-
     @Override
     public DocumentModel createNuxeoUserFromUserResource(UserResource user) {
         UserMapperService mapperService = Framework.getService(UserMapperService.class);
@@ -69,12 +65,13 @@ public class ConfigurableUserMapper extends AbstractMapper {
     }
 
     @Override
-    public UserResource getUserResourceFromNuxeoUser(DocumentModel userModel) throws URISyntaxException {
+    public UserResource getUserResourceFromNuxeoUser(DocumentModel userModel, String baseURL)
+            throws URISyntaxException {
         UserManager um = Framework.getService(UserManager.class);
         String userSchemaName = um.getUserSchemaName();
         String userId = (String) userModel.getProperty(userSchemaName, um.getUserIdField());
 
-        UserResource userResource = getUserResourceFromUserModel(userId);
+        UserResource userResource = getUserResourceFromUserModel(userId, baseURL);
         NuxeoPrincipal principal = um.getPrincipal(userId);
 
         UserMapperService mapperService = Framework.getService(UserMapperService.class);

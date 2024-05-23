@@ -37,6 +37,8 @@ public abstract class ScimV2BaseUMObject extends DefaultObject {
 
     protected UserManager um;
 
+    protected String baseURL;
+
     protected AbstractMapper mapper;
 
     protected abstract String getPrefix();
@@ -45,7 +47,7 @@ public abstract class ScimV2BaseUMObject extends DefaultObject {
     protected void initialize(Object... args) {
         super.initialize(args);
         um = Framework.getService(UserManager.class);
-        String baseURL = VirtualHostHelper.getServerURL(ctx.getRequest()); // http://localhost:8080/
+        baseURL = VirtualHostHelper.getServerURL(ctx.getRequest()); // http://localhost:8080/
         while (baseURL.endsWith("/")) {
             baseURL = baseURL.substring(0, baseURL.length() - 1); // http://localhost:8080
         }
@@ -54,7 +56,7 @@ public abstract class ScimV2BaseUMObject extends DefaultObject {
         if (idx > 0) {
             baseURL = baseURL.substring(0, idx + getPrefix().length()); // http://localhost:8080/nuxeo/scim/v2/Users
         }
-        mapper = UserMapperFactory.getMapper(baseUrl);
+        mapper = UserMapperFactory.getMapper();
     }
 
     protected void checkUpdateGuardPreconditions() throws ScimException {

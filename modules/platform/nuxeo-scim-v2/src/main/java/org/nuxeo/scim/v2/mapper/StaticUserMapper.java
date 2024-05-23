@@ -49,10 +49,6 @@ public class StaticUserMapper extends AbstractMapper {
 
     public static final String EMAIL = "email";
 
-    public StaticUserMapper(String baseUrl) {
-        super(baseUrl);
-    }
-
     @Override
     public DocumentModel createNuxeoUserFromUserResource(UserResource user) {
         UserManager um = Framework.getService(UserManager.class);
@@ -84,12 +80,13 @@ public class StaticUserMapper extends AbstractMapper {
     }
 
     @Override
-    public UserResource getUserResourceFromNuxeoUser(DocumentModel userModel) throws URISyntaxException {
+    public UserResource getUserResourceFromNuxeoUser(DocumentModel userModel, String baseURL)
+            throws URISyntaxException {
         UserManager um = Framework.getService(UserManager.class);
         String userSchemaName = um.getUserSchemaName();
         String userId = (String) userModel.getProperty(userSchemaName, um.getUserIdField());
 
-        UserResource userResource = getUserResourceFromUserModel(userId);
+        UserResource userResource = getUserResourceFromUserModel(userId, baseURL);
 
         String firstName = (String) userModel.getProperty(userSchemaName, FIRST_NAME);
         String lastName = (String) userModel.getProperty(userSchemaName, LAST_NAME);
