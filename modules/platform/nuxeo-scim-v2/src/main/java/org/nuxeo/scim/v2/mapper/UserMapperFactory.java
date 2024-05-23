@@ -47,4 +47,17 @@ public final class UserMapperFactory {
         return mapper;
     }
 
+    // -------------------- For test purpose only --------------------
+    public static void setStaticMapper() {
+        mapper = new StaticUserMapper();
+    }
+
+    public static void resetMapper() {
+        mapper = null;
+    }
+
+    public static String getMapperClass() {
+        return getMapper().getClass().getSimpleName();
+    }
+
 }

@@ -38,6 +38,8 @@ import org.junit.runner.RunWith;
 import org.nuxeo.ecm.core.api.NuxeoException;
 import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.FeaturesRunner;
+import org.nuxeo.scim.v2.mapper.ConfigurableUserMapper;
+import org.nuxeo.scim.v2.mapper.UserMapperFactory;
 import org.nuxeo.scim.v2.tests.ScimV2Feature;
 import org.wso2.charon3.core.attributes.ComplexAttribute;
 import org.wso2.charon3.core.attributes.SimpleAttribute;
@@ -52,7 +54,7 @@ import info.wso2.scim2.compliance.objects.SCIMServiceProviderConfig;
 import info.wso2.scim2.compliance.protocol.ComplianceTestMetaDataHolder;
 
 /**
- * SCIM 2.0 compliance tests.
+ * SCIM 2.0 compliance tests, relying on the default {@link ConfigurableUserMapper}.
  * <p>
  * Based on the <a href="https://github.com/wso2-incubator/scim2-compliance-test-suite">SCIM 2.0 Compliance Test
  * Suite</a>.
@@ -65,7 +67,7 @@ public class ScimV2ComplianceTest {
 
     private static final Logger log = LogManager.getLogger(ScimV2ComplianceTest.class);
 
-    protected static final List<TestResult> testResults = new ArrayList<>();
+    protected static List<TestResult> testResults;
 
     @Inject
     protected ScimV2Feature scimV2Feature;
@@ -74,7 +76,9 @@ public class ScimV2ComplianceTest {
 
     @BeforeClass
     public static void begin() {
+        testResults = new ArrayList<>();
         log.info("Running SCIM 2.0 compliancy tests");
+        log.info("Mapper class: {}", UserMapperFactory.getMapperClass());
         log.info("---------------------------------");
     }
 
