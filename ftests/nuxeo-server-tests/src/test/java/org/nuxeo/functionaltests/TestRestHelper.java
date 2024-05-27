@@ -34,7 +34,9 @@ import org.junit.Test;
  * a remote Nuxeo server since upgrade of {@code nuxeo-java-client} to 3.0.0.
  *
  * @since 9.2
+ * @deprecated since 2023.13, use {@link RestTestRule} instead
  */
+@Deprecated(since = "2023.13", forRemoval = true)
 public class TestRestHelper {
 
     @Test

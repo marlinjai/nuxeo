@@ -46,14 +46,13 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
+import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.nuxeo.common.utils.URIUtils;
 import org.nuxeo.ecm.platform.oauth2.NuxeoOAuth2Servlet;
 import org.nuxeo.functionaltests.AbstractTest;
-import org.nuxeo.functionaltests.RestHelper;
+import org.nuxeo.functionaltests.RestTestRule;
 import org.nuxeo.functionaltests.pages.LoginPage;
 import org.nuxeo.http.test.HttpClientTestRule;
 import org.nuxeo.http.test.handler.HttpStatusCodeHandler;
@@ -91,25 +90,23 @@ public class ITOAuth2Test extends AbstractTest {
     @Rule
     public final HttpClientTestRule httpClient = HttpClientTestRule.builder().build();
 
-    @BeforeClass
-    public static void beforeClass() {
-        RestHelper.createUser(TEST_USERNAME, TEST_PASSWORD);
+    @Rule
+    public final RestTestRule restHelper = new RestTestRule();
+
+    @Before
+    public void before() {
+        restHelper.createUser(TEST_USERNAME, TEST_PASSWORD);
         // Create a test OAuth2 client redirecting to localhost
         Map<String, String> properties = new HashMap<>();
         properties.put("name", "Test Client");
         properties.put("clientId", "test-client");
         properties.put("redirectURIs", "http://localhost:8080/nuxeo/home.html");
-        oauth2ClientDirectoryEntryId = RestHelper.createDirectoryEntry(OAUTH2CLIENT_DIRECTORY_NAME, properties);
-    }
-
-    @AfterClass
-    public static void afterClass() {
-        RestHelper.cleanup();
+        oauth2ClientDirectoryEntryId = restHelper.createDirectoryEntry(OAUTH2CLIENT_DIRECTORY_NAME, properties);
     }
 
     @After
     public void after() {
-        RestHelper.deleteDirectoryEntries(DIRECTORY_NAME);
+        restHelper.deleteDirectoryEntries(DIRECTORY_NAME);
         logoutSimply();
     }
 
@@ -167,13 +164,9 @@ public class ITOAuth2Test extends AbstractTest {
         properties.put("name", "Test Client");
         properties.put("clientId", "test-client");
         properties.put("redirectURIs", "http://localhost:8080/nuxeo/home.html");
-        String dirEntryId = RestHelper.createDirectoryEntry(OAUTH2CLIENT_DIRECTORY_NAME, properties);
-        try {
-            errorPage = getOAuth2ErrorPage("/oauth2/authorize?client_id=test-client&response_type=code");
-            errorPage.checkDescription("More than one client registered for the 'test-client' id");
-        } finally {
-            RestHelper.deleteDirectoryEntry(OAUTH2CLIENT_DIRECTORY_NAME, dirEntryId);
-        }
+        restHelper.createDirectoryEntry(OAUTH2CLIENT_DIRECTORY_NAME, properties);
+        errorPage = getOAuth2ErrorPage("/oauth2/authorize?client_id=test-client&response_type=code");
+        errorPage.checkDescription("More than one client registered for the 'test-client' id");
     }
 
     @Test
@@ -405,7 +398,7 @@ public class ITOAuth2Test extends AbstractTest {
     }
 
     protected void setAutoGrant(boolean autoGrant) {
-        RestHelper.updateDirectoryEntry(OAUTH2CLIENT_DIRECTORY_NAME, oauth2ClientDirectoryEntryId,
+        restHelper.updateDirectoryEntry(OAUTH2CLIENT_DIRECTORY_NAME, oauth2ClientDirectoryEntryId,
                 Collections.singletonMap("autoGrant", autoGrant));
     }
 

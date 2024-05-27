@@ -53,6 +53,8 @@ public class LogTestWatchman extends TestWatchman {
 
     protected String serverURL;
 
+    protected final RestTestRule restHelper = new RestTestRule();
+
     public LogTestWatchman(final RemoteWebDriver driver, final String serverURL) {
         this.driver = driver;
         this.serverURL = serverURL;
@@ -149,6 +151,7 @@ public class LogTestWatchman extends TestWatchman {
         log.info("Finished test '{}#{}'", () -> getTestClassName(method), method::getName);
         lastScreenshot = null;
         lastPageSource = null;
+        restHelper.finished();
         super.finished(method);
     }
 
@@ -165,7 +168,7 @@ public class LogTestWatchman extends TestWatchman {
     }
 
     protected void logOnServer(String message) {
-        RestHelper.logOnServer(message);
+        restHelper.logOnServer(message);
     }
 
     public void runBeforeAfters() {
@@ -186,6 +189,7 @@ public class LogTestWatchman extends TestWatchman {
 
     @Override
     public void starting(FrameworkMethod method) {
+        restHelper.starting();
         String message = String.format("Starting test '%s#%s'", getTestClassName(method), method.getName());
         log.info(message);
         String className = getTestClassName(method);

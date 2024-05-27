@@ -18,16 +18,14 @@
  */
 package org.nuxeo.ftest.web.ui;
 
-import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
 
-import org.junit.After;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
-import org.junit.runner.RunWith;
 import org.nuxeo.common.utils.URIUtils;
 import org.nuxeo.functionaltests.AbstractTest;
-import org.nuxeo.functionaltests.RestHelper;
+import org.nuxeo.functionaltests.RestTestRule;
 
 /**
  * @since 9.10
@@ -48,16 +46,14 @@ public class ITJSFToWebUITest extends AbstractTest {
 
     public static final String WEB_UI_PATH_URL = "%s/ui/#!/browse%s";
 
+    @Rule
+    public final RestTestRule restHelper = new RestTestRule();
+
     protected String docId;
 
     @Before
     public void before() {
-        docId = RestHelper.createDocument(WORKSPACES_PATH, "Workspace", WORKSPACE_NAME);
-    }
-
-    @After
-    public void after() {
-        RestHelper.cleanup();
+        docId = restHelper.createDocument(WORKSPACES_PATH, "Workspace", WORKSPACE_NAME);
     }
 
     @Test

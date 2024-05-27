@@ -132,7 +132,7 @@ public class MultiBlobAccessTest {
                                            .build();
         try (InputStream requestBody = entity.getContent()) {
             httpClient.buildPutRequest("path" + doc.getPathAsString() + "/@blob/mb:blobs/0/content")
-                      .addHeader("Content-Type", entity.getContentType().getValue())
+                      .contentType(entity.getContentType().getValue())
                       .entity(requestBody)
                       .executeAndConsume(new HttpStatusCodeHandler(), status -> assertEquals(SC_OK, status.intValue()));
         }

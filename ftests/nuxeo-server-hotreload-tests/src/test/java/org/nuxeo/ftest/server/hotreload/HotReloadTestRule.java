@@ -39,7 +39,7 @@ import org.junit.rules.TestRule;
 import org.junit.runner.Description;
 import org.junit.runners.model.Statement;
 import org.nuxeo.ecm.core.api.NuxeoException;
-import org.nuxeo.functionaltests.RestHelper;
+import org.nuxeo.functionaltests.RestTestRule;
 
 /**
  * This Rule gives mechanism for hot reload tests.
@@ -62,6 +62,8 @@ public class HotReloadTestRule implements TestRule {
 
     public static final String NUXEO_RELOAD_PATH = "/sdk/reload";
 
+    protected final RestTestRule restHelper;
+
     protected final static Function<URL, URI> URI_MAPPER = url -> {
         try {
             return url.toURI();
@@ -69,6 +71,29 @@ public class HotReloadTestRule implements TestRule {
             throw new NuxeoException("Unable to map the url to uri", e);
         }
     };
+
+    public HotReloadTestRule() {
+        this(new RestTestRule());
+    }
+
+    /**
+     * Constructor which takes as input the {@link RestTestRule}.
+     * <p>
+     * Note that you must not declare your {@link RestTestRule} as {@link org.junit.Rule JUnit Rule} when using this
+     * constructor, because this is {@link HotReloadTestRule} which handles the Rule mechanism, see below:
+     * 
+     * <pre>{@code
+     * protected final RestTestRule restHelper = new RestTestRule();
+     *
+     * @Rule
+     * public final HotReloadTestRule hotReloadRule = new HotReloadTestRule(restHelper);
+     * }</pre>
+     * 
+     * @since 2023.13
+     */
+    public HotReloadTestRule(RestTestRule restHelper) {
+        this.restHelper = restHelper;
+    }
 
     @Override
     public Statement apply(Statement base, Description description) {
@@ -88,7 +113,8 @@ public class HotReloadTestRule implements TestRule {
     }
 
     protected void starting(Description description) {
-        RestHelper.logOnServer(String.format("Starting test '%s#%s'", description.getTestClass().getSimpleName(),
+        restHelper.starting();
+        restHelper.logOnServer(String.format("Starting test '%s#%s'", description.getTestClass().getSimpleName(),
                 description.getMethodName()));
         deployDevBundle(description);
     }
@@ -96,11 +122,12 @@ public class HotReloadTestRule implements TestRule {
     protected void finished(Description description) {
         String className = description.getTestClass().getSimpleName();
         String methodName = description.getMethodName();
-        RestHelper.logOnServer(String.format("Ending test '%s#%s'", className, methodName));
-        RestHelper.cleanup();
+        restHelper.logOnServer(String.format("Ending test '%s#%s'", className, methodName));
+        restHelper.cleanup();
         // reset dev.bundles file
         updateDevBundles("# AFTER TEST: " + methodName);
-        RestHelper.logOnServer(String.format("Test ended '%s#%s'", className, methodName));
+        restHelper.logOnServer(String.format("Test ended '%s#%s'", className, methodName));
+        restHelper.finished();
     }
 
     /**
@@ -173,16 +200,16 @@ public class HotReloadTestRule implements TestRule {
      * java client, see {@code RestHelper#CLIENT}. Furthermore, test will fail if server returns an error.
      */
     public void updateDevBundles(String body) {
-        // we don't want any aync work to still be running during hot-reload as for now
+        // we don't want any async work to still be running during hot-reload as for now
         // it may cause spurious exception in the logs (NXP-23286)
         Map<String, Object> parameters = new HashMap<>();
         parameters.put("timeoutSecond", Integer.valueOf(110));
         parameters.put("refresh", Boolean.TRUE);
         parameters.put("waitForAudit", Boolean.TRUE);
-        RestHelper.operation("Elasticsearch.WaitForIndexing", parameters);
+        restHelper.operation("Elasticsearch.WaitForIndexing", parameters);
 
         // POST new dev bundles to deploy
-        if (!RestHelper.post(NUXEO_RELOAD_PATH, body)) {
+        if (!restHelper.post(NUXEO_RELOAD_PATH, body)) {
             fail("Unable to reload dev bundles, for body=" + body);
         }
     }

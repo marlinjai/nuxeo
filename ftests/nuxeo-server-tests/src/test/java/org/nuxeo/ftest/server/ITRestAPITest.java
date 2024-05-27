@@ -22,13 +22,13 @@ package org.nuxeo.ftest.server;
 
 import static org.junit.Assert.assertTrue;
 
-import org.junit.After;
+import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.nuxeo.common.utils.URIUtils;
 import org.nuxeo.ecm.core.test.annotations.Granularity;
 import org.nuxeo.ecm.core.test.annotations.RepositoryConfig;
-import org.nuxeo.functionaltests.RestHelper;
+import org.nuxeo.functionaltests.RestTestRule;
 import org.nuxeo.runtime.test.runner.FeaturesRunner;
 
 /**
@@ -38,10 +38,8 @@ import org.nuxeo.runtime.test.runner.FeaturesRunner;
 @RepositoryConfig(cleanup = Granularity.METHOD)
 public class ITRestAPITest {
 
-    @After
-    public void after() {
-        RestHelper.cleanup();
-    }
+    @Rule
+    public final RestTestRule restHelper = new RestTestRule();
 
     @Test
     public void testAPIServletForwardWithReservedCharacters() {
@@ -52,10 +50,10 @@ public class ITRestAPITest {
     }
 
     protected void documentExists(String parentPath, String title) {
-        RestHelper.createDocument(parentPath, "File", title, "");
+        restHelper.createDocument(parentPath, "File", title);
 
         String encodedTitle = URIUtils.quoteURIPathComponent(title, false, false);
-        assertTrue(RestHelper.documentExists(parentPath + "/" + encodedTitle));
+        assertTrue(restHelper.documentExists(parentPath + "/" + encodedTitle));
     }
 
 }
