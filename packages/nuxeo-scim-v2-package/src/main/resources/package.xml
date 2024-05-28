@@ -1,0 +1,15 @@
+<?xml version="1.0"?>
+<package type="addon" name="nuxeo-scim-v2" version="@VERSION@">
+  <title>Nuxeo SCIM 2.0</title>
+  <description>Nuxeo implementation of the server-side SCIM 2.0 specification.</description>
+  <vendor>Nuxeo</vendor>
+  <target-platform>
+    <name>@DISTRIBUTION_NAME@</name>
+    <version>@VERSION@</version>
+  </target-platform>
+  <conflicts>
+    <package>nuxeo-scim-addon</package>
+  </conflicts>
+  <license>Apache 2.0</license>
+  <license-url>http://www.apache.org/licenses/LICENSE-2.0</license-url>
+</package>

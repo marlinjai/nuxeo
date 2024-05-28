@@ -42,6 +42,7 @@
     <module>nuxeo-quota-package</module>
     <module>nuxeo-saml2-login-package</module>
     <module>nuxeo-scan-importer-package</module>
+    <module>nuxeo-scim-v2-package</module>
     <module>nuxeo-shibboleth-login-package</module>
     <module>nuxeo-signature-package</module>
     <module>nuxeo-template-rendering-package</module>
