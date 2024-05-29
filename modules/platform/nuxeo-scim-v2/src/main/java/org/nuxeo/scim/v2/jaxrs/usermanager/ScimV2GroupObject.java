@@ -21,6 +21,8 @@ package org.nuxeo.scim.v2.jaxrs.usermanager;
 
 import static com.unboundid.scim2.common.exceptions.BadRequestException.INVALID_SYNTAX;
 import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
+import static javax.ws.rs.core.Response.Status.CREATED;
+import static javax.ws.rs.core.Response.Status.OK;
 
 import java.net.URISyntaxException;
 
@@ -35,7 +37,9 @@ import javax.ws.rs.core.Response;
 
 import org.nuxeo.ecm.core.api.DocumentModel;
 import org.nuxeo.ecm.directory.DirectoryException;
+import org.nuxeo.ecm.platform.usermanager.UserManager;
 import org.nuxeo.ecm.webengine.model.WebObject;
+import org.nuxeo.runtime.api.Framework;
 import org.nuxeo.scim.v2.jaxrs.marshalling.ResponseUtils;
 
 import com.unboundid.scim2.common.exceptions.BadRequestException;
@@ -93,13 +97,15 @@ public class ScimV2GroupObject extends ScimV2BaseUMObject {
         if (groupName == null) {
             throw new BadRequestException("Cannot create user without a displayName", INVALID_SYNTAX);
         }
+        UserManager um = Framework.getService(UserManager.class);
+        boolean create = um.getGroupModel(groupName) == null;
         DocumentModel newGroup = mapper.createNuxeoGroupFromGroupResource(group);
         if (newGroup == null) {
             throw new ServerErrorException("Cannot create group from resource: " + group);
         }
         try {
             GroupResource groupResource = mapper.getGroupResourceFromNuxeoGroup(newGroup, baseURL);
-            return ResponseUtils.created(groupResource);
+            return ResponseUtils.response(create ? CREATED : OK, groupResource);
         } catch (URISyntaxException e) {
             throw new ServerErrorException("Cannot create group: " + groupName, null, e);
         }

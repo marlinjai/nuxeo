@@ -21,6 +21,8 @@ package org.nuxeo.scim.v2.jaxrs.usermanager;
 
 import static com.unboundid.scim2.common.exceptions.BadRequestException.INVALID_SYNTAX;
 import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
+import static javax.ws.rs.core.Response.Status.CREATED;
+import static javax.ws.rs.core.Response.Status.OK;
 import static org.apache.commons.lang3.StringUtils.isBlank;
 
 import java.net.URISyntaxException;
@@ -36,7 +38,9 @@ import javax.ws.rs.core.Response;
 
 import org.nuxeo.ecm.core.api.DocumentModel;
 import org.nuxeo.ecm.directory.DirectoryException;
+import org.nuxeo.ecm.platform.usermanager.UserManager;
 import org.nuxeo.ecm.webengine.model.WebObject;
+import org.nuxeo.runtime.api.Framework;
 import org.nuxeo.scim.v2.jaxrs.marshalling.ResponseUtils;
 
 import com.unboundid.scim2.common.exceptions.BadRequestException;
@@ -93,13 +97,15 @@ public class ScimV2UserObject extends ScimV2BaseUMObject {
         if (isBlank(userName)) {
             throw new BadRequestException("Cannot create user without a username", INVALID_SYNTAX);
         }
+        UserManager um = Framework.getService(UserManager.class);
+        boolean create = um.getUserModel(userName) == null;
         DocumentModel newUser = mapper.createNuxeoUserFromUserResource(user);
         if (newUser == null) {
             throw new ServerErrorException("Cannot create user from resource: " + user);
         }
         try {
             UserResource userResource = mapper.getUserResourceFromNuxeoUser(newUser, baseURL);
-            return ResponseUtils.created(userResource);
+            return ResponseUtils.response(create ? CREATED : OK, userResource);
         } catch (URISyntaxException e) {
             throw new ServerErrorException("Cannot create user: " + userName, null, e);
         }

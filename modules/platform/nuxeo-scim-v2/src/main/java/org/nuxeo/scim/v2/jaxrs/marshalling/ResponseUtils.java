@@ -20,10 +20,10 @@
 package org.nuxeo.scim.v2.jaxrs.marshalling;
 
 import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
-import static javax.ws.rs.core.Response.Status.CREATED;
 import static javax.ws.rs.core.Response.Status.NO_CONTENT;
 
 import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
 
 import com.unboundid.scim2.common.messages.ErrorResponse;
 
@@ -38,9 +38,12 @@ public final class ResponseUtils {
         // helper class
     }
 
-    public static Response created(Object entity) {
-        return Response.status(CREATED).type(APPLICATION_JSON).entity(entity).build();
+    public static Response response(Status status, Object entity) {
+        return response(status.getStatusCode(), entity);
+    }
 
+    public static Response response(int status, Object entity) {
+        return Response.status(status).type(APPLICATION_JSON).entity(entity).build();
     }
 
     public static Response deleted() {
@@ -48,7 +51,7 @@ public final class ResponseUtils {
     }
 
     public static Response error(ErrorResponse error) {
-        return Response.status(error.getStatus()).type(APPLICATION_JSON).entity(error).build();
+        return response(error.getStatus(), error);
     }
 
 }
