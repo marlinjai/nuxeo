@@ -27,15 +27,23 @@ object ScnFullGC {
     scenario("FullGC")
       .feed(Feeders.admins)
       .exec(NuxeoBulk.versionFullGC()).exitHereIfFailed
-      .exec(session => {Redis.set("versionsTotal", session("versionsTotal").as[String])
-                        session})
-      .exec(session => {Redis.set("versionsRetained", session("versionsRetained").as[String])
-                        session})
+      .exec(session => {
+        Redis.set("versionsTotal", session("versionsTotal").as[String])
+        session
+      })
+      .exec(session => {
+        Redis.set("versionsRetained", session("versionsRetained").as[String])
+        session
+      })
       .exec(NuxeoBulk.binaryFullGC()).exitHereIfFailed
-      .exec(session => {Redis.set("binariesTotal", session("binariesTotal").as[String])
-                        session})
-      .exec(session => {Redis.set("binariesRetained", session("binariesRetained").as[String])
-                        session})
+      .exec(session => {
+        Redis.set("binariesTotal", session("binariesTotal").as[String])
+        session
+      })
+      .exec(session => {
+        Redis.set("binariesRetained", session("binariesRetained").as[String])
+        session
+      })
   }
 }
 

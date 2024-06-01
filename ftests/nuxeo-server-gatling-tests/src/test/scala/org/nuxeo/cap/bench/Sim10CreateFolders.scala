@@ -21,19 +21,19 @@ package org.nuxeo.cap.bench
 import io.gatling.core.Predef._
 import io.gatling.http.Predef._
 
-import scala.concurrent.duration.Duration
+import scala.concurrent.duration.FiniteDuration
 
 object ScnCreateFolders {
 
-  def get = (folders: Iterator[Map[String, String]], pause: Duration) => {
+  def get = (folders: Iterator[Map[String, String]], pause: FiniteDuration) => {
     scenario("CreateFolders").exec(
       asLongAs(session => Feeders.notEmpty(session), exitASAP = true) {
         feed(folders)
           .feed(Feeders.users)
           .exec(NuxeoRest.createDocument())
           .doIf(session => Redis.markFolderCreated(session)) {
-          exec()
-        }.pause(pause)
+            exec()
+          }.pause(pause)
       }
     ).feed(Feeders.admins).exec(NuxeoRest.waitForAsyncJobs())
   }

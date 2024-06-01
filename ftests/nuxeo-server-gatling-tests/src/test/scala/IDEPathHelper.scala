@@ -14,13 +14,15 @@
  * Contributors:
  *     Delbosc Benoit
  */
+import java.net.URL
 import java.nio.file.Path
 import io.gatling.commons.util.PathHelper._
 
+
 object IDEPathHelper {
 
-	val gatlingConfUrl: Path = getClass.getClassLoader.getResource("gatling.conf")
-	val projectRootDir = gatlingConfUrl.ancestor(3)
+	val gatlingConfUrl: URL = getClass.getClassLoader.getResource("gatling.conf")
+	val projectRootDir = Path.of(gatlingConfUrl.getPath).ancestor(3)
 
 	val mavenSourcesDirectory = projectRootDir / "src" / "test" / "scala"
 	val mavenResourcesDirectory = projectRootDir / "src" / "test" / "resources"

@@ -22,12 +22,13 @@ import io.gatling.core.Predef._
 import io.gatling.core.config.GatlingFiles
 import io.gatling.http.Predef._
 
-import scala.concurrent.duration.Duration
+import scala.concurrent.duration.FiniteDuration
 import scala.io.Source
+import scala.util.Using
 
 object ScnSetup {
 
-  def get = (userCount: Integer, pause: Duration) => {
+  def get = (userCount: Integer, pause: FiniteDuration) => {
     scenario("Setup").exec(
       feed(Feeders.admins)
         .exec(NuxeoRest.createGroupIfNotExists(Constants.GAT_GROUP_NAME)).exitHereIfFailed
@@ -39,10 +40,10 @@ object ScnSetup {
         .exec(NuxeoRest.createDocumentIfNotExistsAsAdmin(Constants.GAT_WS_PATH, Constants.GAT_FOLDER_IMPORT_NAME, "Folder")).exitHereIfFailed
         .exec(NuxeoBulk.disableScheduler()).exitHereIfFailed
         .repeat(userCount.intValue(), "count") {
-        feed(Feeders.users)
-          .exec(NuxeoRest.createUserIfNotExists(Constants.GAT_GROUP_NAME)).pause(pause)
-        //.exec(Actions.createDocumentIfNotExists(Constants.GAT_WS_PATH, Constants.GAT_USER_FOLDER_NAME, "Folder"))
-      }
+          feed(Feeders.users)
+            .exec(NuxeoRest.createUserIfNotExists(Constants.GAT_GROUP_NAME)).pause(pause)
+          //.exec(Actions.createDocumentIfNotExists(Constants.GAT_WS_PATH, Constants.GAT_USER_FOLDER_NAME, "Folder"))
+        }
     )
   }
 
@@ -54,8 +55,10 @@ class Sim00Setup extends Simulation {
     .disableWarmUp
     .acceptEncodingHeader("gzip, deflate")
     .connectionHeader("keep-alive")
-  val userCount = Source.fromFile(GatlingFiles.resourcesDirectory + "/data/users.csv").getLines.size - 1
-  val scn = ScnSetup.get(userCount, Parameters.getPause())
+  val userCount = Using(Source.fromFile(GatlingFiles.resourcesDirectory(configuration) + "/data/users.csv")) {
+    reader => reader.getLines.size - 1
+  }
+  val scn = ScnSetup.get(userCount.get, Parameters.getPause())
   setUp(scn.inject(atOnceUsers(1))).protocols(httpProtocol).exponentialPauses
     .assertions(global.successfulRequests.percent.is(100))
 }

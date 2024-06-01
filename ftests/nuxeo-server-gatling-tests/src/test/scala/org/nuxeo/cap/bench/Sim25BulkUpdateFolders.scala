@@ -22,18 +22,18 @@ package org.nuxeo.cap.bench
 import io.gatling.core.Predef._
 import io.gatling.http.Predef._
 
-import scala.concurrent.duration.Duration
+import scala.concurrent.duration.{Duration, FiniteDuration}
 
 object ScnBulkUpdateFolders {
 
-  def get = (documents: Iterator[Map[String, String]], duration: Duration, pause: Duration) => {
+  def get = (documents: Iterator[Map[String, String]], duration: Duration, pause: FiniteDuration) => {
     scenario("BulkUpdateFolders").exec(
       during(duration, "counterName") {
         feed(documents)
           // TODO: when NXP-25940 is done use random user
           .feed(Feeders.admins)
           .exec(NuxeoBulk.bulkUpdateDocument("SELECT * FROM Document WHERE ecm:path = '" + Constants.GAT_WS_PATH + "/${parentPath}'", "dc:description", "bulk folder")
-          .check(jsonPath("$.commandId").saveAs("commandId")))
+            .check(jsonPath("$.commandId").saveAs("commandId")))
           .exec(NuxeoBulk.waitForAction("${commandId}"))
           .exec(flushCookieJar)
           .pause(pause)

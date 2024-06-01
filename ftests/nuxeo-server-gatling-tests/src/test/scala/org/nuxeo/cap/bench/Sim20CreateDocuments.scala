@@ -21,19 +21,19 @@ package org.nuxeo.cap.bench
 import io.gatling.core.Predef._
 import io.gatling.http.Predef._
 
-import scala.concurrent.duration.Duration
+import scala.concurrent.duration.FiniteDuration
 
 object ScnCreateDocuments {
 
-  def get = (documents: Iterator[Map[String, String]], pause: Duration) => {
+  def get = (documents: Iterator[Map[String, String]], pause: FiniteDuration) => {
     scenario("CreateDocuments").exec(
       asLongAs(session => Feeders.notEmpty(session), exitASAP = true) {
         feed(documents)
           .feed(Feeders.users)
           .exec(NuxeoRest.createDocument())
           .doIf(session => Redis.markDocumentCreated(session)) {
-          exec()
-        }.pause(pause)
+            exec()
+          }.pause(pause)
       }
     ).feed(Feeders.admins)
   }

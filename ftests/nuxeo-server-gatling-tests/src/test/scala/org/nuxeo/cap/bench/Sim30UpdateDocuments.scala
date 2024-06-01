@@ -21,11 +21,11 @@ package org.nuxeo.cap.bench
 import io.gatling.core.Predef._
 import io.gatling.http.Predef._
 
-import scala.concurrent.duration.Duration
+import scala.concurrent.duration.{Duration, FiniteDuration}
 
 object ScnUpdateDocuments {
 
-  def get = (documents: Iterator[Map[String, String]], duration: Duration, pause: Duration) => {
+  def get = (documents: Iterator[Map[String, String]], duration: Duration, pause: FiniteDuration) => {
     scenario("UpdateDocuments").exec(
       during(duration, "counterName") {
         feed(documents)

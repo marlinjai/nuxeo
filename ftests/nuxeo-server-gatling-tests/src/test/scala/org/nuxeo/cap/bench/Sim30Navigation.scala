@@ -21,11 +21,11 @@ package org.nuxeo.cap.bench
 import io.gatling.core.Predef._
 import io.gatling.http.Predef._
 
-import scala.concurrent.duration.Duration
+import scala.concurrent.duration.{Duration, FiniteDuration}
 
 object ScnNavigation {
 
-  def get = (documents: Iterator[Map[String, String]], duration: Duration, pause: Duration) => {
+  def get = (documents: Iterator[Map[String, String]], duration: Duration, pause: FiniteDuration) => {
     scenario("NavigationRest").exec(
       during(duration, "counterName") {
         feed(Feeders.users).repeat(5) {

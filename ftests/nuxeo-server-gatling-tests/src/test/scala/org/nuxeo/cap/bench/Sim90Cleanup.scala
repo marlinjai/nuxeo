@@ -23,6 +23,7 @@ import io.gatling.core.config.GatlingFiles
 import io.gatling.http.Predef._
 
 import scala.io.Source
+import scala.util.Using
 
 class Sim90Cleanup extends Simulation {
   def run = (userCount: Integer) => {
@@ -30,9 +31,9 @@ class Sim90Cleanup extends Simulation {
       .exec(NuxeoRest.permanentlyDelete(Constants.GAT_WS_PATH))
       .exec(NuxeoRest.waitForAsyncJobs())
       .repeat(userCount.intValue(), "count") {
-      feed(Feeders.users)
-        .exec(NuxeoRest.deleteUser())
-    }.exec(NuxeoRest.deleteGroup(Constants.GAT_GROUP_NAME))
+        feed(Feeders.users)
+          .exec(NuxeoRest.deleteUser())
+      }.exec(NuxeoRest.deleteGroup(Constants.GAT_GROUP_NAME))
   }
 
   val url = System.getProperty("url", "http://localhost:8080/nuxeo")
@@ -41,7 +42,9 @@ class Sim90Cleanup extends Simulation {
     .disableWarmUp
     .acceptEncodingHeader("gzip, deflate")
     .connectionHeader("keep-alive")
-  val userCount = Source.fromFile(GatlingFiles.resourcesDirectory + "/data/users.csv").getLines.size - 1
-  val scn = scenario("Cleanup").exec(run(userCount))
+  val userCount = Using(Source.fromFile(GatlingFiles.resourcesDirectory(configuration) + "/data/users.csv")) {
+    reader => reader.getLines.size - 1
+  }
+  val scn = scenario("Cleanup").exec(run(userCount.get))
   setUp(scn.inject(atOnceUsers(1))).protocols(httpProtocol)
 }

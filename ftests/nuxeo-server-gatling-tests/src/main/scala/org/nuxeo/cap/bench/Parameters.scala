@@ -30,9 +30,9 @@ object Parameters {
     Integer.getInteger(prefix + "users", default)
   }
 
-  def getPause(defaultMs: Integer = 0, prefix: String = ""): Duration = {
+  def getPause(defaultMs: Integer = 0, prefix: String = ""): FiniteDuration = {
     val pauseMs: Long = 0L + Integer.getInteger(prefix + "pause_ms", defaultMs)
-    Duration(pauseMs, "millisecond")
+    FiniteDuration(pauseMs, "millisecond")
   }
 
   def getSimulationDuration(default: Integer = 120): Duration = {

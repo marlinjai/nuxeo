@@ -27,7 +27,7 @@ object ScnBulkUpdateDocuments {
     scenario("BulkUpdateDocuments")
       .feed(Feeders.admins)
       .exec(NuxeoBulk.bulkUpdateDocument("SELECT * FROM File WHERE ecm:isVersion = 0 AND ecm:isTrashed = 0",
-        "dc:description", "bulk")
+          "dc:description", "bulk")
         .check(jsonPath("$.commandId").saveAs("commandId")))
       .exec(NuxeoBulk.waitForAction("${commandId}"))
       .exec(NuxeoRest.waitForAsyncJobs())
