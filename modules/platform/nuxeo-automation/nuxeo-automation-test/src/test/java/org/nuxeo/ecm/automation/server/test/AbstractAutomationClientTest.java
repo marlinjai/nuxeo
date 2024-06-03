@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2006-2016 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2006-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -92,10 +92,10 @@ public abstract class AbstractAutomationClientTest {
     protected JsonNode automationTestFolder;
 
     @Inject
-    HttpAutomationSession session;
+    protected HttpAutomationSession session;
 
     @Inject
-    HttpAutomationClient client;
+    protected HttpAutomationClient client;
 
     public String getId(JsonNode node) {
         return node.get("uid").asText();
@@ -500,7 +500,7 @@ public abstract class AbstractAutomationClientTest {
         assertNotNull(blob);
         assertEquals(filename, blob.getFilename());
         assertEquals(mimeType, blob.getMimeType());
-        assertEquals("<doc>mydoc</doc>", IOUtils.toString(blob.getStream(), "utf-8"));
+        assertEquals("<doc>mydoc</doc>", IOUtils.toString(blob.getStream(), UTF_8));
     }
 
     /**
@@ -558,7 +558,7 @@ public abstract class AbstractAutomationClientTest {
         assertNotNull(blob);
         assertEquals("doc1.xml", blob.getFilename());
         assertEquals("text/xml", blob.getMimeType());
-        assertEquals("<doc>mydoc1</doc>", IOUtils.toString(blob.getStream(), "utf-8"));
+        assertEquals("<doc>mydoc1</doc>", IOUtils.toString(blob.getStream(), UTF_8));
 
         // the same for the second file
         map = list.get(1).get("file");
@@ -571,7 +571,7 @@ public abstract class AbstractAutomationClientTest {
         assertNotNull(blob);
         assertEquals("doc2.xml", blob.getFilename());
         assertEquals("text/xml", blob.getMimeType());
-        assertEquals("<doc>mydoc2</doc>", IOUtils.toString(blob.getStream(), "utf-8"));
+        assertEquals("<doc>mydoc2</doc>", IOUtils.toString(blob.getStream(), UTF_8));
 
         // now test the GetDocumentBlobs operation on the note document
         List<Blob> blobs = session.newRequest(GetDocumentBlobs.ID) //
@@ -585,13 +585,13 @@ public abstract class AbstractAutomationClientTest {
         blob = blobs.get(0);
         assertEquals("doc1.xml", blob.getFilename());
         assertEquals("text/xml", blob.getMimeType());
-        assertEquals("<doc>mydoc1</doc>", IOUtils.toString(blob.getStream(), "utf-8"));
+        assertEquals("<doc>mydoc1</doc>", IOUtils.toString(blob.getStream(), UTF_8));
 
         // test the second one
         blob = blobs.get(1);
         assertEquals("doc2.xml", blob.getFilename());
         assertEquals("text/xml", blob.getMimeType());
-        assertEquals("<doc>mydoc2</doc>", IOUtils.toString(blob.getStream(), "utf-8"));
+        assertEquals("<doc>mydoc2</doc>", IOUtils.toString(blob.getStream(), UTF_8));
     }
 
     /**

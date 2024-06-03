@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2014-2016 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2014-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -106,17 +106,19 @@ public class ResponseHelper {
         }
         if (result instanceof Blob) {
             return result; // BlobWriter will do all the processing and call the DownloadService
-        } else if (result instanceof BlobList) {
-            return blobs((BlobList) result);
-        } else if (result instanceof DocumentRef) {
+        } else if (result instanceof BlobList blobList) {
+            return blobs(blobList);
+        } else if (result instanceof DocumentRef docRef) {
             CoreSession session = SessionFactory.getSession(request);
-            return Response.status(httpStatus).entity(session.getDocument((DocumentRef) result)).build();
-        } else if (result instanceof DocumentRefList) {
+            return Response.status(httpStatus).entity(session.getDocument(docRef)).build();
+        } else if (result instanceof DocumentRefList docRefs) {
             CoreSession session = SessionFactory.getSession(request);
-            return Response.status(httpStatus).entity(((DocumentRefList) result).stream().map(session::getDocument)
-                    .collect(Collectors.toCollection(DocumentModelListImpl::new))).build();
-        } else if (result instanceof List && !((List<?>) result).isEmpty()
-                && ((List<?>) result).get(0) instanceof NuxeoPrincipal) {
+            return Response.status(httpStatus)
+                           .entity(docRefs.stream()
+                                          .map(session::getDocument)
+                                          .collect(Collectors.toCollection(DocumentModelListImpl::new)))
+                           .build();
+        } else if (result instanceof List list && !list.isEmpty() && list.get(0) instanceof NuxeoPrincipal) {
             return Response.status(httpStatus)
                            .entity(new GenericEntity<>(result,
                                    TypeUtils.parameterize(List.class, NuxeoPrincipal.class)))

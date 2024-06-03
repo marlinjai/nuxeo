@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2020 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2020-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -170,8 +170,7 @@ public class HttpAutomationRequest {
         if (value.getClass() == Date.class) {
             Date date = (Date) value;
             params.put(key, date.toInstant().toString());
-        } else if (value instanceof Calendar) {
-            Calendar cal = (Calendar) value;
+        } else if (value instanceof Calendar cal) {
             params.put(key, cal.toInstant().toString());
         } else {
             params.put(key, value);
@@ -197,8 +196,7 @@ public class HttpAutomationRequest {
             @SuppressWarnings("unchecked")
             List<Object> list = (List<Object>) object;
             return list.stream().map(o -> toNuxeoEntity(o, klass, type)).collect(toList());
-        } else if (object instanceof Object[]) {
-            Object[] array = (Object[]) object;
+        } else if (object instanceof Object[] array) {
             return Arrays.stream(array).map(o -> toNuxeoEntity(o, klass, type)).collect(toList());
         }
         if (klass.isAssignableFrom(object.getClass())) {
@@ -553,8 +551,8 @@ public class HttpAutomationRequest {
         } else if (input != null) {
             jsonMap.put(INPUT, input);
         }
-        jsonMap.put(PARAMS, params == null ? Map.of() : params);
-        jsonMap.put(CONTEXT, context == null ? Map.of() : context);
+        jsonMap.put(PARAMS, params);
+        jsonMap.put(CONTEXT, context);
         StringWriter writer = new StringWriter();
         try {
             MAPPER.writeValue(writer, jsonMap);
@@ -566,8 +564,7 @@ public class HttpAutomationRequest {
             // input is part of the JSON
             return new StringEntity(json, APPLICATION_JSON);
         }
-        if (input instanceof Blob) {
-            Blob blob = (Blob) input;
+        if (input instanceof Blob blob) {
             return blobsToEntity(json, List.of(blob));
         } else if (isBlobList(input)) {
             @SuppressWarnings("unchecked")
@@ -578,33 +575,24 @@ public class HttpAutomationRequest {
     }
 
     protected static boolean isBlobList(Object object) {
-        if (!(object instanceof List<?>)) {
-            return false;
+        if (object instanceof List<?> list && !list.isEmpty()) {
+            return list.get(0) instanceof Blob;
         }
-        List<?> list = (List<?>) object;
-        if (list.isEmpty()) {
-            return false;
-        }
-        return list.get(0) instanceof Blob;
+        return false;
     }
 
     protected boolean isDocument(Object object) {
-        if (!(object instanceof JsonNode)) {
-            return false;
+        if (object instanceof JsonNode node) {
+            return ENTITY_TYPE_DOCUMENT.equals(getEntityType(node));
         }
-        JsonNode node = (JsonNode) object;
-        return ENTITY_TYPE_DOCUMENT.equals(getEntityType(node));
+        return false;
     }
 
     protected boolean isDocumentList(Object object) {
-        if (!(object instanceof List<?>)) {
-            return false;
+        if (object instanceof List<?> list && !list.isEmpty()) {
+            return isDocument(list.get(0));
         }
-        List<?> list = (List<?>) object;
-        if (list.isEmpty()) {
-            return false;
-        }
-        return isDocument(list.get(0));
+        return false;
     }
 
     protected static Object documentToJsonValue(JsonNode doc) {
