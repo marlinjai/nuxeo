@@ -53,7 +53,6 @@ import org.apache.http.HttpEntity;
 import org.apache.http.entity.StringEntity;
 import org.junit.After;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.nuxeo.ecm.automation.core.operations.blob.AttachBlob;
 import org.nuxeo.ecm.automation.core.operations.blob.CreateZip;
@@ -507,7 +506,6 @@ public abstract class AbstractAutomationClientTest {
      * Test blobs input / output
      */
     @Test
-    @Ignore("NXP-22652")
     public void testGetBlobs() throws Exception {
         // create a note
         session.newRequest(CreateDocument.ID)
@@ -519,25 +517,14 @@ public abstract class AbstractAutomationClientTest {
         // attach 2 files to that note
         Blob fb1 = Blobs.createBlob("<doc>mydoc1</doc>", "text/xml", null, "doc1.xml");
         Blob fb2 = Blobs.createBlob("<doc>mydoc2</doc>", "text/xml", null, "doc2.xml");
-        // TODO attachblob cannot set multiple blobs at once.
-        Blob blob = session.newRequest(AttachBlob.ID)
+        var blobs = session.newRequest(AttachBlob.ID)
                            .setHeader(VOID_OPERATION, "true")
-                           .setInput(fb1)
+                           .setInput(List.of(fb1, fb2))
                            .set("document", "/automation-test-folder/blobs")
                            .set("xpath", "files:files")
-                           .executeReturningBlob();
+                           .executeReturningBlobs();
         // test that output was avoided using Constants.HEADER_NX_VOIDOP
-        assertNull(blob);
-
-        // attach second blob
-        blob = session.newRequest(AttachBlob.ID)
-                      .setHeader(VOID_OPERATION, "true")
-                      .setInput(fb2)
-                      .set("document", "/automation-test-folder/blobs")
-                      .set("xpath", "files:files")
-                      .executeReturningBlob();
-        // test that output was avoided using Constants.HEADER_NX_VOIDOP
-        assertNull(blob);
+        assertNull(blobs);
 
         // now retrieve the note with full schemas
         JsonNode note = session.newRequest(FetchDocument.ID)
@@ -554,7 +541,7 @@ public abstract class AbstractAutomationClientTest {
 
         // get the data URL
         String path = map.get("data").asText();
-        blob = session.newRequest().getFile(path);
+        var blob = session.newRequest().getFile(path);
         assertNotNull(blob);
         assertEquals("doc1.xml", blob.getFilename());
         assertEquals("text/xml", blob.getMimeType());
@@ -574,10 +561,10 @@ public abstract class AbstractAutomationClientTest {
         assertEquals("<doc>mydoc2</doc>", IOUtils.toString(blob.getStream(), UTF_8));
 
         // now test the GetDocumentBlobs operation on the note document
-        List<Blob> blobs = session.newRequest(GetDocumentBlobs.ID) //
-                                  .setInput(note)
-                                  .set("xpath", "files:files")
-                                  .executeReturningBlobs();
+        blobs = session.newRequest(GetDocumentBlobs.ID) //
+                       .setInput(note)
+                       .set("xpath", "files:files")
+                       .executeReturningBlobs();
         assertNotNull(blobs);
         assertEquals(2, blobs.size());
 
