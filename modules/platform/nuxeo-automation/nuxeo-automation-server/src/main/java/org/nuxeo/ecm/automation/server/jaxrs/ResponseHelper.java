@@ -21,6 +21,7 @@ package org.nuxeo.ecm.automation.server.jaxrs;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import javax.mail.MessagingException;
@@ -31,6 +32,7 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
 import org.apache.commons.lang3.reflect.TypeUtils;
+import org.nuxeo.common.function.ThrowableFunction;
 import org.nuxeo.ecm.automation.core.util.BlobList;
 import org.nuxeo.ecm.automation.core.util.Paginable;
 import org.nuxeo.ecm.automation.core.util.RecordSet;
@@ -46,12 +48,19 @@ import org.nuxeo.ecm.core.api.DocumentRefList;
 import org.nuxeo.ecm.core.api.NuxeoPrincipal;
 import org.nuxeo.ecm.core.api.impl.DocumentModelListImpl;
 import org.nuxeo.ecm.webengine.jaxrs.session.SessionFactory;
+import org.nuxeo.runtime.api.Framework;
+
+import com.sun.jersey.core.header.ContentDisposition;
+import com.sun.jersey.multipart.BodyPart;
+import com.sun.jersey.multipart.MultiPart;
 
 /**
  * @author <a href="mailto:bs@nuxeo.com">Bogdan Stefanescu</a>
  * @author <a href="mailto:ataillefer@nuxeo.com">Antoine Taillefer</a>
  */
 public class ResponseHelper {
+
+    public static final String MULTIPART_FILENAME_UTF_8 = "nuxeo.multipart.filename.utf8.encoding";
 
     private ResponseHelper() {
     }
@@ -79,6 +88,21 @@ public class ResponseHelper {
     public static Response blobs(List<Blob> blobs, int httpStatus) throws MessagingException, IOException {
         if (blobs.isEmpty()) {
             return emptyBlobs();
+        }
+        if (Framework.isBooleanPropertyTrue(MULTIPART_FILENAME_UTF_8)) {
+            try (var multipart = new MultiPart()) {
+                for (var blob : blobs) {
+                    var mediaType = Optional.ofNullable(blob.getMimeType())
+                                            .map(ThrowableFunction.asFunction(MediaType::valueOf))
+                                            .orElse(MediaType.APPLICATION_OCTET_STREAM_TYPE);
+                    var contentDisposition = ContentDisposition.type("attachment")
+                                                               .fileName(blob.getFilename())
+                                                               .size(blob.getLength())
+                                                               .build();
+                    multipart.bodyPart(new BodyPart(mediaType).entity(blob.getStream()).contentDisposition(contentDisposition));
+                }
+                return Response.status(httpStatus).entity(multipart).type(multipart.getMediaType()).build();
+            }
         }
         MultipartBlobs multipartBlobs = new MultipartBlobs(blobs);
         return Response.status(httpStatus)

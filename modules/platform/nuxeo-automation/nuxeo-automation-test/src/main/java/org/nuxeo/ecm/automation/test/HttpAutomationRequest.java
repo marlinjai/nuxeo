@@ -28,6 +28,7 @@ import static org.apache.http.HttpStatus.SC_NO_CONTENT;
 import static org.apache.http.HttpStatus.SC_OK;
 import static org.apache.http.client.protocol.HttpClientContext.REDIRECT_LOCATIONS;
 import static org.apache.http.entity.ContentType.APPLICATION_JSON;
+import static org.apache.http.entity.mime.HttpMultipartMode.RFC6532;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
@@ -442,7 +443,14 @@ public class HttpAutomationRequest {
         String filename = null;
         int i = contentDisposition.indexOf("filename=");
         if (i != -1) {
-            filename = contentDisposition.substring(i + 9).replaceAll("\"", "");
+            // handle next attributes if any
+            int j = contentDisposition.indexOf(';', i);
+            if (j == -1) {
+                filename = contentDisposition.substring(i + 9);
+            } else {
+                filename = contentDisposition.substring(i + 9, j);
+            }
+            filename = filename.replaceAll("\"", "");
         }
         Blob blob = Blobs.createBlob(stream, mimeType, encoding);
         blob.setFilename(filename);
@@ -605,7 +613,7 @@ public class HttpAutomationRequest {
     }
 
     protected HttpEntity blobsToEntity(String json, List<Blob> blobs) throws IOException {
-        MultipartEntityBuilder builder = MultipartEntityBuilder.create();
+        MultipartEntityBuilder builder = MultipartEntityBuilder.create().setMode(RFC6532);
         builder.addTextBody("json", json, APPLICATION_JSON);
         // use a simple byte array in tests
         for (Blob blob : blobs) {
