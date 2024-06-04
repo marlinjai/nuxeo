@@ -52,7 +52,7 @@ import com.unboundid.scim2.common.types.UserResource;
 /**
  * SCIM 2.0 User object.
  *
- * @since 2023.13
+ * @since 2023.14
  */
 @WebObject(type = "users")
 @Produces(APPLICATION_JSON)

@@ -24,7 +24,7 @@ import info.wso2.scim2.compliance.tests.GroupTest;
 /**
  * SCIM 2.0 /Groups endpoint compliance test.
  *
- * @since 2023.13
+ * @since 2023.14
  */
 public class ScimV2GroupTest extends GroupTest implements ScimV2EndpointTest {
 

@@ -24,7 +24,7 @@ import info.wso2.scim2.compliance.tests.ListTest;
 /**
  * SCIM 2.0 compliance test for list of users and groups.
  *
- * @since 2023.13
+ * @since 2023.14
  */
 public class ScimV2ListTest extends ListTest implements ScimV2EndpointTest {
 

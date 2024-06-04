@@ -35,7 +35,7 @@ import com.unboundid.scim2.common.utils.JsonUtils;
 /**
  * SCIM 2.0 {@link SchemaResource} JSON writer.
  *
- * @since 2023.13
+ * @since 2023.14
  */
 @Provider
 @Setup(mode = SINGLETON, priority = REFERENCE)

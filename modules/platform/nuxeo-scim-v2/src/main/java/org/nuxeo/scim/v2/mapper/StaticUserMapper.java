@@ -39,7 +39,7 @@ import com.unboundid.scim2.common.types.UserResource;
 /**
  * Static / hard-coded SCIM 2.0 mapper implementation, in case the {@link UserMapperService} is not available.
  *
- * @since 2023.13
+ * @since 2023.14
  */
 public class StaticUserMapper extends AbstractMapper {
 

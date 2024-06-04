@@ -30,7 +30,7 @@ import com.unboundid.scim2.common.messages.ErrorResponse;
 /**
  * Helper for handling {@link Response}s.
  *
- * @since 2023.13
+ * @since 2023.14
  */
 public final class ResponseUtils {
 

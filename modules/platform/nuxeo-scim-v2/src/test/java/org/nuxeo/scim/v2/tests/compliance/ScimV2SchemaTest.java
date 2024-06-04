@@ -24,7 +24,7 @@ import info.wso2.scim2.compliance.tests.SchemaTest;
 /**
  * SCIM 2.0 /Schemas endpoint compliance test.
  *
- * @since 2023.13
+ * @since 2023.14
  */
 public class ScimV2SchemaTest extends SchemaTest implements ScimV2EndpointTest {
 

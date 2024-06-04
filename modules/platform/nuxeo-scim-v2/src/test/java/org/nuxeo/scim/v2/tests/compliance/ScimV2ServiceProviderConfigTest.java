@@ -24,7 +24,7 @@ import info.wso2.scim2.compliance.tests.ConfigTest;
 /**
  * SCIM 2.0 /ServiceProviderConfig endpoint compliance test.
  *
- * @since 2023.13
+ * @since 2023.14
  */
 public class ScimV2ServiceProviderConfigTest extends ConfigTest implements ScimV2EndpointTest {
 

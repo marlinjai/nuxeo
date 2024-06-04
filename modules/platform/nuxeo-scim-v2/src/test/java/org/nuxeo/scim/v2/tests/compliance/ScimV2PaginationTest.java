@@ -24,7 +24,7 @@ import info.wso2.scim2.compliance.tests.PaginationTest;
 /**
  * SCIM 2.0 compliance test for users and groups pagination.
  *
- * @since 2023.13
+ * @since 2023.14
  */
 public class ScimV2PaginationTest extends PaginationTest implements ScimV2EndpointTest {
 

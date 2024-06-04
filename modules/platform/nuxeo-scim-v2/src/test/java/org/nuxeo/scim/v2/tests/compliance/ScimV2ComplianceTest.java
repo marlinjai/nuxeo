@@ -59,7 +59,7 @@ import info.wso2.scim2.compliance.protocol.ComplianceTestMetaDataHolder;
  * Based on the <a href="https://github.com/wso2-incubator/scim2-compliance-test-suite">SCIM 2.0 Compliance Test
  * Suite</a>.
  *
- * @since 2023.13
+ * @since 2023.14
  */
 @RunWith(FeaturesRunner.class)
 @Features(ScimV2Feature.class)

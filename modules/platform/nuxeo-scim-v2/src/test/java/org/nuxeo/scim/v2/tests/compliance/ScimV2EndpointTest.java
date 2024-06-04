@@ -27,7 +27,7 @@ import info.wso2.scim2.compliance.exception.CriticalComplianceException;
 /**
  * SCIM 2.0 endpoint compliance test.
  *
- * @since 2023.13
+ * @since 2023.14
  */
 public interface ScimV2EndpointTest {
 

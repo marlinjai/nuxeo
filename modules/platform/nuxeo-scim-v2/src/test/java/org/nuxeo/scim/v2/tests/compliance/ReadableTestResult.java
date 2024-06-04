@@ -24,7 +24,7 @@ import info.wso2.scim2.compliance.entities.TestResult;
 /**
  * SCIM 2.0 compliance test readable result.
  *
- * @since 2023.13
+ * @since 2023.14
  */
 public class ReadableTestResult extends TestResult {
 

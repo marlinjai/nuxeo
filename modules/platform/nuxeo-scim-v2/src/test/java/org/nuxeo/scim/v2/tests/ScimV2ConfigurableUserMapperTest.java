@@ -52,7 +52,7 @@ import com.unboundid.scim2.common.types.UserResource;
 /**
  * Tests the {@link ConfigurableUserMapper}, that handles user mapping based on contributions.
  *
- * @since 2023.13
+ * @since 2023.14
  */
 @RunWith(FeaturesRunner.class)
 @Features(ScimV2Feature.class)

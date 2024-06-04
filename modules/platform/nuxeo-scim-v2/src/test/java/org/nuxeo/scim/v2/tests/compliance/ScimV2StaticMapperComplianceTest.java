@@ -26,7 +26,7 @@ import org.nuxeo.scim.v2.mapper.UserMapperFactory;
 /**
  * SCIM 2.0 compliance tests, relying on the {@link StaticUserMapper}.
  *
- * @since 2023.13
+ * @since 2023.14
  */
 public class ScimV2StaticMapperComplianceTest extends ScimV2ComplianceTest {
 

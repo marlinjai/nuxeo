@@ -24,7 +24,7 @@ import info.wso2.scim2.compliance.tests.UserTest;
 /**
  * SCIM 2.0 /Users endpoint compliance test.
  *
- * @since 2023.13
+ * @since 2023.14
  */
 public class ScimV2UserTest extends UserTest implements ScimV2EndpointTest {
 

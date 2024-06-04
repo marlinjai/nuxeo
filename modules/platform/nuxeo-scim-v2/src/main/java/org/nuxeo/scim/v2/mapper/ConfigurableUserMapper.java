@@ -34,7 +34,7 @@ import com.unboundid.scim2.common.types.UserResource;
 /**
  * SCIM 2.0 mapper implementation relying on the {@link UserMapperService}.
  *
- * @since 2023.13
+ * @since 2023.14
  */
 public class ConfigurableUserMapper extends AbstractMapper {
 

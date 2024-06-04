@@ -51,7 +51,7 @@ import com.unboundid.scim2.common.types.GroupResource;
 /**
  * SCIM 2.0 Group object.
  *
- * @since 2023.13
+ * @since 2023.14
  */
 @WebObject(type = "groups")
 @Produces(APPLICATION_JSON)

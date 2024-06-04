@@ -28,7 +28,7 @@ import org.nuxeo.ecm.webengine.app.WebEngineModule;
 import org.nuxeo.ecm.webengine.jaxrs.coreiodelegate.CoreIODelegate;
 
 /**
- * @since 2023.13
+ * @since 2023.14
  */
 public class ScimV2Module extends WebEngineModule {
 

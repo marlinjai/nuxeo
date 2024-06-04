@@ -33,7 +33,7 @@ import org.nuxeo.runtime.test.runner.FeaturesRunner;
 /**
  * SCIM 2.0 /Schemas endpoint error tests.
  *
- * @since 2023.13
+ * @since 2023.14
  */
 @RunWith(FeaturesRunner.class)
 @Features(ScimV2Feature.class)

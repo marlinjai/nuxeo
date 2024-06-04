@@ -25,7 +25,7 @@ import org.nuxeo.usermapper.service.UserMapperService;
 /**
  * Factory to get the SCIM 2.0 mapper implementation.
  *
- * @since 2023.13
+ * @since 2023.14
  */
 public final class UserMapperFactory {
 

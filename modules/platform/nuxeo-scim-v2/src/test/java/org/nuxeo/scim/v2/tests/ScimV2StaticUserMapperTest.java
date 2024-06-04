@@ -26,7 +26,7 @@ import org.nuxeo.scim.v2.mapper.UserMapperFactory;
 /**
  * Tests the {@link StaticUserMapper}, that handles user mapping statically.
  *
- * @since 2023.13
+ * @since 2023.14
  */
 public class ScimV2StaticUserMapperTest extends ScimV2ConfigurableUserMapperTest {
 

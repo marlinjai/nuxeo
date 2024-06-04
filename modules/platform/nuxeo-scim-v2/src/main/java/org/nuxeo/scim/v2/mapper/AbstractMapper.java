@@ -39,7 +39,7 @@ import com.unboundid.scim2.common.types.UserResource;
 /**
  * Base class for mapping {@link ScimResource} to Nuxeo {@link DocumentModel} and vice versa.
  *
- * @since 2023.13
+ * @since 2023.14
  */
 public abstract class AbstractMapper {
 

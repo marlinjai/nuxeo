@@ -36,7 +36,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 /**
  * SCIM 2.0 test feature.
  *
- * @since 2023.13
+ * @since 2023.14
  */
 @Features({ AutomationServerFeature.class, WebEngineFeature.class })
 @Deploy("org.nuxeo.scim.v2")

@@ -24,7 +24,7 @@ import info.wso2.scim2.compliance.tests.BulkTest;
 /**
  * SCIM 2.0 compliance test for bulk operations.
  *
- * @since 2023.13
+ * @since 2023.14
  */
 public class ScimV2BulkTest extends BulkTest implements ScimV2EndpointTest {
 

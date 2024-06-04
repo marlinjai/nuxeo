@@ -24,7 +24,7 @@ import info.wso2.scim2.compliance.tests.SortTest;
 /**
  * SCIM 2.0 compliance test for sorting users and groups.
  *
- * @since 2023.13
+ * @since 2023.14
  */
 public class ScimV2SortTest extends SortTest implements ScimV2EndpointTest {
 

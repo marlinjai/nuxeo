@@ -31,7 +31,7 @@ import com.unboundid.scim2.common.exceptions.ForbiddenException;
 import com.unboundid.scim2.common.exceptions.ScimException;
 
 /**
- * @since 2023.13
+ * @since 2023.14
  */
 public abstract class ScimV2BaseUMObject extends DefaultObject {
 

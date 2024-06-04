@@ -35,7 +35,7 @@ import org.nuxeo.runtime.test.runner.FeaturesRunner;
 /**
  * SCIM 2.0 endpoint tests, verifying calls made as a non authenticated user.
  *
- * @since 2023.13
+ * @since 2023.14
  */
 @RunWith(FeaturesRunner.class)
 @Features(ScimV2Feature.class)

@@ -38,7 +38,7 @@ import org.nuxeo.runtime.test.runner.TransactionalFeature;
 /**
  * SCIM 2.0 endpoint tests, verifying calls made as a non administrator user.
  *
- * @since 2023.13
+ * @since 2023.14
  */
 @RunWith(FeaturesRunner.class)
 @Features(ScimV2Feature.class)

@@ -24,7 +24,7 @@ import info.wso2.scim2.compliance.tests.ResourceTypeTest;
 /**
  * SCIM 2.0 /ResourceTypes endpoint compliance test.
  *
- * @since 2023.13
+ * @since 2023.14
  */
 public class ScimV2ResourceTypesTest extends ResourceTypeTest implements ScimV2EndpointTest {
 
