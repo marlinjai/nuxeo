@@ -17,7 +17,7 @@
  *     Thierry Delprat
  *     Antoine Taillefer
  */
-package org.nuxeo.scim.v2.jaxrs.marshalling;
+package org.nuxeo.scim.v2.rest.marshalling;
 
 import static org.nuxeo.ecm.core.io.registry.reflect.Instantiations.SINGLETON;
 import static org.nuxeo.ecm.core.io.registry.reflect.Priorities.REFERENCE;

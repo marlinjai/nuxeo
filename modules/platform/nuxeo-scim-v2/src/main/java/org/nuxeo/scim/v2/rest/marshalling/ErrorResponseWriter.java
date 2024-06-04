@@ -14,10 +14,9 @@
  * limitations under the License.
  *
  * Contributors:
- *     Thierry Delprat
  *     Antoine Taillefer
  */
-package org.nuxeo.scim.v2.jaxrs.marshalling;
+package org.nuxeo.scim.v2.rest.marshalling;
 
 import static org.nuxeo.ecm.core.io.registry.reflect.Instantiations.SINGLETON;
 import static org.nuxeo.ecm.core.io.registry.reflect.Priorities.REFERENCE;
@@ -30,20 +29,20 @@ import org.nuxeo.ecm.core.io.marshallers.json.AbstractJsonWriter;
 import org.nuxeo.ecm.core.io.registry.reflect.Setup;
 
 import com.fasterxml.jackson.core.JsonGenerator;
-import com.unboundid.scim2.common.types.UserResource;
+import com.unboundid.scim2.common.messages.ErrorResponse;
 import com.unboundid.scim2.common.utils.JsonUtils;
 
 /**
- * SCIM 2.0 {@link UserResource} JSON writer.
+ * SCIM 2.0 {@link ErrorResponse} JSON writer.
  *
  * @since 2023.13
  */
 @Provider
 @Setup(mode = SINGLETON, priority = REFERENCE)
-public class UserResourceWriter extends AbstractJsonWriter<UserResource> {
+public class ErrorResponseWriter extends AbstractJsonWriter<ErrorResponse> {
 
     @Override
-    public void write(UserResource entity, JsonGenerator jg) throws IOException {
+    public void write(ErrorResponse entity, JsonGenerator jg) throws IOException {
         jg.writeTree(JsonUtils.valueToNode(entity));
     }
 

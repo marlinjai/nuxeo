@@ -17,7 +17,7 @@
  *     Thierry Delprat
  *     Antoine Taillefer
  */
-package org.nuxeo.scim.v2.jaxrs;
+package org.nuxeo.scim.v2.rest;
 
 import java.util.HashSet;
 import java.util.Set;

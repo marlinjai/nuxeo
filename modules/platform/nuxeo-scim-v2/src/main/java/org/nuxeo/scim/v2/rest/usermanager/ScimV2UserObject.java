@@ -17,7 +17,7 @@
  *     Thierry Delprat
  *     Antoine Taillefer
  */
-package org.nuxeo.scim.v2.jaxrs.usermanager;
+package org.nuxeo.scim.v2.rest.usermanager;
 
 import static com.unboundid.scim2.common.exceptions.BadRequestException.INVALID_SYNTAX;
 import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
@@ -41,7 +41,7 @@ import org.nuxeo.ecm.directory.DirectoryException;
 import org.nuxeo.ecm.platform.usermanager.UserManager;
 import org.nuxeo.ecm.webengine.model.WebObject;
 import org.nuxeo.runtime.api.Framework;
-import org.nuxeo.scim.v2.jaxrs.marshalling.ResponseUtils;
+import org.nuxeo.scim.v2.rest.marshalling.ResponseUtils;
 
 import com.unboundid.scim2.common.exceptions.BadRequestException;
 import com.unboundid.scim2.common.exceptions.ResourceNotFoundException;

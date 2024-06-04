@@ -14,9 +14,10 @@
  * limitations under the License.
  *
  * Contributors:
+ *     Thierry Delprat
  *     Antoine Taillefer
  */
-package org.nuxeo.scim.v2.jaxrs.marshalling;
+package org.nuxeo.scim.v2.rest.marshalling;
 
 import static org.nuxeo.ecm.core.io.registry.reflect.Instantiations.SINGLETON;
 import static org.nuxeo.ecm.core.io.registry.reflect.Priorities.REFERENCE;
@@ -25,25 +26,25 @@ import java.io.IOException;
 
 import javax.ws.rs.ext.Provider;
 
-import org.nuxeo.ecm.core.io.marshallers.json.AbstractJsonWriter;
+import org.nuxeo.ecm.core.io.marshallers.json.AbstractJsonReader;
 import org.nuxeo.ecm.core.io.registry.reflect.Setup;
 
-import com.fasterxml.jackson.core.JsonGenerator;
-import com.unboundid.scim2.common.types.SchemaResource;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.unboundid.scim2.common.types.GroupResource;
 import com.unboundid.scim2.common.utils.JsonUtils;
 
 /**
- * SCIM 2.0 {@link SchemaResource} JSON writer.
+ * SCIM 2.0 {@link GroupResource} JSON reader.
  *
  * @since 2023.13
  */
 @Provider
 @Setup(mode = SINGLETON, priority = REFERENCE)
-public class SchemaResourceWriter extends AbstractJsonWriter<SchemaResource> {
+public class GroupResourceReader extends AbstractJsonReader<GroupResource> {
 
     @Override
-    public void write(SchemaResource entity, JsonGenerator jg) throws IOException {
-        jg.writeTree(JsonUtils.valueToNode(entity));
+    public GroupResource read(JsonNode jn) throws IOException {
+        return JsonUtils.nodeToValue(jn, GroupResource.class);
     }
 
 }

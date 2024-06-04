@@ -17,7 +17,7 @@
  *     Thierry Delprat
  *     Antoine Taillefer
  */
-package org.nuxeo.scim.v2.jaxrs.usermanager;
+package org.nuxeo.scim.v2.rest.usermanager;
 
 import org.nuxeo.ecm.core.api.NuxeoPrincipal;
 import org.nuxeo.ecm.platform.usermanager.UserManager;

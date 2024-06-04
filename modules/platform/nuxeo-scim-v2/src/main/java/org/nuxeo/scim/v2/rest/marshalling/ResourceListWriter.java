@@ -14,37 +14,41 @@
  * limitations under the License.
  *
  * Contributors:
- *     Thierry Delprat
  *     Antoine Taillefer
  */
-package org.nuxeo.scim.v2.jaxrs.marshalling;
+package org.nuxeo.scim.v2.rest.marshalling;
 
 import static org.nuxeo.ecm.core.io.registry.reflect.Instantiations.SINGLETON;
 import static org.nuxeo.ecm.core.io.registry.reflect.Priorities.REFERENCE;
 
 import java.io.IOException;
+import java.util.List;
 
 import javax.ws.rs.ext.Provider;
 
-import org.nuxeo.ecm.core.io.marshallers.json.AbstractJsonReader;
+import org.nuxeo.ecm.core.io.marshallers.json.AbstractJsonWriter;
 import org.nuxeo.ecm.core.io.registry.reflect.Setup;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.unboundid.scim2.common.types.GroupResource;
+import com.fasterxml.jackson.core.JsonGenerator;
+import com.unboundid.scim2.common.ScimResource;
 import com.unboundid.scim2.common.utils.JsonUtils;
 
 /**
- * SCIM 2.0 {@link GroupResource} JSON reader.
+ * SCIM 2.0 {@link ScimResource} list JSON writer.
  *
  * @since 2023.13
  */
 @Provider
 @Setup(mode = SINGLETON, priority = REFERENCE)
-public class GroupResourceReader extends AbstractJsonReader<GroupResource> {
+public class ResourceListWriter extends AbstractJsonWriter<List<ScimResource>> {
 
     @Override
-    public GroupResource read(JsonNode jn) throws IOException {
-        return JsonUtils.nodeToValue(jn, GroupResource.class);
+    public void write(List<ScimResource> entity, JsonGenerator jg) throws IOException {
+        jg.writeStartArray();
+        for (ScimResource resource : entity) {
+            jg.writeTree(JsonUtils.valueToNode(resource));
+        }
+        jg.writeEndArray();
     }
 
 }

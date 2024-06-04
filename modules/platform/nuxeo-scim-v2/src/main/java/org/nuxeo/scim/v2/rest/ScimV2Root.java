@@ -17,7 +17,7 @@
  *     Thierry Delprat
  *     Antoine Taillefer
  */
-package org.nuxeo.scim.v2.jaxrs;
+package org.nuxeo.scim.v2.rest;
 
 import static javax.servlet.http.HttpServletResponse.SC_INTERNAL_SERVER_ERROR;
 import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
@@ -36,7 +36,7 @@ import org.nuxeo.ecm.webengine.app.jersey.WebEngineServlet;
 import org.nuxeo.ecm.webengine.model.WebObject;
 import org.nuxeo.ecm.webengine.model.impl.ModuleRoot;
 import org.nuxeo.runtime.api.Framework;
-import org.nuxeo.scim.v2.jaxrs.marshalling.ResponseUtils;
+import org.nuxeo.scim.v2.rest.marshalling.ResponseUtils;
 
 import com.unboundid.scim2.common.ScimResource;
 import com.unboundid.scim2.common.exceptions.ResourceNotFoundException;
