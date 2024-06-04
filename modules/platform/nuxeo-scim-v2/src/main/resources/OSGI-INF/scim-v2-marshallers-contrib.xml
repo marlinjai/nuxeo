@@ -16,6 +16,8 @@
       enable="true" />
     <register class="org.nuxeo.scim.v2.jaxrs.marshalling.ResourceListWriter"
       enable="true" />
+    <register class="org.nuxeo.scim.v2.jaxrs.marshalling.SchemaResourceWriter"
+      enable="true" />
 
   </extension>
 

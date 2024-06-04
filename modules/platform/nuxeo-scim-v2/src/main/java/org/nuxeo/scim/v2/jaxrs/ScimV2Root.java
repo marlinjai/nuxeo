@@ -39,6 +39,7 @@ import org.nuxeo.runtime.api.Framework;
 import org.nuxeo.scim.v2.jaxrs.marshalling.ResponseUtils;
 
 import com.unboundid.scim2.common.ScimResource;
+import com.unboundid.scim2.common.exceptions.ResourceNotFoundException;
 import com.unboundid.scim2.common.exceptions.ScimException;
 import com.unboundid.scim2.common.messages.ErrorResponse;
 import com.unboundid.scim2.common.types.GroupResource;
@@ -92,7 +93,7 @@ public class ScimV2Root extends ModuleRoot {
 
     @GET
     @Path("/Schemas")
-    public List<ScimResource> getSchemas() throws IntrospectionException {
+    public List<ScimResource> getSchemas() throws IntrospectionException, ScimException {
         SchemaResource userSchema = getSchemaResource(SCIM_V2_SCHEMA_USER);
         SchemaResource groupSchema = getSchemaResource(SCIM_V2_SCHEMA_GROUP);
         return List.of(userSchema, groupSchema);
@@ -100,7 +101,8 @@ public class ScimV2Root extends ModuleRoot {
 
     @GET
     @Path("/Schemas/{schemaName}")
-    public SchemaResource getSchema(@PathParam("schemaName") String schemaName) throws IntrospectionException {
+    public SchemaResource getSchema(@PathParam("schemaName") String schemaName)
+            throws IntrospectionException, ScimException {
         return getSchemaResource(schemaName);
     }
 
@@ -114,11 +116,11 @@ public class ScimV2Root extends ModuleRoot {
         return newObject("groups");
     }
 
-    protected SchemaResource getSchemaResource(String schemaName) throws IntrospectionException {
+    protected SchemaResource getSchemaResource(String schemaName) throws IntrospectionException, ScimException {
         return switch (schemaName) {
             case SCIM_V2_SCHEMA_USER -> SchemaUtils.getSchema(UserResource.class);
             case SCIM_V2_SCHEMA_GROUP -> SchemaUtils.getSchema(GroupResource.class);
-            default -> throw new IllegalArgumentException(schemaName);
+            default -> throw new ResourceNotFoundException("Cannot find schema:" + schemaName);
         };
     }
 
