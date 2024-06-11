@@ -37,7 +37,7 @@ public class Redactor {
     protected static final Pattern GCP_KEY_PATTERN = Pattern.compile(
             "(AIza[0-9A-Za-z-_]{3})[0-9A-Za-z-_]{28}([0-9A-Za-z-_]{4})");
 
-    protected static final Pattern PASSWORD_PATTERN = Pattern.compile("(?<=(?i)password)([^\\s=]*=)[^\\s,]+");
+    protected static final Pattern KEYWORD_PATTERN = Pattern.compile("(?<=(?i)password|secret)([^\\s=]*=)[^\\s,]+");
 
     protected static final Pattern AUTH_PATTERN = Pattern.compile("(?<=.://)[^:]+:[^@]+(?=@.+)");
 
@@ -57,9 +57,9 @@ public class Redactor {
         if (gcpMatcher.find()) {
             msg = gcpMatcher.replaceAll("$1-GCP_KEY-$2");
         }
-        var passwordMatcher = PASSWORD_PATTERN.matcher(msg);
-        if (passwordMatcher.find()) {
-            msg = passwordMatcher.replaceAll("$1" + REDACTED_PLACE_HOLDER);
+        var keywordMatcher = KEYWORD_PATTERN.matcher(msg);
+        if (keywordMatcher.find()) {
+            msg = keywordMatcher.replaceAll("$1" + REDACTED_PLACE_HOLDER);
         }
         var authMatcher = AUTH_PATTERN.matcher(msg);
         if (authMatcher.find()) {

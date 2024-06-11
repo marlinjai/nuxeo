@@ -92,27 +92,33 @@ public class TestMaskSensitiveDataRewritePolicy {
 
     // NXP-30304
     @Test
-    public void testMaskSensitivePassword() {
-        String testStr = "Should replace this password=secret";
+    public void testMaskSensitiveKeyword() {
+        String testStr = "Should replace this password=a-sequence-that-must-be-hidden";
         assertEquals("Should replace this password=***", policy.maskSensitive(testStr));
 
-        testStr = "Should replace this something.password=secret";
+        testStr = "Should replace this something.password=a-sequence-that-must-be-hidden";
         assertEquals("Should replace this something.password=***", policy.maskSensitive(testStr));
 
-        testStr = "Should replace this password.something=secret";
+        testStr = "Should replace this password.something=a-sequence-that-must-be-hidden";
         assertEquals("Should replace this password.something=***", policy.maskSensitive(testStr));
 
-        testStr = "Should replace this something.password.something=secret";
+        testStr = "Should replace this something.password.something=a-sequence-that-must-be-hidden";
         assertEquals("Should replace this something.password.something=***", policy.maskSensitive(testStr));
 
-        testStr = "Should replace this password=secret, and this password=secret";
+        testStr = "Should replace this password=a-sequence-that-must-be-hidden, and this password=another-sequence-that-must-be-hidden";
         assertEquals("Should replace this password=***, and this password=***", policy.maskSensitive(testStr));
 
-        testStr = "Should replace this superPassword=secret";
+        testStr = "Should replace this superPassword=a-sequence-that-must-be-hidden";
         assertEquals("Should replace this superPassword=***", policy.maskSensitive(testStr));
 
-        testStr = "Should replace this superPasswordSafeRedaction=noleak=secret";
+        testStr = "Should replace this superPasswordSafeRedaction=noleak=a-sequence-that-must-be-hidden";
         assertEquals("Should replace this superPasswordSafeRedaction=***", policy.maskSensitive(testStr));
+
+        testStr = "access.key.secret=a-sequence-that-must-be-hidden";
+        assertEquals("access.key.secret=***", policy.maskSensitive(testStr));
+
+        testStr = "credential.client_secret=a-sequence-that-must-be-hidden";
+        assertEquals("credential.client_secret=***", policy.maskSensitive(testStr));
     }
 
     @Test
