@@ -22,6 +22,7 @@ package org.nuxeo.ecm.core.io.download;
 import java.util.Arrays;
 
 import org.nuxeo.ecm.core.schema.SchemaManager;
+import org.nuxeo.ecm.core.schema.types.primitives.BinaryType;
 import org.nuxeo.runtime.api.Framework;
 
 /**
@@ -64,7 +65,8 @@ public class DownloadBlobInfo {
             filename = null;
         } else {
             String rest = String.join("/", Arrays.asList(parts).subList(2, length));
-            if (Framework.getService(SchemaManager.class).getField(rest) != null) {
+            var field = Framework.getService(SchemaManager.class).getField(rest);
+            if (field != null && !(field.getType() instanceof BinaryType)) {
                 xpath = rest;
                 filename = null;
             } else {

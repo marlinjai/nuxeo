@@ -3,8 +3,12 @@ package org.nuxeo.ecm.core.io.download;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThrows;
 
+import javax.inject.Inject;
+
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.nuxeo.ecm.core.api.CoreSession;
+import org.nuxeo.ecm.core.api.impl.blob.StringBlob;
 import org.nuxeo.ecm.core.test.CoreFeature;
 import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.FeaturesRunner;
@@ -12,6 +16,12 @@ import org.nuxeo.runtime.test.runner.FeaturesRunner;
 @RunWith(FeaturesRunner.class)
 @Features(CoreFeature.class)
 public class TestDownloadBlobInfo {
+
+    @Inject
+    protected CoreSession session;
+
+    @Inject
+    protected DownloadService downloadService;
 
     @Test
     public void testParseDownloadPath() {
@@ -36,6 +46,23 @@ public class TestDownloadBlobInfo {
         assertEquals(fileName, downloadBlobInfo.getFilename());
     }
 
+    @Test
+    public void testAmbiguousFileNameDownloadBlobInfo() {
+        var repo = session.createDocumentModel("/", "repo", "File");
+        var doc = session.createDocumentModel("/repo", "docPath", "File");
+        String fileName = "data";
+        String content = "myData";
+        var data = new StringBlob(content);
+        data.setFilename(fileName);
+        doc.setPropertyValue("file:content", data);
+
+        session.createDocument(repo);
+        session.createDocument(doc);
+
+        assertParsed("/file:content/data", "file:content", fileName);
+        var homer = (StringBlob) downloadService.resolveBlob(doc);
+        assertEquals(fileName, homer.getFilename());
+        assertEquals(content, homer.getString());
     }
 
     @Test
