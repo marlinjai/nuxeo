@@ -28,16 +28,16 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyBoolean;
-import static org.mockito.Matchers.anyString;
-import static org.mockito.Matchers.eq;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyBoolean;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyZeroInteractions;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 import static org.nuxeo.ecm.core.api.security.SecurityConstants.SYSTEM_USERNAME;
 import static org.nuxeo.ecm.platform.ui.web.auth.DummyAuthPluginAnonymous.DUMMY_ANONYMOUS_LOGIN;
@@ -253,7 +253,7 @@ public class TestNuxeoAuthenticationFilter {
 
     protected void checkEvents(String... expectedEventNames) {
         if (expectedEventNames.length == 0) {
-            verifyZeroInteractions(eventProducer);
+            verifyNoInteractions(eventProducer);
         } else {
             verify(eventProducer).fireEvent(eventCaptor.capture());
             List<Event> events = eventCaptor.getAllValues();
