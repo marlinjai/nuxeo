@@ -96,6 +96,7 @@ import org.nuxeo.ecm.core.event.EventContext;
 import org.nuxeo.ecm.core.event.EventProducer;
 import org.nuxeo.ecm.core.event.impl.UnboundEventContext;
 import org.nuxeo.ecm.directory.DirectoryException;
+import org.nuxeo.ecm.platform.api.login.RestrictedLoginHelper;
 import org.nuxeo.ecm.platform.api.login.UserIdentificationInfo;
 import org.nuxeo.ecm.platform.login.PrincipalImpl;
 import org.nuxeo.ecm.platform.ui.web.auth.interfaces.LoginResponseHandler;
@@ -1124,7 +1125,13 @@ public class NuxeoAuthenticationFilter implements Filter {
             if (username == null) {
                 throw new LoginException("Unable to validate identity for " + userIdent.getUserName());
             }
-            return createPrincipal(username);
+            NuxeoPrincipal principal = createPrincipal(username);
+            if (RestrictedLoginHelper.isRestrictedModeActivated()) {
+                if (!principal.isAdministrator()) {
+                    throw new LoginException("Only Administrators can login when restricted mode is activated");
+                }
+            }
+            return principal;
         } catch (LoginException e) {
             log.info("Login failed for: {} on request: {}", userIdent::getUserName, request::getRequestURI);
             log.debug(e, e);

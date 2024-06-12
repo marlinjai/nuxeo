@@ -86,6 +86,7 @@ import org.nuxeo.ecm.core.api.NuxeoPrincipal;
 import org.nuxeo.ecm.core.api.impl.UserPrincipal;
 import org.nuxeo.ecm.core.event.Event;
 import org.nuxeo.ecm.core.event.EventProducer;
+import org.nuxeo.ecm.platform.api.login.RestrictedLoginHelper;
 import org.nuxeo.ecm.platform.usermanager.UserManager;
 import org.nuxeo.runtime.mockito.MockitoFeature;
 import org.nuxeo.runtime.mockito.RuntimeService;
@@ -401,6 +402,30 @@ public class TestNuxeoAuthenticationFilter {
         // chain called, no auth
         assertTrue(chain.called);
         assertNull(chain.principal);
+    }
+
+    @Test
+    @Deploy("org.nuxeo.ecm.platform.web.common.test:OSGI-INF/test-authchain-dummy-token.xml")
+    public void testRestrictedModeAuth() throws IOException, ServletException {
+        HttpServletRequest request = mock(HttpServletRequest.class);
+        HttpServletResponse response = mock(HttpServletResponse.class);
+        HttpSession session = mock(HttpSession.class);
+        when(request.getSession(anyBoolean())).thenReturn(session);
+        mockRequestURI(request, "/foo/bar", "", "");
+        when(request.getParameter(eq(DUMMY_AUTH_TOKEN_KEY))).thenReturn("bob");
+        filter.doFilter(request, response, chain);
+        // bob can login
+        assertTrue(chain.called);
+        assertEquals("bob", chain.principal.getName());
+        try {
+            RestrictedLoginHelper.setRestrictedModeActivated(true);
+            filter.doFilter(request, response, chain);
+            // bob can no longer login
+            assertTrue(chain.called);
+            assertNull(chain.principal);
+        } finally {
+            RestrictedLoginHelper.setRestrictedModeActivated(false);
+        }
     }
 
     /**
