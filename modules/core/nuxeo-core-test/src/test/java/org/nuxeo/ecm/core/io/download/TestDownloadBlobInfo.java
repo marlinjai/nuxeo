@@ -1,7 +1,7 @@
 package org.nuxeo.ecm.core.io.download;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.fail;
+import static org.junit.Assert.assertThrows;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -15,36 +15,32 @@ public class TestDownloadBlobInfo {
 
     @Test
     public void testParseDownloadPath() {
-        assertParsed(null, null, "");
-        assertParsed(null, null, "/");
-        assertParsed("foo", null, "/foo");
-        assertParsed("foo", null, "/foo/");
-        assertParsed("foo", "bar", "/foo/bar");
-        assertParsed("foo/bar", "baz", "/foo/bar/baz");
-        assertParsed("foo/bar/baz", "moo", "/foo/bar/baz/moo");
-        assertParsed("file:content", null, "/file:content");
-        assertParsed("file:content", "file.txt", "/file:content/file.txt");
-        assertParsed("files:files/0/file", null, "/files:files/0/file");
-        assertParsed("files:files/0/file", "image.png", "/files:files/0/file/image.png");
-        assertParsed("foo/bar", "baz", "/foo/bar/baz");
+        assertParsed("", null, null);
+        assertParsed("/", null, null);
+        assertParsed("/myPath", "myPath", null);
+        assertParsed("/myPath/", "myPath", null);
+        assertParsed("/myPath/fileName", "myPath", "fileName");
+        assertParsed("/my/path/fileName", "my/path", "fileName");
+        assertParsed("/also/my/path/fileName", "also/my/path", "fileName");
+        assertParsed("/file:content", "file:content", null);
+        assertParsed("/file:content/file.txt", "file:content", "file.txt");
+        assertParsed("/files:files/0/file", "files:files/0/file", null);
+        assertParsed("/files:files/0/file/image.png", "files:files/0/file", "image.png");
     }
 
-    protected void assertParsed(String xpath, String filename, String string) {
-        DownloadBlobInfo downloadBlobInfo = new DownloadBlobInfo("somerepo/someid" + string);
-        assertEquals("somerepo", downloadBlobInfo.getRepository());
-        assertEquals("someid", downloadBlobInfo.getDocId());
-        assertEquals(xpath, downloadBlobInfo.getXpath());
-        assertEquals(filename, downloadBlobInfo.getFilename());
+    protected void assertParsed(String xPathAndFileName, String xPath, String fileName) {
+        DownloadBlobInfo downloadBlobInfo = new DownloadBlobInfo("repo/docPath" + xPathAndFileName);
+        assertEquals("repo", downloadBlobInfo.getRepository());
+        assertEquals("docPath", downloadBlobInfo.getDocId());
+        assertEquals(xPath, downloadBlobInfo.getXpath());
+        assertEquals(fileName, downloadBlobInfo.getFilename());
+    }
+
     }
 
     @Test
-    public void cannotConstructDownloadBlobInfo() {
-        try {
-            new DownloadBlobInfo("foo");
-            fail();
-        } catch (IllegalArgumentException e) {
-            // ok
-        }
+    public void testFailNonExistingDocumentDownloadBlobInfo() {
+        assertThrows(IllegalArgumentException.class, () -> new DownloadBlobInfo("nonExisting"));
     }
 
 }
