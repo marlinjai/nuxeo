@@ -3631,16 +3631,11 @@
       </dependency>
       <!-- SCIM v2 - Tests -->
       <dependency>
-        <groupId>info.simplecloud.scimproxy</groupId>
-        <artifactId>compliance</artifactId>
-        <version>0.2</version>
+        <groupId>org.wso2.scim2.testsuite</groupId>
+        <artifactId>org.wso2.scim2.testsuite.core</artifactId>
+        <version>1.1-NX01</version>
         <scope>test</scope>
         <exclusions>
-          <!-- unused by v2 compliance test suite classes -->
-          <exclusion>
-            <groupId>info.simplecloud</groupId>
-            <artifactId>scimcore</artifactId>
-          </exclusion>
           <!-- banned -->
           <exclusion>
             <groupId>commons-beanutils</groupId>
@@ -3651,10 +3646,6 @@
             <artifactId>servlet-api</artifactId>
           </exclusion>
           <exclusion>
-            <groupId>log4j</groupId>
-            <artifactId>log4j</artifactId>
-          </exclusion>
-          <exclusion>
             <groupId>com.sun.jersey</groupId>
             <artifactId>jersey-json</artifactId>
           </exclusion>
@@ -3662,13 +3653,15 @@
             <groupId>com.sun.jersey</groupId>
             <artifactId>jersey-server</artifactId>
           </exclusion>
+          <exclusion>
+            <groupId>org.codehaus.woodstox</groupId>
+            <artifactId>woodstox-core-asl</artifactId>
+          </exclusion>
+          <exclusion>
+            <groupId>org.ops4j.pax.logging</groupId>
+            <artifactId>pax-logging-api</artifactId>
+          </exclusion>
         </exclusions>
-      </dependency>
-      <dependency>
-        <groupId>org.wso2.charon</groupId>
-        <artifactId>org.wso2.charon3.core</artifactId>
-        <version>3.0.0</version>
-        <scope>test</scope>
       </dependency>
       <!-- SCIM v1-->
       <dependency>

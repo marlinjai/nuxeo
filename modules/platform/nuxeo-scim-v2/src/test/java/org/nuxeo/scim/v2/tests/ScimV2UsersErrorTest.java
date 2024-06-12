@@ -19,6 +19,7 @@
 package org.nuxeo.scim.v2.tests;
 
 import static javax.servlet.http.HttpServletResponse.SC_BAD_REQUEST;
+import static javax.servlet.http.HttpServletResponse.SC_CONFLICT;
 import static javax.servlet.http.HttpServletResponse.SC_NOT_FOUND;
 
 import javax.inject.Inject;
@@ -68,6 +69,17 @@ public class ScimV2UsersErrorTest {
         httpClient.buildPostRequest("/Users")
                   .entity("{}")
                   .executeAndConsume(new JsonNodeHandler(SC_BAD_REQUEST), ScimV2Feature::assertError);
+    }
+
+    @Test
+    public void testCreateUserExisting() {
+        String userResource = """
+                {
+                    "username":"Administrator"
+                }""";
+        httpClient.buildPostRequest("/Users")
+                  .entity(userResource)
+                  .executeAndConsume(new JsonNodeHandler(SC_CONFLICT), ScimV2Feature::assertError);
     }
 
     @Test

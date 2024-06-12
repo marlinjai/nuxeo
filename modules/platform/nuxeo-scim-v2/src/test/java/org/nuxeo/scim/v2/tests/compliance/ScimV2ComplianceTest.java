@@ -20,10 +20,10 @@
 package org.nuxeo.scim.v2.tests.compliance;
 
 import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.Callable;
 
 import javax.inject.Inject;
 
@@ -35,23 +35,18 @@ import org.junit.BeforeClass;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.nuxeo.ecm.core.api.NuxeoException;
 import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.FeaturesRunner;
 import org.nuxeo.scim.v2.mapper.ConfigurableUserMapper;
 import org.nuxeo.scim.v2.mapper.UserMapperFactory;
 import org.nuxeo.scim.v2.tests.ScimV2Feature;
-import org.wso2.charon3.core.attributes.ComplexAttribute;
-import org.wso2.charon3.core.attributes.SimpleAttribute;
-import org.wso2.charon3.core.exceptions.CharonException;
-import org.wso2.charon3.core.schema.SCIMDefinitions.DataType;
-
-import info.wso2.scim2.compliance.entities.TestResult;
-import info.wso2.scim2.compliance.entities.Wire;
-import info.wso2.scim2.compliance.exception.ComplianceException;
-import info.wso2.scim2.compliance.exception.CriticalComplianceException;
-import info.wso2.scim2.compliance.objects.SCIMServiceProviderConfig;
-import info.wso2.scim2.compliance.protocol.ComplianceTestMetaDataHolder;
+import org.wso2.scim2.testsuite.core.entities.TestResult;
+import org.wso2.scim2.testsuite.core.entities.Wire;
+import org.wso2.scim2.testsuite.core.exception.ComplianceException;
+import org.wso2.scim2.testsuite.core.exception.GeneralComplianceException;
+import org.wso2.scim2.testsuite.core.protocol.EndpointFactory;
+import org.wso2.scim2.testsuite.core.tests.ResourceType;
+import org.wso2.scim2.testsuite.core.utils.ComplianceConstants;
 
 /**
  * SCIM 2.0 compliance tests, relying on the default {@link ConfigurableUserMapper}.
@@ -72,7 +67,15 @@ public class ScimV2ComplianceTest {
     @Inject
     protected ScimV2Feature scimV2Feature;
 
-    protected ComplianceTestMetaDataHolder complianceTestMetaDataHolder;
+    protected ResourceType serviceProviderConfig;
+
+    protected ResourceType schema;
+
+    protected ResourceType resourceType;
+
+    protected ResourceType user;
+
+    protected ResourceType group;
 
     @BeforeClass
     public static void begin() {
@@ -99,30 +102,22 @@ public class ScimV2ComplianceTest {
         }
         log.info("---------------------------------");
         log.info("Ran {} SCIM 2.0 compliancy tests: ", nbRun);
-        log.info("   {} success ", nbSuccess);
-        log.info("   {} skipped ", nbSkipped);
-        log.info("   {} failed ", nbFailed);
+        log.info("  {} success ", nbSuccess);
+        log.info("  {} skipped ", nbSkipped);
+        log.info("  {} failed ", nbFailed);
     }
 
     @Before
-    public void init() throws CharonException {
+    public void init() {
         var url = scimV2Feature.getScimV2URL();
 
-        complianceTestMetaDataHolder = new ComplianceTestMetaDataHolder();
-        complianceTestMetaDataHolder.setUrl(url);
-        complianceTestMetaDataHolder.setUsername("Administrator");
-        complianceTestMetaDataHolder.setPassword("Administrator");
-
-        SCIMServiceProviderConfig serviceProviderConfig = new SCIMServiceProviderConfig();
-
-        // TODO: support PATCH
-        ComplexAttribute patchAttribute = new ComplexAttribute("patch");
-        SimpleAttribute supportedAttribute = new SimpleAttribute("supported", false);
-        supportedAttribute.setType(DataType.BOOLEAN);
-        patchAttribute.setSubAttribute(supportedAttribute);
-        serviceProviderConfig.setAttribute(patchAttribute);
-
-        complianceTestMetaDataHolder.setScimServiceProviderConfig(serviceProviderConfig);
+        var endpointFactory = new EndpointFactory(url, "Administrator", "Administrator", "");
+        serviceProviderConfig = endpointFactory.getInstance(
+                ComplianceConstants.EndPointConstants.SERVICEPROVIDERCONFIG);
+        schema = endpointFactory.getInstance(ComplianceConstants.EndPointConstants.SCHEMAS);
+        resourceType = endpointFactory.getInstance(ComplianceConstants.EndPointConstants.RESOURCETYPE);
+        user = endpointFactory.getInstance(ComplianceConstants.EndPointConstants.USER);
+        group = endpointFactory.getInstance(ComplianceConstants.EndPointConstants.GROUP);
     }
 
     protected static void verifyTests(List<TestResult> results) {
@@ -138,76 +133,55 @@ public class ScimV2ComplianceTest {
         }
     }
 
-    protected <T extends ScimV2EndpointTest> void runTest(Class<T> testClass) {
+    protected void runTest(Callable<List<TestResult>> test) {
         try {
-            ScimV2EndpointTest test = testClass.getConstructor(ComplianceTestMetaDataHolder.class)
-                                               .newInstance(complianceTestMetaDataHolder);
-            List<TestResult> results = test.performTest();
+            List<TestResult> results = test.call();
             testResults.addAll(results);
             verifyTests(results);
-        } catch (ReflectiveOperationException | IllegalArgumentException | SecurityException
-                | CriticalComplianceException e) {
-            throw new NuxeoException(e);
-        } catch (ComplianceException e) {
-            fail(e.getDetail());
+        } catch (Exception e) {
+            String message;
+            if (e instanceof ComplianceException ce) {
+                message = ce.getDetail();
+            } else if (e instanceof GeneralComplianceException gce) {
+                message = gce.getResult().getMessage();
+            } else {
+                message = e.getMessage();
+            }
+            throw new AssertionError(message, e);
         }
     }
 
     @Ignore
     @Test
-    public void testFilter() {
-        runTest(ScimV2FilterTest.class);
+    public void testServiceProviderConfig() {
+        runTest(serviceProviderConfig::getMethodTest);
     }
 
     @Test
-    public void testGroups() {
-        runTest(ScimV2GroupTest.class);
-    }
-
-    @Ignore
-    @Test
-    public void testList() {
-        runTest(ScimV2ListTest.class);
-    }
-
-    @Ignore
-    @Test
-    public void testPagination() {
-        runTest(ScimV2PaginationTest.class);
+    public void testSchemas() {
+        runTest(schema::getMethodTest);
     }
 
     @Ignore
     @Test
     public void testResourceTypes() {
-        runTest(ScimV2ResourceTypesTest.class);
-    }
-
-    @Test
-    public void testSchemas() {
-        runTest(ScimV2SchemaTest.class);
-    }
-
-    @Ignore
-    @Test
-    public void testServiceProviderConfig() {
-        runTest(ScimV2ServiceProviderConfigTest.class);
+        runTest(resourceType::getMethodTest);
     }
 
     @Test
     public void testUsers() {
-        runTest(ScimV2UserTest.class);
+        runTest(user::postMethodTest);
+        runTest(user::getByIdMethodTest);
+        runTest(user::putMethodTest);
+        runTest(user::deleteMethodTest);
     }
 
-    @Ignore
     @Test
-    public void testSort() {
-        runTest(ScimV2SortTest.class);
-    }
-
-    @Ignore
-    @Test
-    public void testBulk() {
-        runTest(ScimV2BulkTest.class);
+    public void testGroups() {
+        runTest(group::postMethodTest);
+        runTest(group::getByIdMethodTest);
+        runTest(group::putMethodTest);
+        runTest(group::deleteMethodTest);
     }
 
 }

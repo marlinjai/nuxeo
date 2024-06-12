@@ -20,9 +20,9 @@
 package org.nuxeo.scim.v2.rest.usermanager;
 
 import static com.unboundid.scim2.common.exceptions.BadRequestException.INVALID_SYNTAX;
+import static com.unboundid.scim2.common.exceptions.ResourceConflictException.UNIQUENESS;
 import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
 import static javax.ws.rs.core.Response.Status.CREATED;
-import static javax.ws.rs.core.Response.Status.OK;
 import static org.apache.commons.lang3.StringUtils.isBlank;
 
 import java.net.URISyntaxException;
@@ -44,6 +44,7 @@ import org.nuxeo.runtime.api.Framework;
 import org.nuxeo.scim.v2.rest.marshalling.ResponseUtils;
 
 import com.unboundid.scim2.common.exceptions.BadRequestException;
+import com.unboundid.scim2.common.exceptions.ResourceConflictException;
 import com.unboundid.scim2.common.exceptions.ResourceNotFoundException;
 import com.unboundid.scim2.common.exceptions.ScimException;
 import com.unboundid.scim2.common.exceptions.ServerErrorException;
@@ -98,14 +99,16 @@ public class ScimV2UserObject extends ScimV2BaseUMObject {
             throw new BadRequestException("Cannot create user without a username", INVALID_SYNTAX);
         }
         UserManager um = Framework.getService(UserManager.class);
-        boolean create = um.getUserModel(userName) == null;
+        if (um.getUserModel(userName) != null) {
+            throw new ResourceConflictException("Cannot create user with existing uid: " + userName, UNIQUENESS);
+        }
         DocumentModel newUser = mapper.createNuxeoUserFromUserResource(user);
         if (newUser == null) {
             throw new ServerErrorException("Cannot create user from resource: " + user);
         }
         try {
             UserResource userResource = mapper.getUserResourceFromNuxeoUser(newUser, baseURL);
-            return ResponseUtils.response(create ? CREATED : OK, userResource);
+            return ResponseUtils.response(CREATED, userResource);
         } catch (URISyntaxException e) {
             throw new ServerErrorException("Cannot create user: " + userName, null, e);
         }

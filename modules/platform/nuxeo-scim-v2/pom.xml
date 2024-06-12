@@ -72,6 +72,11 @@
     </dependency>
 
     <dependency>
+      <groupId>org.nuxeo.common</groupId>
+      <artifactId>nuxeo-common</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
       <groupId>org.nuxeo.runtime</groupId>
       <artifactId>nuxeo-runtime-test</artifactId>
       <scope>test</scope>
@@ -87,13 +92,8 @@
       <scope>test</scope>
     </dependency>
     <dependency>
-      <groupId>info.simplecloud.scimproxy</groupId>
-      <artifactId>compliance</artifactId>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.wso2.charon</groupId>
-      <artifactId>org.wso2.charon3.core</artifactId>
+      <groupId>org.wso2.scim2.testsuite</groupId>
+      <artifactId>org.wso2.scim2.testsuite.core</artifactId>
       <scope>test</scope>
     </dependency>
     <dependency>

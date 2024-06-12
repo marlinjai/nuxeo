@@ -19,8 +19,8 @@
  */
 package org.nuxeo.scim.v2.mapper;
 
-import static org.apache.commons.lang3.StringUtils.isBlank;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
+import static org.apache.commons.lang3.StringUtils.trimToNull;
 
 import java.net.URISyntaxException;
 import java.util.ArrayList;
@@ -90,18 +90,23 @@ public class StaticUserMapper extends AbstractMapper {
 
         String firstName = (String) userModel.getProperty(userSchemaName, FIRST_NAME);
         String lastName = (String) userModel.getProperty(userSchemaName, LAST_NAME);
-        String displayName = getDisplayName(firstName, lastName);
-        if (displayName != null) {
-            userResource.setDisplayName(displayName);
+        if (isNotBlank(firstName) || isNotBlank(lastName)) {
             Name name = new Name();
-            name.setFormatted(displayName);
+            String displayName = "";
             if (isNotBlank(firstName)) {
+                firstName = firstName.trim();
                 name.setGivenName(firstName);
+                displayName = firstName + " ";
             }
             if (isNotBlank(lastName)) {
+                lastName = lastName.trim();
                 name.setFamilyName(lastName);
+                displayName += lastName.trim();
             }
+            displayName = displayName.trim();
+            name.setFormatted(displayName);
             userResource.setName(name);
+            userResource.setDisplayName(displayName);
         }
 
         String email = (String) userModel.getProperty(userSchemaName, EMAIL);
@@ -126,42 +131,27 @@ public class StaticUserMapper extends AbstractMapper {
         UserManager um = Framework.getService(UserManager.class);
         String userSchemaName = um.getUserSchemaName();
 
-        String displayName = userResouce.getDisplayName();
-        setDisplayName(displayName, userModel, userSchemaName);
+        Name name = userResouce.getName();
+        setName(name, userModel, userSchemaName);
 
         List<Email> emails = userResouce.getEmails();
         setEmail(emails, userModel, userSchemaName);
     }
 
-    protected String getDisplayName(String firstName, String lastName) {
-        if (isNotBlank(firstName) && isNotBlank(lastName)) {
-            return String.join(" ", firstName.trim(), lastName.trim());
-        } else if (isNotBlank(firstName)) {
-            return firstName.trim();
-        } else if (isNotBlank(lastName)) {
-            return lastName.trim();
-        }
-        return null;
-    }
-
-    protected void setDisplayName(String displayName, DocumentModel userModel, String userSchemaName) {
+    protected void setName(Name name, DocumentModel userModel, String userSchemaName) {
         // don't nullify if not provided, need an explicit empty string for this
-        if (displayName == null) {
+        if (name == null) {
             return;
         }
-        if (isBlank(displayName)) {
-            userModel.setProperty(userSchemaName, FIRST_NAME, null);
-            userModel.setProperty(userSchemaName, LAST_NAME, null);
-            return;
+        var givenName = name.getGivenName();
+        if (givenName != null) {
+            var firstName = trimToNull(givenName);
+            userModel.setProperty(userSchemaName, FIRST_NAME, firstName);
         }
-        displayName = displayName.trim();
-        int idx = displayName.indexOf(" ");
-        if (idx > 0) {
-            userModel.setProperty(userSchemaName, FIRST_NAME, displayName.substring(0, idx).trim());
-            userModel.setProperty(userSchemaName, LAST_NAME, displayName.substring(idx + 1).trim());
-        } else {
-            userModel.setProperty(userSchemaName, FIRST_NAME, displayName.trim());
-            userModel.setProperty(userSchemaName, LAST_NAME, null);
+        var familyName = name.getFamilyName();
+        if (familyName != null) {
+            var lastName = trimToNull(familyName);
+            userModel.setProperty(userSchemaName, LAST_NAME, lastName);
         }
     }
 

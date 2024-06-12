@@ -19,7 +19,7 @@
  */
 package org.nuxeo.scim.v2.tests.compliance;
 
-import info.wso2.scim2.compliance.entities.TestResult;
+import org.wso2.scim2.testsuite.core.entities.TestResult;
 
 /**
  * SCIM 2.0 compliance test readable result.

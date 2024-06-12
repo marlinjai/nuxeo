@@ -47,6 +47,7 @@ import org.nuxeo.scim.v2.mapper.UserMapperFactory;
 
 import com.unboundid.scim2.common.types.Email;
 import com.unboundid.scim2.common.types.Group;
+import com.unboundid.scim2.common.types.Name;
 import com.unboundid.scim2.common.types.UserResource;
 
 /**
@@ -72,56 +73,30 @@ public class ScimV2ConfigurableUserMapperTest {
 
     @Test
     public void testCreateUser() {
-        // create user with no displayName and no emails
-        var userResource = newUserResource("joe", null, null);
+        // create user with no givenName, no familyName and no emails
+        var userResource = newUserResource("joe", null, null, null);
         withUserModel(userResource, mapper::createNuxeoUserFromUserResource,
                 userModel -> checkUserModel(userModel, "joe", null, null, null));
 
-        // create user with blank displayName and empty emails
-        userResource = newUserResource("joe", "", List.of());
+        // create user with blank givenName, blank familyName and empty emails
+        userResource = newUserResource("joe", "", "", List.of());
         withUserModel(userResource, mapper::createNuxeoUserFromUserResource,
                 userModel -> checkUserModel(userModel, "joe", null, null, null));
 
-        // create user with displayName and emails
-        userResource = newUserResource("joe", "Joe Doe", List.of("joe@devnull.com")); // NOSONAR
-        withUserModel(userResource, mapper::createNuxeoUserFromUserResource,
-                userModel -> checkUserModel(userModel, "joe", "Joe", "Doe", "joe@devnull.com"));
-
-        // create user with displayName (single string) and emails
-        userResource = newUserResource("joe", "Joe", List.of("joe@devnull.com"));
+        // create user with givenName, no familyName and emails
+        userResource = newUserResource("joe", "Joe", null, List.of("joe@devnull.com")); // NOSONAR
         withUserModel(userResource, mapper::createNuxeoUserFromUserResource,
                 userModel -> checkUserModel(userModel, "joe", "Joe", null, "joe@devnull.com"));
-    }
 
-    @Test
-    public void testCreateUpdateUser() {
-        // update user with no displayName and no emails
-        withUserModel("joe", "Joe", "Doe", "joe@devnull.com", () -> {
-            var userResource = newUserResource("joe", null, null);
-            var userModel = mapper.createNuxeoUserFromUserResource(userResource);
-            checkUserModel(userModel, "joe", "Joe", "Doe", "joe@devnull.com");
-        });
+        // create user with no givenName, familyName and emails
+        userResource = newUserResource("joe", null, "Doe", List.of("joe@devnull.com")); // NOSONAR
+        withUserModel(userResource, mapper::createNuxeoUserFromUserResource,
+                userModel -> checkUserModel(userModel, "joe", null, "Doe", "joe@devnull.com"));
 
-        // update user with blank displayName and empty emails
-        withUserModel("joe", "Joe", "Doe", "joe@devnull.com", () -> {
-            var userResource = newUserResource("joe", "", List.of());
-            var userModel = mapper.createNuxeoUserFromUserResource(userResource);
-            checkUserModel(userModel, "joe", null, null, null);
-        });
-
-        // update user with displayName and emails
-        withUserModel("joe", "Joe", "Doe", "joe@devnull.com", () -> {
-            var userResource = newUserResource("joe", "Jack Fat", List.of("jack@devnull.com")); // NOSONAR
-            var userModel = mapper.createNuxeoUserFromUserResource(userResource);
-            checkUserModel(userModel, "joe", "Jack", "Fat", "jack@devnull.com");
-        });
-
-        // update user with displayName (single string) and emails
-        withUserModel("joe", "Joe", "Doe", "joe@devnull.com", () -> {
-            var userResource = newUserResource("joe", "Jack", List.of("jack@devnull.com"));
-            var userModel = mapper.createNuxeoUserFromUserResource(userResource);
-            checkUserModel(userModel, "joe", "Jack", null, "jack@devnull.com");
-        });
+        // create user with givenName, familyName and emails
+        userResource = newUserResource("joe", "Joe", "Doe", List.of("joe@devnull.com"));
+        withUserModel(userResource, mapper::createNuxeoUserFromUserResource,
+                userModel -> checkUserModel(userModel, "joe", "Joe", "Doe", "joe@devnull.com"));
     }
 
     @Test
@@ -161,41 +136,55 @@ public class ScimV2ConfigurableUserMapperTest {
 
     @Test
     public void testUpdateUser() {
-        // update user with no displayName and no emails
+        // update user with no givenName, no familyName and no emails
         withUserModel("joe", "Joe", "Doe", "joe@devnull.com", () -> {
-            var userResource = newUserResource("joe", null, null);
+            var userResource = newUserResource("joe", null, null, null);
             var userModel = mapper.updateNuxeoUserFromUserResource("joe", userResource);
             checkUserModel(userModel, "joe", "Joe", "Doe", "joe@devnull.com");
         });
 
-        // update user with blank displayName and empty emails
+        // update user with blank givenName, blank familyName and empty emails
         withUserModel("joe", "Joe", "Doe", "joe@devnull.com", () -> {
-            var userResource = newUserResource("joe", "", List.of());
+            var userResource = newUserResource("joe", "", "", List.of());
             var userModel = mapper.updateNuxeoUserFromUserResource("joe", userResource);
             checkUserModel(userModel, "joe", null, null, null);
         });
 
-        // update user with displayName and emails
+        // update user with givenName, no familyName and emails
         withUserModel("joe", "Joe", "Doe", "joe@devnull.com", () -> {
-            var userResource = newUserResource("joe", "Jack Fat", List.of("jack@devnull.com"));
+            var userResource = newUserResource("joe", "Jack", null, List.of("jack@devnull.com")); // NOSONAR
+            var userModel = mapper.updateNuxeoUserFromUserResource("joe", userResource);
+            checkUserModel(userModel, "joe", "Jack", "Doe", "jack@devnull.com");
+        });
+
+        // update user with no givenName, familyName and emails
+        withUserModel("joe", "Joe", "Doe", "joe@devnull.com", () -> {
+            var userResource = newUserResource("joe", null, "Fat", List.of("jack@devnull.com"));
+            var userModel = mapper.updateNuxeoUserFromUserResource("joe", userResource);
+            checkUserModel(userModel, "joe", "Joe", "Fat", "jack@devnull.com");
+        });
+
+        // update user with givenName, familyName and emails
+        withUserModel("joe", "Joe", "Doe", "joe@devnull.com", () -> {
+            var userResource = newUserResource("joe", "Jack", "Fat", List.of("jack@devnull.com"));
             var userModel = mapper.updateNuxeoUserFromUserResource("joe", userResource);
             checkUserModel(userModel, "joe", "Jack", "Fat", "jack@devnull.com");
         });
-
-        // update user with displayName (single string) and emails
-        withUserModel("joe", "Joe", "Doe", "joe@devnull.com", () -> {
-            var userResource = newUserResource("joe", "Jack", List.of("jack@devnull.com"));
-            var userModel = mapper.updateNuxeoUserFromUserResource("joe", userResource);
-            checkUserModel(userModel, "joe", "Jack", null, "jack@devnull.com");
-        });
     }
 
-    protected UserResource newUserResource(String username, String displayName, List<String> emails) {
+    protected UserResource newUserResource(String username, String givenName, String familyName, List<String> emails) {
         Objects.requireNonNull(username);
         var userResource = new UserResource();
         userResource.setUserName(username);
-        if (displayName != null) {
-            userResource.setDisplayName(displayName);
+        if (givenName != null || familyName != null) {
+            Name name = new Name();
+            if (givenName != null) {
+                name.setGivenName(givenName);
+            }
+            if (familyName != null) {
+                name.setFamilyName(familyName);
+            }
+            userResource.setName(name);
         }
         if (emails != null) {
             userResource.setEmails(emails.stream().map(email -> new Email().setValue(email)).toList());
@@ -277,16 +266,20 @@ public class ScimV2ConfigurableUserMapperTest {
         assertEquals(String.format("%s/%s", BASE_URL, username), meta.getLocation().toString());
         assertEquals("1", meta.getVersion());
         assertEquals(username, userResource.getUserName());
-        String displayName = getDisplayName(firstName, lastName);
-        assertEquals(displayName, userResource.getDisplayName());
         var name = userResource.getName();
-        if (displayName == null) {
+        if (firstName == null && lastName == null) {
             assertNull(name);
         } else {
             assertNotNull(name);
+            if (firstName != null) {
+                assertEquals(firstName, name.getGivenName());
+            }
+            if (lastName != null) {
+                assertEquals(lastName, name.getFamilyName());
+            }
+            String displayName = getDisplayName(firstName, lastName);
             assertEquals(displayName, name.getFormatted());
-            assertEquals(firstName, name.getGivenName());
-            assertEquals(lastName, name.getFamilyName());
+            assertEquals(displayName, userResource.getDisplayName());
         }
         List<Email> actualEmails = userResource.getEmails();
         if (emails == null) {

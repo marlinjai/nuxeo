@@ -20,9 +20,9 @@
 package org.nuxeo.scim.v2.rest.usermanager;
 
 import static com.unboundid.scim2.common.exceptions.BadRequestException.INVALID_SYNTAX;
+import static com.unboundid.scim2.common.exceptions.ResourceConflictException.UNIQUENESS;
 import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
 import static javax.ws.rs.core.Response.Status.CREATED;
-import static javax.ws.rs.core.Response.Status.OK;
 
 import java.net.URISyntaxException;
 
@@ -43,6 +43,7 @@ import org.nuxeo.runtime.api.Framework;
 import org.nuxeo.scim.v2.rest.marshalling.ResponseUtils;
 
 import com.unboundid.scim2.common.exceptions.BadRequestException;
+import com.unboundid.scim2.common.exceptions.ResourceConflictException;
 import com.unboundid.scim2.common.exceptions.ResourceNotFoundException;
 import com.unboundid.scim2.common.exceptions.ScimException;
 import com.unboundid.scim2.common.exceptions.ServerErrorException;
@@ -98,14 +99,16 @@ public class ScimV2GroupObject extends ScimV2BaseUMObject {
             throw new BadRequestException("Cannot create user without a displayName", INVALID_SYNTAX);
         }
         UserManager um = Framework.getService(UserManager.class);
-        boolean create = um.getGroupModel(groupName) == null;
+        if (um.getGroupModel(groupName) != null) {
+            throw new ResourceConflictException("Cannot create group with existing uid: " + groupName, UNIQUENESS);
+        }
         DocumentModel newGroup = mapper.createNuxeoGroupFromGroupResource(group);
         if (newGroup == null) {
             throw new ServerErrorException("Cannot create group from resource: " + group);
         }
         try {
             GroupResource groupResource = mapper.getGroupResourceFromNuxeoGroup(newGroup, baseURL);
-            return ResponseUtils.response(create ? CREATED : OK, groupResource);
+            return ResponseUtils.response(CREATED, groupResource);
         } catch (URISyntaxException e) {
             throw new ServerErrorException("Cannot create group: " + groupName, null, e);
         }
