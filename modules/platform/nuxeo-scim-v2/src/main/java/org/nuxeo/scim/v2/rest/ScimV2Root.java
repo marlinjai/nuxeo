@@ -42,6 +42,7 @@ import com.unboundid.scim2.common.ScimResource;
 import com.unboundid.scim2.common.exceptions.ResourceNotFoundException;
 import com.unboundid.scim2.common.exceptions.ScimException;
 import com.unboundid.scim2.common.messages.ErrorResponse;
+import com.unboundid.scim2.common.messages.ListResponse;
 import com.unboundid.scim2.common.types.GroupResource;
 import com.unboundid.scim2.common.types.SchemaResource;
 import com.unboundid.scim2.common.types.UserResource;
@@ -93,10 +94,10 @@ public class ScimV2Root extends ModuleRoot {
 
     @GET
     @Path("/Schemas")
-    public List<ScimResource> getSchemas() throws IntrospectionException, ScimException {
-        SchemaResource userSchema = getSchemaResource(SCIM_V2_SCHEMA_USER);
-        SchemaResource groupSchema = getSchemaResource(SCIM_V2_SCHEMA_GROUP);
-        return List.of(userSchema, groupSchema);
+    public ListResponse<ScimResource> getSchemas() throws IntrospectionException, ScimException {
+        ScimResource userSchema = getSchemaResource(SCIM_V2_SCHEMA_USER);
+        ScimResource groupSchema = getSchemaResource(SCIM_V2_SCHEMA_GROUP);
+        return new ListResponse<>(List.of(userSchema, groupSchema));
     }
 
     @GET
