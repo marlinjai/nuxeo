@@ -20,6 +20,8 @@
 package org.nuxeo.scim.v2.mapper;
 
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
+import static org.nuxeo.scim.v2.rest.ScimV2Root.SCIM_V2_RESOURCE_TYPE_GROUP;
+import static org.nuxeo.scim.v2.rest.ScimV2Root.SCIM_V2_RESOURCE_TYPE_USER;
 
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -42,10 +44,6 @@ import com.unboundid.scim2.common.types.UserResource;
  * @since 2023.14
  */
 public abstract class AbstractMapper {
-
-    public static final String SCIM_RESOURCE_TYPE_USER = "User";
-
-    public static final String SCIM_RESOURCE_TYPE_GROUP = "Group";
 
     public abstract DocumentModel createNuxeoUserFromUserResource(UserResource user);
 
@@ -93,6 +91,7 @@ public abstract class AbstractMapper {
         groupResource.setExternalId(groupId);
 
         Meta meta = new Meta();
+        meta.setResourceType(SCIM_V2_RESOURCE_TYPE_GROUP);
         URI location = new URI(String.join("/", baseURL, groupId));
         meta.setLocation(location);
         meta.setVersion("1");
@@ -107,17 +106,17 @@ public abstract class AbstractMapper {
         @SuppressWarnings("unchecked")
         List<String> groupMembers = (List<String>) groupModel.getProperty(groupSchemaName, um.getGroupMembersField());
         if (groupMembers != null) {
-            members.addAll(
-                    groupMembers.stream()
-                                .map(groupMember -> new Member().setType(SCIM_RESOURCE_TYPE_USER).setValue(groupMember))
-                                .toList());
+            members.addAll(groupMembers.stream()
+                                       .map(groupMember -> new Member().setType(SCIM_V2_RESOURCE_TYPE_USER)
+                                                                       .setValue(groupMember))
+                                       .toList());
         }
         @SuppressWarnings("unchecked")
         List<String> groupSubGroups = (List<String>) groupModel.getProperty(groupSchemaName,
                 um.getGroupSubGroupsField());
         if (groupSubGroups != null) {
             members.addAll(groupSubGroups.stream()
-                                         .map(groupSubGroup -> new Member().setType(SCIM_RESOURCE_TYPE_GROUP)
+                                         .map(groupSubGroup -> new Member().setType(SCIM_V2_RESOURCE_TYPE_GROUP)
                                                                            .setValue(groupSubGroup))
                                          .toList());
         }
@@ -132,6 +131,7 @@ public abstract class AbstractMapper {
         userResource.setExternalId(userId);
 
         Meta meta = new Meta();
+        meta.setResourceType(SCIM_V2_RESOURCE_TYPE_USER);
         URI location = new URI(String.join("/", baseURL, userId));
         meta.setLocation(location);
         meta.setVersion("1");
@@ -161,7 +161,7 @@ public abstract class AbstractMapper {
         List<String> groupSubGroups = new ArrayList<>();
         members.stream().forEach(member -> {
             String value = member.getValue();
-            if (SCIM_RESOURCE_TYPE_USER.equals(member.getType())) {
+            if (SCIM_V2_RESOURCE_TYPE_USER.equals(member.getType())) {
                 groupMembers.add(value);
             } else {
                 groupSubGroups.add(value);

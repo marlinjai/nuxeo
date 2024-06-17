@@ -20,8 +20,8 @@ package org.nuxeo.scim.v2.tests;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
-import static org.nuxeo.scim.v2.mapper.AbstractMapper.SCIM_RESOURCE_TYPE_GROUP;
-import static org.nuxeo.scim.v2.mapper.AbstractMapper.SCIM_RESOURCE_TYPE_USER;
+import static org.nuxeo.scim.v2.rest.ScimV2Root.SCIM_V2_RESOURCE_TYPE_GROUP;
+import static org.nuxeo.scim.v2.rest.ScimV2Root.SCIM_V2_RESOURCE_TYPE_USER;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -170,12 +170,12 @@ public class ScimV2AbstractMapperTest {
         List<Member> members = new ArrayList<>();
         if (userMembers != null) {
             members.addAll(userMembers.stream()
-                                      .map(id -> new Member().setType(SCIM_RESOURCE_TYPE_USER).setValue(id))
+                                      .map(id -> new Member().setType(SCIM_V2_RESOURCE_TYPE_USER).setValue(id))
                                       .toList());
         }
         if (groupMembers != null) {
             members.addAll(groupMembers.stream()
-                                       .map(id -> new Member().setType(SCIM_RESOURCE_TYPE_GROUP).setValue(id))
+                                       .map(id -> new Member().setType(SCIM_V2_RESOURCE_TYPE_GROUP).setValue(id))
                                        .toList());
         }
         groupResource.setMembers(members);
@@ -273,12 +273,12 @@ public class ScimV2AbstractMapperTest {
         List<Member> actualMembers = groupResource.getMembers();
         assertNotNull(actualMembers);
         List<String> actualUserMembers = actualMembers.stream()
-                                                      .filter(member -> SCIM_RESOURCE_TYPE_USER.equals(
+                                                      .filter(member -> SCIM_V2_RESOURCE_TYPE_USER.equals(
                                                               member.getType()))
                                                       .map(Member::getValue)
                                                       .toList();
         List<String> actualGroupMembers = actualMembers.stream()
-                                                       .filter(member -> SCIM_RESOURCE_TYPE_GROUP.equals(
+                                                       .filter(member -> SCIM_V2_RESOURCE_TYPE_GROUP.equals(
                                                                member.getType()))
                                                        .map(Member::getValue)
                                                        .toList();

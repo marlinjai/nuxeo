@@ -70,6 +70,10 @@ public class ScimV2Root extends ModuleRoot {
 
     public static final String SCIM_V2_RESOURCE_TYPE_SCHEMA = "Schema";
 
+    public static final String SCIM_V2_RESOURCE_TYPE_GROUP = "Group";
+
+    public static final String SCIM_V2_RESOURCE_TYPE_USER = "User";
+
     public static final String SCIM_V2_SCHEMA_GROUP = "urn:ietf:params:scim:schemas:core:2.0:Group";
 
     public static final String SCIM_V2_SCHEMA_USER = "urn:ietf:params:scim:schemas:core:2.0:User";
