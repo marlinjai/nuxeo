@@ -1,0 +1,74 @@
+{
+  "schemas" : [ "urn:ietf:params:scim:schemas:core:2.0:Schema" ],
+  "id" : "urn:ietf:params:scim:schemas:core:2.0:Group",
+  "name" : "Group",
+  "description" : "Group",
+  "attributes" : [ {
+    "name" : "displayName",
+    "type" : "string",
+    "multiValued" : false,
+    "description" : "A human-readable name for the Group.",
+    "required" : true,
+    "caseExact" : false,
+    "mutability" : "readWrite",
+    "returned" : "default",
+    "uniqueness" : "none"
+  }, {
+    "name" : "members",
+    "type" : "complex",
+    "subAttributes" : [ {
+      "name" : "display",
+      "type" : "string",
+      "multiValued" : false,
+      "description" : "A human readable name, primarily used for display purposes.",
+      "required" : false,
+      "caseExact" : false,
+      "mutability" : "immutable",
+      "returned" : "default",
+      "uniqueness" : "none"
+    }, {
+      "name" : "$ref",
+      "type" : "reference",
+      "multiValued" : false,
+      "description" : "The URI of the member resource.",
+      "required" : true,
+      "caseExact" : true,
+      "mutability" : "immutable",
+      "returned" : "default",
+      "uniqueness" : "none",
+      "referenceTypes" : [ "Group", "User" ]
+    }, {
+      "name" : "type",
+      "type" : "string",
+      "multiValued" : false,
+      "description" : "A label indicating the type of resource, e.g., 'User' or 'Group'",
+      "required" : false,
+      "canonicalValues" : [ "Group", "User" ],
+      "caseExact" : false,
+      "mutability" : "immutable",
+      "returned" : "default",
+      "uniqueness" : "none"
+    }, {
+      "name" : "value",
+      "type" : "string",
+      "multiValued" : false,
+      "description" : "The identifier of a group member.",
+      "required" : true,
+      "caseExact" : false,
+      "mutability" : "immutable",
+      "returned" : "default",
+      "uniqueness" : "none"
+    } ],
+    "multiValued" : true,
+    "description" : "A list of members of the Group.",
+    "required" : false,
+    "caseExact" : true,
+    "mutability" : "readWrite",
+    "returned" : "default",
+    "uniqueness" : "none"
+  } ],
+  "meta" : {
+    "resourceType" : "Schema",
+    "location" : "http://localhost:$PORT/scim/v2/Schemas/urn:ietf:params:scim:schemas:core:2.0:Group"
+  }
+}

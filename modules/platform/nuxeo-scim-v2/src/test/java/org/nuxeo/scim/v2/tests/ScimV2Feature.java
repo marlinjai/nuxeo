@@ -19,17 +19,23 @@
  */
 package org.nuxeo.scim.v2.tests;
 
+import static java.nio.charset.StandardCharsets.UTF_8;
+import static org.apache.commons.io.FileUtils.readFileToString;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
+import java.io.IOException;
+
 import javax.inject.Inject;
 
+import org.nuxeo.common.utils.FileUtils;
 import org.nuxeo.ecm.automation.test.AutomationServerFeature;
 import org.nuxeo.ecm.webengine.test.WebEngineFeature;
 import org.nuxeo.runtime.test.runner.Deploy;
 import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.RunnerFeature;
 import org.nuxeo.runtime.test.runner.ServletContainerFeature;
+import org.skyscreamer.jsonassert.JSONAssert;
 
 import com.fasterxml.jackson.databind.JsonNode;
 
@@ -56,6 +62,13 @@ public class ScimV2Feature implements RunnerFeature {
 
     public String getScimV2URL() {
         return servletContainerFeature.getHttpUrl() + "/scim/v2";
+    }
+
+    public void assertJSON(String expectedFile, JsonNode actualNode) throws IOException {
+        var file = FileUtils.getResourceFileFromContext(expectedFile);
+        var expected = readFileToString(file, UTF_8).replace("$PORT",
+                String.valueOf(servletContainerFeature.getPort()));
+        JSONAssert.assertEquals(expected, actualNode.toString(), true);
     }
 
 }

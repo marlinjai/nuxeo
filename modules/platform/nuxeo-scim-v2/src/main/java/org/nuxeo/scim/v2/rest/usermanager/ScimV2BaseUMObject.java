@@ -21,7 +21,6 @@ package org.nuxeo.scim.v2.rest.usermanager;
 
 import org.nuxeo.ecm.core.api.NuxeoPrincipal;
 import org.nuxeo.ecm.platform.usermanager.UserManager;
-import org.nuxeo.ecm.platform.web.common.vh.VirtualHostHelper;
 import org.nuxeo.ecm.webengine.model.impl.DefaultObject;
 import org.nuxeo.runtime.api.Framework;
 import org.nuxeo.scim.v2.mapper.AbstractMapper;
@@ -47,11 +46,7 @@ public abstract class ScimV2BaseUMObject extends DefaultObject {
     protected void initialize(Object... args) {
         super.initialize(args);
         um = Framework.getService(UserManager.class);
-        baseURL = VirtualHostHelper.getServerURL(ctx.getRequest()); // http://localhost:8080/
-        while (baseURL.endsWith("/")) {
-            baseURL = baseURL.substring(0, baseURL.length() - 1); // http://localhost:8080
-        }
-        baseURL = baseURL + ctx.getUrlPath(); // http://localhost:8080/nuxeo/scim/v2/Users/Administrator
+        baseURL = (String) args[0];
         int idx = baseURL.lastIndexOf(getPrefix());
         if (idx > 0) {
             baseURL = baseURL.substring(0, idx + getPrefix().length()); // http://localhost:8080/nuxeo/scim/v2/Users

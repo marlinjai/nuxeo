@@ -25,19 +25,21 @@ import javax.inject.Inject;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.nuxeo.common.function.ThrowableConsumer;
 import org.nuxeo.http.test.HttpClientTestRule;
 import org.nuxeo.http.test.handler.JsonNodeHandler;
 import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.FeaturesRunner;
+import org.nuxeo.scim.v2.tests.compliance.ScimV2ComplianceTest;
 
 /**
- * SCIM 2.0 /Schemas endpoint error tests.
+ * SCIM 2.0 /Schemas endpoint tests not covered by {@link ScimV2ComplianceTest}.
  *
  * @since 2023.14
  */
 @RunWith(FeaturesRunner.class)
 @Features(ScimV2Feature.class)
-public class ScimV2SchemasErrorTest {
+public class ScimV2SchemasTest {
 
     @Inject
     protected ScimV2Feature scimV2Feature;
@@ -49,6 +51,20 @@ public class ScimV2SchemasErrorTest {
     public void testGetSchemaNotFound() {
         httpClient.buildGetRequest("/Schemas/foo")
                   .executeAndConsume(new JsonNodeHandler(SC_NOT_FOUND), ScimV2Feature::assertError);
+    }
+
+    @Test
+    public void testGetSchemaUser() {
+        httpClient.buildGetRequest("/Schemas/urn:ietf:params:scim:schemas:core:2.0:User")
+                  .executeAndConsume(new JsonNodeHandler(),
+                          ThrowableConsumer.asConsumer(node -> scimV2Feature.assertJSON("schema_user.json", node)));
+    }
+
+    @Test
+    public void testGetSchemaGroup() {
+        httpClient.buildGetRequest("/Schemas/urn:ietf:params:scim:schemas:core:2.0:Group")
+                  .executeAndConsume(new JsonNodeHandler(),
+                          ThrowableConsumer.asConsumer(node -> scimV2Feature.assertJSON("schema_group.json", node)));
     }
 
 }

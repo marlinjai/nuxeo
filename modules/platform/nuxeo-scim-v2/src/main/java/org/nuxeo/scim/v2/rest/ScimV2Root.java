@@ -23,6 +23,8 @@ import static javax.servlet.http.HttpServletResponse.SC_INTERNAL_SERVER_ERROR;
 import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
 
 import java.beans.IntrospectionException;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.List;
 
 import javax.ws.rs.GET;
@@ -32,6 +34,7 @@ import javax.ws.rs.Produces;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.nuxeo.ecm.platform.web.common.vh.VirtualHostHelper;
 import org.nuxeo.ecm.webengine.app.jersey.WebEngineServlet;
 import org.nuxeo.ecm.webengine.model.WebObject;
 import org.nuxeo.ecm.webengine.model.impl.ModuleRoot;
@@ -41,9 +44,11 @@ import org.nuxeo.scim.v2.rest.marshalling.ResponseUtils;
 import com.unboundid.scim2.common.ScimResource;
 import com.unboundid.scim2.common.exceptions.ResourceNotFoundException;
 import com.unboundid.scim2.common.exceptions.ScimException;
+import com.unboundid.scim2.common.exceptions.ServerErrorException;
 import com.unboundid.scim2.common.messages.ErrorResponse;
 import com.unboundid.scim2.common.messages.ListResponse;
 import com.unboundid.scim2.common.types.GroupResource;
+import com.unboundid.scim2.common.types.Meta;
 import com.unboundid.scim2.common.types.SchemaResource;
 import com.unboundid.scim2.common.types.UserResource;
 import com.unboundid.scim2.common.utils.SchemaUtils;
@@ -63,9 +68,11 @@ public class ScimV2Root extends ModuleRoot {
 
     private static final Logger log = LogManager.getLogger(ScimV2Root.class);
 
-    public static final String SCIM_V2_SCHEMA_USER = "urn:ietf:params:scim:schemas:core:2.0:User";
+    public static final String SCIM_V2_RESOURCE_TYPE_SCHEMA = "Schema";
 
     public static final String SCIM_V2_SCHEMA_GROUP = "urn:ietf:params:scim:schemas:core:2.0:Group";
+
+    public static final String SCIM_V2_SCHEMA_USER = "urn:ietf:params:scim:schemas:core:2.0:User";
 
     @Override
     public Object handleError(Throwable t) {
@@ -94,35 +101,75 @@ public class ScimV2Root extends ModuleRoot {
 
     @GET
     @Path("/Schemas")
-    public ListResponse<ScimResource> getSchemas() throws IntrospectionException, ScimException {
-        ScimResource userSchema = getSchemaResource(SCIM_V2_SCHEMA_USER);
-        ScimResource groupSchema = getSchemaResource(SCIM_V2_SCHEMA_GROUP);
+    public ListResponse<ScimResource> getSchemas() throws ScimException {
+        var userSchema = getSchemaResource(SCIM_V2_SCHEMA_USER);
+        setMeta(userSchema, SCIM_V2_RESOURCE_TYPE_SCHEMA, SCIM_V2_SCHEMA_USER, null);
+        var groupSchema = getSchemaResource(SCIM_V2_SCHEMA_GROUP);
+        setMeta(groupSchema, SCIM_V2_RESOURCE_TYPE_SCHEMA, SCIM_V2_SCHEMA_GROUP, null);
         return new ListResponse<>(List.of(userSchema, groupSchema));
     }
 
     @GET
     @Path("/Schemas/{schemaName}")
-    public SchemaResource getSchema(@PathParam("schemaName") String schemaName)
-            throws IntrospectionException, ScimException {
-        return getSchemaResource(schemaName);
+    public SchemaResource getSchema(@PathParam("schemaName") String schemaName) throws ScimException {
+        var schema = getSchemaResource(schemaName);
+        setMeta(schema, SCIM_V2_RESOURCE_TYPE_SCHEMA, null, null);
+        return schema;
     }
 
     @Path("/Users")
     public Object doGetUsersResource() {
-        return newObject("users");
+        return newObject("users", getBaseURL());
     }
 
     @Path("/Groups")
     public Object doGetGroups() {
-        return newObject("groups");
+        return newObject("groups", getBaseURL());
     }
 
-    protected SchemaResource getSchemaResource(String schemaName) throws IntrospectionException, ScimException {
+    protected String getBaseURL() {
+        var baseURL = VirtualHostHelper.getServerURL(ctx.getRequest()); // http://localhost:8080/
+        while (baseURL.endsWith("/")) {
+            baseURL = baseURL.substring(0, baseURL.length() - 1); // http://localhost:8080
+        }
+        return baseURL + ctx.getUrlPath(); // e.g.: http://localhost:8080/nuxeo/scim/v2/Users
+    }
+
+    protected SchemaResource getSchemaResource(String schemaName) throws ScimException {
         return switch (schemaName) {
-            case SCIM_V2_SCHEMA_USER -> SchemaUtils.getSchema(UserResource.class);
-            case SCIM_V2_SCHEMA_GROUP -> SchemaUtils.getSchema(GroupResource.class);
+            case SCIM_V2_SCHEMA_USER -> getSchemaResource(UserResource.class);
+            case SCIM_V2_SCHEMA_GROUP -> getSchemaResource(GroupResource.class);
             default -> throw new ResourceNotFoundException("Cannot find schema:" + schemaName);
         };
+    }
+
+    protected <T extends ScimResource> SchemaResource getSchemaResource(Class<T> resourceClass) throws ScimException {
+        try {
+            return SchemaUtils.getSchema(resourceClass);
+        } catch (IntrospectionException e) {
+            throw new ServerErrorException("Cannot get schema resource for class:" + resourceClass.getSimpleName());
+        }
+    }
+
+    protected void setMeta(ScimResource resource, String resourceType, String locationSuffix, String version)
+            throws ScimException {
+        var meta = new Meta();
+        meta.setResourceType(resourceType);
+        var uriString = locationSuffix == null ? getBaseURL() : String.join("/", getBaseURL(), locationSuffix);
+        URI location = getURI(uriString);
+        meta.setLocation(location);
+        if (version != null) {
+            meta.setVersion(version);
+        }
+        resource.setMeta(meta);
+    }
+
+    protected URI getURI(String uri) throws ScimException {
+        try {
+            return new URI(uri);
+        } catch (URISyntaxException e) {
+            throw new ServerErrorException("Cannot create URI for sring: " + uri, null, e);
+        }
     }
 
 }
