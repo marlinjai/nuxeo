@@ -1,0 +1,37 @@
+<?xml version="1.0" ?>
+<Configuration>
+  <Properties>
+    <Property name="defaultConsoleLevelStyle">
+      <![CDATA[{FATAL=bright red, ERROR=bright red, WARN=bright yellow, INFO=bright blue, DEBUG=white, TRACE=black}]]>
+    </Property>
+    <Property name="consoleLevelStyle">
+      <![CDATA[${sys:nuxeo.test.common.logging.console.level.style:-${defaultConsoleLevelStyle}}]]>
+    </Property>
+    <Property name="defaultConsoleLayout">
+      <![CDATA[%style{%d{ABSOLUTE}}{bright_black} %highlight{%-5p}${consoleLevelStyle} %style{[%t]}{faint} %style{%c{1}}{cyan}: %m%n%xEx]]>
+    </Property>
+    <Property name="consoleLayout">
+      <![CDATA[${sys:nuxeo.test.common.logging.console.layout:-${defaultConsoleLayout}}]]>
+    </Property>
+  </Properties>
+  <Appenders>
+    <Console name="CONSOLE" target="SYSTEM_OUT">
+      <Filters>
+        <MarkerFilter onMatch="ACCEPT" onMismatch="NEUTRAL" marker="CONSOLE_OVERRIDE" />
+        <ThresholdFilter onMatch="ACCEPT" onMismatch="DENY" level="WARN" />
+      </Filters>
+      <PatternLayout pattern="${consoleLayout}" />
+    </Console>
+    <File name="FILE" fileName="${sys:custom.environment.log.dir:-target}/trace.log" append="false">
+      <ThresholdFilter level="DEBUG" onMatch="ACCEPT" />
+      <PatternLayout pattern="%d{DEFAULT} [%t] %-5p [%c{1}] %m%n" />
+    </File>
+  </Appenders>
+  <Loggers>
+    <Logger name="org.nuxeo" level="INFO" />
+    <Root level="WARN">
+      <AppenderRef ref="CONSOLE" />
+      <AppenderRef ref="FILE" />
+    </Root>
+  </Loggers>
+</Configuration>

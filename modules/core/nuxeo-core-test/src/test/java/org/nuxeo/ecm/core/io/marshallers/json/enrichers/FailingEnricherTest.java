@@ -58,7 +58,7 @@ public class FailingEnricherTest extends AbstractJsonWriterTest.External<Documen
     }
 
     @Test
-    @LogCaptureFeature.FilterOn(logLevel = "WARN")
+    @LogCaptureFeature.FilterOn(loggerClass = AbstractJsonEnricher.class, logLevel = "WARN")
     public void test() throws IOException {
         // shouldn't throw
         DocumentModel root = session.getRootDocument();

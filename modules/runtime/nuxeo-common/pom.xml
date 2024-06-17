@@ -45,6 +45,11 @@
       <artifactId>opencensus-api</artifactId>
       <scope>provided</scope>
     </dependency>
+
+    <dependency>
+      <groupId>org.nuxeo.common</groupId>
+      <artifactId>nuxeo-common-test</artifactId>
+    </dependency>
   </dependencies>
 
 </project>

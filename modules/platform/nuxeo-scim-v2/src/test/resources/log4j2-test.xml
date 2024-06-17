@@ -1,28 +1,15 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Configuration>
   <Appenders>
-    <Console name="CONSOLE" target="SYSTEM_OUT">
-      <ThresholdFilter level="WARN" onMatch="ACCEPT" />
-      <PatternLayout pattern="%d{DEFAULT} [%t] %-5p [%c{1}] %m%n" />
-    </Console>
     <Console name="CONSOLE-INFO" target="SYSTEM_OUT">
       <ThresholdFilter level="INFO" onMatch="ACCEPT" />
-      <PatternLayout pattern="%d{DEFAULT} [%t] %-5p [%c{1}] %m%n" />
+      <PatternLayout pattern="${consoleLayout}" />
     </Console>
-    <File name="FILE" fileName="${sys:custom.environment.log.dir:-target}/trace.log" append="false">
-      <ThresholdFilter level="DEBUG" onMatch="ACCEPT" />
-      <PatternLayout pattern="%d{DEFAULT} [%t] %-5p [%c{1}] %m%n" />
-    </File>
   </Appenders>
   <Loggers>
-    <Logger name="org.nuxeo" level="info" />
     <Logger name="org.nuxeo.scim.v2.tests.compliance" level="debug" additivity="false">
       <AppenderRef ref="CONSOLE-INFO" />
       <AppenderRef ref="FILE" />
     </Logger>
-    <Root level="warn">
-      <AppenderRef ref="CONSOLE" />
-      <AppenderRef ref="FILE" />
-    </Root>
   </Loggers>
 </Configuration>

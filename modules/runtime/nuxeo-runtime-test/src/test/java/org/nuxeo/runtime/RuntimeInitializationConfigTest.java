@@ -64,7 +64,7 @@ public class RuntimeInitializationConfigTest {
     public void testLoadConfig() throws Exception {
         // errors
         List<RuntimeMessage> errors = Framework.getRuntime().getMessageHandler().getRuntimeMessages(Level.ERROR);
-        assertEquals(15, errors.size());
+        assertEquals(14, errors.size());
 
         Iterator<RuntimeMessage> errorsIt = errors.iterator();
         checkMessage(errorsIt.next(), "Error deploying config empty-xml-config.xml (Empty registration from file:",
@@ -81,9 +81,6 @@ public class RuntimeInitializationConfigTest {
                 "config/invalid-xml-missing-component-config.xml (Expected \"<component>\" tag for component registration, "
                         + "resolved object 'ExtensionImpl {target: service:my.comp, point:xp, contributor:null}' instead.))",
                 Level.ERROR, Source.CONFIG, "invalid-xml-missing-component-config.xml");
-        checkMessage(errorsIt.next(),
-                "Error deploying config log4j2-test-config.xml (Could not resolve registration from file:",
-                "config/log4j2-test-config.xml)", Level.ERROR, Source.CONFIG, "log4j2-test-config.xml");
         checkMessage(errorsIt.next(),
                 "Failed to instantiate component: org.nuxeo.runtime.Foo (org.nuxeo.runtime.RuntimeServiceException: "
                         + "java.lang.ClassNotFoundException: org.nuxeo.runtime.Foo)",

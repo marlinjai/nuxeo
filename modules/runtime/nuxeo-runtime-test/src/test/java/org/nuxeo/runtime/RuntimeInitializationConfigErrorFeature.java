@@ -50,8 +50,7 @@ public class RuntimeInitializationConfigErrorFeature implements RunnerFeature, W
             "invalid-component-registration.xml", //
             "invalid-component-start-message.xml", //
             "invalid-component-start.xml", //
-            "invalid-component.xml", //
-            "log4j2-test.xml");
+            "invalid-component.xml");
 
     @Override
     public void initialize(FeaturesRunner runner) {

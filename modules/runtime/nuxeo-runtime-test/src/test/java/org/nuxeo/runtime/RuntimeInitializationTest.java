@@ -216,8 +216,6 @@ public class RuntimeInitializationTest {
         checkInvalidXML("org.nuxeo.runtime.test.tests:invalid-xml.xml", "Could not resolve registration from file:",
                 "invalid-xml.xml (org.xml.sax.SAXParseException; lineNumber: 1; columnNumber: 2; "
                         + "The markup in the document preceding the root element must be well-formed.)");
-        checkInvalidXML("org.nuxeo.runtime.test.tests:log4j2-test.xml", "Could not resolve registration from file:",
-                "log4j2-test.xml");
         // Non-regression test for NXP-21203
         checkInvalidXML("org.nuxeo.runtime.test.tests:invalid-xml-missing-component.xml",
                 "Could not resolve registration from file:",
@@ -234,7 +232,7 @@ public class RuntimeInitializationTest {
         harness.deployBundle("org.nuxeo.runtime.test.tests");
 
         List<RuntimeMessage> messages = Framework.getRuntime().getMessageHandler().getRuntimeMessages(Level.ERROR);
-        assertEquals(4, messages.size());
+        assertEquals(3, messages.size());
 
         RuntimeMessage message = messages.get(0);
         assertTrue(message.getMessage().startsWith("Could not resolve registration from file:"));
@@ -246,20 +244,13 @@ public class RuntimeInitializationTest {
         assertEquals("org.nuxeo.runtime.test.tests", message.getSourceId());
 
         message = messages.get(1);
-        assertTrue(message.getMessage().startsWith("Could not resolve registration from file:"));
-        assertTrue(message.getMessage().endsWith("log4j2-test.xml"));
-        assertEquals(Level.ERROR, message.getLevel());
-        assertEquals(Source.BUNDLE, message.getSource());
-        assertEquals("org.nuxeo.runtime.test.tests", message.getSourceId());
-
-        message = messages.get(2);
         assertEquals("Unknown component 'invalid-file.xml' referenced by bundle 'org.nuxeo.runtime.test.tests'",
                 message.getMessage());
         assertEquals(Level.ERROR, message.getLevel());
         assertEquals(Source.BUNDLE, message.getSource());
         assertEquals("org.nuxeo.runtime.test.tests", message.getSourceId());
 
-        message = messages.get(3);
+        message = messages.get(2);
         assertTrue(message.getMessage().startsWith("Could not resolve registration from file:"));
         assertTrue(
                 message.getMessage()
