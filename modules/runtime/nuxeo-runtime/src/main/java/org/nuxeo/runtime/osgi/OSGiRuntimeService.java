@@ -46,6 +46,7 @@ import org.apache.commons.io.FileUtils;
 import org.apache.commons.text.StringEscapeUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.MarkerManager;
 import org.nuxeo.common.Environment;
 import org.nuxeo.common.codec.CryptoProperties;
 import org.nuxeo.common.utils.TextTemplate;
@@ -489,7 +490,12 @@ public class OSGiRuntimeService extends AbstractRuntimeService implements Framew
         StringBuilder msg = new StringBuilder();
         msg.append("Nuxeo Platform Started\n");
         if (getStatusMessage(msg)) {
-            log.info(msg);
+            if (Framework.isTestModeSet()) {
+                // only usage of this test Marker in sources, consider refactoring if another case is needed
+                log.info(MarkerManager.getMarker("CONSOLE_OVERRIDE"), msg);
+            } else {
+                log.info(msg);
+            }
         } else {
             log.error(msg);
             if (Boolean.getBoolean("nuxeo.start.strict")) {

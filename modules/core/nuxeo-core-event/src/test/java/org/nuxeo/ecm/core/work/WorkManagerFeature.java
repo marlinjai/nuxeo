@@ -18,6 +18,8 @@
  */
 package org.nuxeo.ecm.core.work;
 
+import static org.nuxeo.common.test.logging.NuxeoLoggingConstants.MARKER_CONSOLE_OVERRIDE;
+
 import java.time.Duration;
 import java.util.concurrent.TimeUnit;
 
@@ -85,10 +87,7 @@ public class WorkManagerFeature implements RunnerFeature {
         RuntimeHarness harness = runner.getFeature(RuntimeFeature.class).getHarness();
         workManagerType = defaultProperty(WORK_MANAGER_PROPERTY, WORK_MANAGER_DEFAULT);
         try {
-            String msg = "Deploying WorkManager using " + workManagerType + " implementation";
-            // System.out used on purpose, don't remove
-            System.out.println(getClass().getSimpleName() + ": " + msg); // NOSONAR
-            log.info(msg);
+            log.info(MARKER_CONSOLE_OVERRIDE, "Deploying WorkManager using {} implementation", workManagerType);
             switch (workManagerType) {
                 case WORK_MANAGER_DEFAULT -> initDefaultImplementation(harness);
                 case WORK_MANAGER_STREAM -> initStreamImplementation(harness);

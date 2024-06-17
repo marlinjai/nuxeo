@@ -18,6 +18,8 @@
  */
 package org.nuxeo.elasticsearch.test;
 
+import static org.nuxeo.common.test.logging.NuxeoLoggingConstants.MARKER_CONSOLE_OVERRIDE;
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.nuxeo.elasticsearch.api.ESClient;
@@ -65,17 +67,12 @@ public class ESTestClientFactory implements ESClientFactory {
         String addressList = System.getProperty(ADDRESS_LIST_PROPERTY);
         addOptions(config);
         if (addressList == null) {
-            infoMessage("ElasticSearchClient: TransportClient");
+            log.info(MARKER_CONSOLE_OVERRIDE, "ElasticSearchClient: TransportClient");
             return factory.create(node, config);
         } else {
-            infoMessage("ElasticSearchClient: TransportClient on " + addressList);
+            log.info(MARKER_CONSOLE_OVERRIDE, "ElasticSearchClient: TransportClient on {}", addressList);
             return factory.create(null, config);
         }
-    }
-
-    protected void infoMessage(String message) {
-        System.out.println(message);
-        log.info(message);
     }
 
     protected ESClient createRestClient(ElasticSearchEmbeddedNode node) {
@@ -84,10 +81,10 @@ public class ESTestClientFactory implements ESClientFactory {
         String addressList = System.getProperty(ADDRESS_LIST_PROPERTY);
         addOptions(config);
         if (addressList == null) {
-            infoMessage("ElasticSearchClient: RestClient");
+            log.info(MARKER_CONSOLE_OVERRIDE, "ElasticSearchClient: RestClient");
             return factory.create(node, config);
         } else {
-            infoMessage("ElasticSearchClient: RestClient on " + addressList);
+            log.info(MARKER_CONSOLE_OVERRIDE, "ElasticSearchClient: RestClient on {}", addressList);
             return factory.create(null, config);
         }
     }

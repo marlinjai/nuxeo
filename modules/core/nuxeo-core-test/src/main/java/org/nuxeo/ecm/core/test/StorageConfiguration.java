@@ -19,6 +19,7 @@
 package org.nuxeo.ecm.core.test;
 
 import static org.junit.Assert.assertNotNull;
+import static org.nuxeo.common.test.logging.NuxeoLoggingConstants.MARKER_CONSOLE_OVERRIDE;
 
 import java.net.URL;
 import java.sql.SQLException;
@@ -138,10 +139,7 @@ public class StorageConfiguration {
     public void initJDBC() {
         databaseHelper = DatabaseHelper.DATABASE;
 
-        String msg = "Deploying JDBC using " + databaseHelper.getClass().getSimpleName();
-        // System.out used on purpose, don't remove
-        System.out.println(getClass().getSimpleName() + ": " + msg);
-        log.info(msg);
+        log.info(MARKER_CONSOLE_OVERRIDE, "Deploying JDBC using " + databaseHelper.getClass().getSimpleName());
 
         // setup system properties for generic XML extension points
         // this is used both for VCS (org.nuxeo.ecm.core.storage.sql.RepositoryService)
@@ -304,9 +302,7 @@ public class StorageConfiguration {
         } else {
             throw new NuxeoException("Unkown test configuration (not vcs/dbs)");
         }
-        // System.out used on purpose, don't remove
-        System.out.println(getClass().getSimpleName() + ": " + msg);
-        log.info(msg);
+        log.info(MARKER_CONSOLE_OVERRIDE, msg);
 
         String contribPath;
         String bundleName;

@@ -18,6 +18,8 @@
  */
 package org.nuxeo.runtime.stream;
 
+import static org.nuxeo.common.test.logging.NuxeoLoggingConstants.MARKER_CONSOLE_OVERRIDE;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.Logger;
 import org.nuxeo.lib.stream.log.LogManager;
@@ -78,10 +80,8 @@ public class RuntimeStreamFeature implements RunnerFeature {
         RuntimeHarness harness = runner.getFeature(RuntimeFeature.class).getHarness();
         streamType = defaultProperty(STREAM_PROPERTY, STREAM_MEM);
         try {
-            String msg = "Deploying Nuxeo Stream using " + StringUtils.capitalize(streamType.toLowerCase());
-            // System.out used on purpose, don't remove
-            System.out.println(getClass().getSimpleName() + ": " + msg); // NOSONAR
-            log.info(msg);
+            log.info(MARKER_CONSOLE_OVERRIDE, "Deploying Nuxeo Stream using {}",
+                    () -> StringUtils.capitalize(streamType.toLowerCase()));
             switch (streamType) {
                 case STREAM_MEM -> initMem(harness);
                 case STREAM_KAFKA -> initKafka(harness);
