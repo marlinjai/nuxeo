@@ -32,7 +32,6 @@ import org.apache.logging.log4j.Logger;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.nuxeo.runtime.test.runner.Features;
@@ -151,7 +150,6 @@ public class ScimV2ComplianceTest {
         }
     }
 
-    @Ignore
     @Test
     public void testServiceProviderConfig() {
         runTest(serviceProviderConfig::getMethodTest);
@@ -162,7 +160,6 @@ public class ScimV2ComplianceTest {
         runTest(schema::getMethodTest);
     }
 
-    @Ignore
     @Test
     public void testResourceTypes() {
         runTest(resourceType::getMethodTest);

@@ -24,6 +24,7 @@ import static com.unboundid.scim2.common.exceptions.ResourceConflictException.UN
 import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
 import static javax.ws.rs.core.Response.Status.CREATED;
 import static org.apache.commons.lang3.StringUtils.isBlank;
+import static org.nuxeo.scim.v2.rest.ScimV2Root.SCIM_V2_ENDPOINT_USERS;
 
 import java.net.URISyntaxException;
 
@@ -87,7 +88,7 @@ public class ScimV2UserObject extends ScimV2BaseUMObject {
 
     @Override
     protected String getPrefix() {
-        return "/Users";
+        return SCIM_V2_ENDPOINT_USERS;
     }
 
     protected Response doCreateUser(UserResource user) throws ScimException {

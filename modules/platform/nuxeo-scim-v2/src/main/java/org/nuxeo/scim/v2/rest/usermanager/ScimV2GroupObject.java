@@ -23,6 +23,7 @@ import static com.unboundid.scim2.common.exceptions.BadRequestException.INVALID_
 import static com.unboundid.scim2.common.exceptions.ResourceConflictException.UNIQUENESS;
 import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
 import static javax.ws.rs.core.Response.Status.CREATED;
+import static org.nuxeo.scim.v2.rest.ScimV2Root.SCIM_V2_ENDPOINT_GROUPS;
 
 import java.net.URISyntaxException;
 
@@ -86,7 +87,7 @@ public class ScimV2GroupObject extends ScimV2BaseUMObject {
 
     @Override
     protected String getPrefix() {
-        return "/Groups";
+        return SCIM_V2_ENDPOINT_GROUPS;
     }
 
     protected Response doCreateGroup(GroupResource group) throws ScimException {

@@ -19,6 +19,9 @@
  */
 package org.nuxeo.scim.v2.rest;
 
+import static com.unboundid.scim2.common.utils.ApiConstants.RESOURCE_TYPES_ENDPOINT;
+import static com.unboundid.scim2.common.utils.ApiConstants.SCHEMAS_ENDPOINT;
+import static com.unboundid.scim2.common.utils.ApiConstants.SERVICE_PROVIDER_CONFIG_ENDPOINT;
 import static javax.servlet.http.HttpServletResponse.SC_INTERNAL_SERVER_ERROR;
 import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
 
@@ -47,9 +50,18 @@ import com.unboundid.scim2.common.exceptions.ScimException;
 import com.unboundid.scim2.common.exceptions.ServerErrorException;
 import com.unboundid.scim2.common.messages.ErrorResponse;
 import com.unboundid.scim2.common.messages.ListResponse;
+import com.unboundid.scim2.common.types.AuthenticationScheme;
+import com.unboundid.scim2.common.types.BulkConfig;
+import com.unboundid.scim2.common.types.ChangePasswordConfig;
+import com.unboundid.scim2.common.types.ETagConfig;
+import com.unboundid.scim2.common.types.FilterConfig;
 import com.unboundid.scim2.common.types.GroupResource;
 import com.unboundid.scim2.common.types.Meta;
+import com.unboundid.scim2.common.types.PatchConfig;
+import com.unboundid.scim2.common.types.ResourceTypeResource;
 import com.unboundid.scim2.common.types.SchemaResource;
+import com.unboundid.scim2.common.types.ServiceProviderConfigResource;
+import com.unboundid.scim2.common.types.SortConfig;
 import com.unboundid.scim2.common.types.UserResource;
 import com.unboundid.scim2.common.utils.SchemaUtils;
 
@@ -67,6 +79,14 @@ import com.unboundid.scim2.common.utils.SchemaUtils;
 public class ScimV2Root extends ModuleRoot {
 
     private static final Logger log = LogManager.getLogger(ScimV2Root.class);
+
+    public static final String SCIM_V2_ENDPOINT_GROUPS = "/Groups";
+
+    public static final String SCIM_V2_ENDPOINT_USERS = "/Users";
+
+    public static final String SCIM_V2_RESOURCE_TYPE_RESOURCE_TYPE = "ResourceType";
+
+    public static final String SCIM_V2_RESOURCE_TYPE_SERVICE_PROVIDER_CONFIG = "ServiceProviderConfig";
 
     public static final String SCIM_V2_RESOURCE_TYPE_SCHEMA = "Schema";
 
@@ -104,7 +124,32 @@ public class ScimV2Root extends ModuleRoot {
     }
 
     @GET
-    @Path("/Schemas")
+    @Path("/" + SERVICE_PROVIDER_CONFIG_ENDPOINT)
+    public ServiceProviderConfigResource getConfig() throws ScimException {
+        var documentationUri = "https://doc.nuxeo.com/";
+        // TODO allow PatchConfig
+        var patch = new PatchConfig(false);
+        var bulk = new BulkConfig(false, 0, 0);
+        // TODO allow FilterConfig
+        var filter = new FilterConfig(false, 0);
+        var changePassword = new ChangePasswordConfig(false);
+        var sort = new SortConfig(true);
+        var etag = new ETagConfig(false);
+        var basicAuthScheme = AuthenticationScheme.createHttpBasic(true);
+        var oauth2AuthScheme = AuthenticationScheme.createOAuth2BearerToken(false);
+        var authenticationSchemes = List.of(basicAuthScheme, oauth2AuthScheme);
+
+        var config = new ServiceProviderConfigResource(documentationUri, patch, bulk, filter, changePassword, sort,
+                etag, authenticationSchemes);
+        config.setId("Nuxeo");
+        config.setExternalId("Nuxeo");
+        setMeta(config, SCIM_V2_RESOURCE_TYPE_SERVICE_PROVIDER_CONFIG, null, "1");
+
+        return config;
+    }
+
+    @GET
+    @Path("/" + SCHEMAS_ENDPOINT)
     public ListResponse<ScimResource> getSchemas() throws ScimException {
         var userSchema = getSchemaResource(SCIM_V2_SCHEMA_USER);
         setMeta(userSchema, SCIM_V2_RESOURCE_TYPE_SCHEMA, SCIM_V2_SCHEMA_USER, null);
@@ -114,19 +159,38 @@ public class ScimV2Root extends ModuleRoot {
     }
 
     @GET
-    @Path("/Schemas/{schemaName}")
+    @Path("/" + SCHEMAS_ENDPOINT + "/{schemaName}")
     public SchemaResource getSchema(@PathParam("schemaName") String schemaName) throws ScimException {
         var schema = getSchemaResource(schemaName);
         setMeta(schema, SCIM_V2_RESOURCE_TYPE_SCHEMA, null, null);
         return schema;
     }
 
-    @Path("/Users")
+    @GET
+    @Path("/" + RESOURCE_TYPES_ENDPOINT)
+    public ListResponse<ScimResource> getResourceTypes() throws ScimException {
+        var userResourceType = getResourceTypeResource(SCIM_V2_RESOURCE_TYPE_USER);
+        setMeta(userResourceType, SCIM_V2_RESOURCE_TYPE_RESOURCE_TYPE, SCIM_V2_RESOURCE_TYPE_USER, null);
+        var groupResourceType = getResourceTypeResource(SCIM_V2_RESOURCE_TYPE_GROUP);
+        setMeta(groupResourceType, SCIM_V2_RESOURCE_TYPE_RESOURCE_TYPE, SCIM_V2_RESOURCE_TYPE_GROUP, null);
+        return new ListResponse<>(List.of(userResourceType, groupResourceType));
+    }
+
+    @GET
+    @Path("/" + RESOURCE_TYPES_ENDPOINT + "/{resourceTypeName}")
+    public ResourceTypeResource getResourceType(@PathParam("resourceTypeName") String resourceTypeName)
+            throws ScimException {
+        var resourceType = getResourceTypeResource(resourceTypeName);
+        setMeta(resourceType, SCIM_V2_RESOURCE_TYPE_RESOURCE_TYPE, null, null);
+        return resourceType;
+    }
+
+    @Path(SCIM_V2_ENDPOINT_USERS)
     public Object doGetUsersResource() {
         return newObject("users", getBaseURL());
     }
 
-    @Path("/Groups")
+    @Path(SCIM_V2_ENDPOINT_GROUPS)
     public Object doGetGroups() {
         return newObject("groups", getBaseURL());
     }
@@ -174,6 +238,16 @@ public class ScimV2Root extends ModuleRoot {
         } catch (URISyntaxException e) {
             throw new ServerErrorException("Cannot create URI for sring: " + uri, null, e);
         }
+    }
+
+    protected ResourceTypeResource getResourceTypeResource(String name) throws ScimException {
+        return switch (name) {
+            case SCIM_V2_RESOURCE_TYPE_USER -> new ResourceTypeResource(SCIM_V2_RESOURCE_TYPE_USER, "User Account",
+                    getURI(SCIM_V2_ENDPOINT_USERS), getURI(SCIM_V2_SCHEMA_USER));
+            case SCIM_V2_RESOURCE_TYPE_GROUP -> new ResourceTypeResource(SCIM_V2_RESOURCE_TYPE_GROUP, "Group", // NOSONAR
+                    getURI(SCIM_V2_ENDPOINT_GROUPS), getURI(SCIM_V2_SCHEMA_GROUP));
+            default -> throw new ResourceNotFoundException("Cannot find resource type:" + name);
+        };
     }
 
 }
