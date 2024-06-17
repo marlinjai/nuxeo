@@ -51,6 +51,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.nuxeo.common.Environment;
+import org.nuxeo.common.test.ModuleUnderTest;
 import org.nuxeo.common.utils.ZipUtils;
 import org.nuxeo.connect.NuxeoConnectClient;
 import org.nuxeo.connect.connector.http.ConnectUrlConfig;
@@ -78,7 +79,7 @@ public class TestConnectBroker {
 
     public static final File testStore = new File(TEST_STORE_PATH);
 
-    public static final File nuxeoHome = new File(FeaturesRunner.getBuildDirectory() + "/launcher");
+    public static final File nuxeoHome = new File(ModuleUnderTest.getOutputDirectory() + "/launcher");
 
     protected ConnectBroker connectBroker;
 

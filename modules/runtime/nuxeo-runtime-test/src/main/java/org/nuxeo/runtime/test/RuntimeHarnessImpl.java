@@ -45,6 +45,7 @@ import org.apache.commons.io.FileUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.nuxeo.common.Environment;
+import org.nuxeo.common.test.ModuleUnderTest;
 import org.nuxeo.osgi.BundleFile;
 import org.nuxeo.osgi.BundleImpl;
 import org.nuxeo.osgi.DirectoryBundleFile;
@@ -63,7 +64,6 @@ import org.nuxeo.runtime.model.URLStreamRef;
 import org.nuxeo.runtime.model.impl.DefaultRuntimeContext;
 import org.nuxeo.runtime.osgi.OSGiRuntimeContext;
 import org.nuxeo.runtime.osgi.OSGiRuntimeService;
-import org.nuxeo.runtime.test.runner.FeaturesRunner;
 import org.nuxeo.runtime.test.runner.RuntimeHarness;
 import org.nuxeo.runtime.test.runner.TargetExtensions;
 import org.nuxeo.runtime.transaction.TransactionHelper;
@@ -345,7 +345,7 @@ public class RuntimeHarnessImpl implements RuntimeHarness {
                 log.warn("Removed System property nuxeo.home.");
             }
             workingDir = File.createTempFile("nxruntime-" + Thread.currentThread().getName() + "-", null,
-                    new File(FeaturesRunner.getBuildDirectory()));
+                    new File(ModuleUnderTest.getOutputDirectory()));
             Files.delete(workingDir.toPath());
         } catch (IOException e) {
             log.error("Could not init working directory", e);

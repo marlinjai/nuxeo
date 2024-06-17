@@ -41,6 +41,7 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.nuxeo.common.function.ThrowableRunnable;
+import org.nuxeo.common.test.ModuleUnderTest;
 import org.nuxeo.ecm.blob.AbstractCloudBinaryManager;
 import org.nuxeo.ecm.blob.AbstractTestCloudBinaryManager;
 import org.nuxeo.ecm.core.api.NuxeoException;
@@ -129,7 +130,7 @@ public class TestGoogleBinaryManager extends AbstractTestCloudBinaryManager<Goog
     @Test
     public void testConsecutiveIdenticalUploads() throws Exception {
         FileStorage fileStorage = binaryManager.getFileStorage();
-        File blob = File.createTempFile("gcs-blob", ".txt", new File(FeaturesRunner.getBuildDirectory()));
+        File blob = File.createTempFile("gcs-blob", ".txt", new File(ModuleUnderTest.getOutputDirectory()));
         @SuppressWarnings("unchecked")
         CompletableFuture<Void>[] futures = //
                 IntStream.range(0, 100)

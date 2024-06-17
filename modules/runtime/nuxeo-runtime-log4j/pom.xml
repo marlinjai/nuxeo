@@ -24,8 +24,8 @@
     </dependency>
 
     <dependency>
-      <groupId>org.nuxeo.runtime</groupId>
-      <artifactId>nuxeo-runtime-test</artifactId>
+      <groupId>org.nuxeo.common</groupId>
+      <artifactId>nuxeo-common-test</artifactId>
       <scope>test</scope>
     </dependency>
   </dependencies>

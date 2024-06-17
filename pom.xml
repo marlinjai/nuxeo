@@ -173,6 +173,12 @@
       <!-- Nuxeo Common -->
       <dependency>
         <groupId>org.nuxeo.common</groupId>
+        <artifactId>nuxeo-common-test</artifactId>
+        <version>${nuxeo.platform.version}</version>
+        <scope>test</scope>
+      </dependency>
+      <dependency>
+        <groupId>org.nuxeo.common</groupId>
         <artifactId>nuxeo-common</artifactId>
         <version>${nuxeo.platform.version}</version>
       </dependency>

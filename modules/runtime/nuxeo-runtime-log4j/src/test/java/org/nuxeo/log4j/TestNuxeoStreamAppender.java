@@ -16,14 +16,14 @@ import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
+import org.nuxeo.common.test.ModuleUnderTest;
 import org.nuxeo.lib.stream.codec.AvroSchemaStore;
 import org.nuxeo.lib.stream.codec.FileAvroSchemaStore;
-import org.nuxeo.runtime.test.runner.FeaturesRunner;
 
 public class TestNuxeoStreamAppender {
 
     @Rule
-    public TemporaryFolder folder = new TemporaryFolder(new File(FeaturesRunner.getBuildDirectory()));
+    public TemporaryFolder folder = new TemporaryFolder(new File(ModuleUnderTest.getOutputDirectory()));
 
     @BeforeClass
     public static void assumeKafkaEnabled() {

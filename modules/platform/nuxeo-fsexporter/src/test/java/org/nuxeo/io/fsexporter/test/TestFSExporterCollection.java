@@ -30,6 +30,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.junit.runner.RunWith;
+import org.nuxeo.common.test.ModuleUnderTest;
 import org.nuxeo.ecm.collections.api.CollectionManager;
 import org.nuxeo.ecm.collections.core.test.CollectionFeature;
 import org.nuxeo.ecm.core.api.Blob;
@@ -48,7 +49,7 @@ import org.nuxeo.runtime.test.runner.FeaturesRunner;
 public class TestFSExporterCollection {
 
     @Rule
-    public TemporaryFolder folder = new TemporaryFolder(new File(FeaturesRunner.getBuildDirectory()));
+    public TemporaryFolder folder = new TemporaryFolder(new File(ModuleUnderTest.getOutputDirectory()));
 
     @Inject
     protected CoreSession session;

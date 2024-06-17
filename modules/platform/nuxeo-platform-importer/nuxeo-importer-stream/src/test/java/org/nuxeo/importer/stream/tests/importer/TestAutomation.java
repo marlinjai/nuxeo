@@ -35,6 +35,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.junit.runner.RunWith;
+import org.nuxeo.common.test.ModuleUnderTest;
 import org.nuxeo.ecm.automation.AutomationService;
 import org.nuxeo.ecm.automation.OperationContext;
 import org.nuxeo.ecm.core.api.CoreSession;
@@ -71,7 +72,7 @@ public class TestAutomation {
     protected StreamService streamService;
 
     @Rule
-    public TemporaryFolder folder = new TemporaryFolder(new File(FeaturesRunner.getBuildDirectory()));
+    public TemporaryFolder folder = new TemporaryFolder(new File(ModuleUnderTest.getOutputDirectory()));
 
     protected OperationContext ctx;
 

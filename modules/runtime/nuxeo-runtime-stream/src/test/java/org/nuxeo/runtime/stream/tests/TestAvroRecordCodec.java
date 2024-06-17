@@ -29,6 +29,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.junit.runner.RunWith;
+import org.nuxeo.common.test.ModuleUnderTest;
 import org.nuxeo.lib.stream.codec.Codec;
 import org.nuxeo.lib.stream.computation.Record;
 import org.nuxeo.runtime.api.Framework;
@@ -47,7 +48,7 @@ import org.nuxeo.runtime.test.runner.FeaturesRunner;
 @Deploy("org.nuxeo.runtime.stream:test-codec-contrib.xml")
 public class TestAvroRecordCodec {
     @Rule
-    public TemporaryFolder folder = new TemporaryFolder(new File(FeaturesRunner.getBuildDirectory()));
+    public TemporaryFolder folder = new TemporaryFolder(new File(ModuleUnderTest.getOutputDirectory()));
 
     public static final String SCHEMA_REGISTRY_URL_PROP = "confluent.schema_registry.urls";
 

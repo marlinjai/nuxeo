@@ -12,6 +12,7 @@
   <name>Nuxeo Runtime Parent</name>
 
   <modules>
+    <module>nuxeo-common-test</module>
     <module>nuxeo-common</module>
     <module>nuxeo-connect-standalone</module>
     <module>nuxeo-launcher-commons</module>

@@ -31,6 +31,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.junit.runner.RunWith;
+import org.nuxeo.common.test.ModuleUnderTest;
 import org.nuxeo.ecm.core.test.CoreFeature;
 import org.nuxeo.importer.stream.StreamImporters;
 import org.nuxeo.importer.stream.consumer.BlobInfoWriter;
@@ -58,7 +59,7 @@ import org.nuxeo.runtime.test.runner.FeaturesRunner;
 public class TestBlobImport {
 
     @Rule
-    public TemporaryFolder folder = new TemporaryFolder(new File(FeaturesRunner.getBuildDirectory()));
+    public TemporaryFolder folder = new TemporaryFolder(new File(ModuleUnderTest.getOutputDirectory()));
 
     @Inject
     protected StreamService streamService;

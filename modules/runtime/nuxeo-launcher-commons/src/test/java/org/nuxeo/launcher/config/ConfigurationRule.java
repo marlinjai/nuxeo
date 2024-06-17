@@ -35,6 +35,7 @@ import org.apache.logging.log4j.Logger;
 import org.junit.rules.TestWatcher;
 import org.junit.runner.Description;
 import org.nuxeo.common.Environment;
+import org.nuxeo.common.test.ModuleUnderTest;
 
 /**
  * A rule which configures a NUXEO_HOME directory for tests.
@@ -75,7 +76,7 @@ public class ConfigurationRule extends TestWatcher {
             // clear nuxeo environment
             Environment.setDefault(null);
             // build nuxeo home directory for test
-            String buildDirectory = getBuildDirectory();
+            String buildDirectory = ModuleUnderTest.getOutputDirectory();
             nuxeoHome = Path.of(buildDirectory, description.getTestClass().getSimpleName(), description.getMethodName())
                             .toAbsolutePath();
             // use commons-io as it deletes directories recursively
@@ -115,11 +116,12 @@ public class ConfigurationRule extends TestWatcher {
 
     /**
      * Returns the Maven build directory, depending on the {@value #CUSTOM_ENVIRONMENT_SYSTEM_PROPERTY} system property.
+     *
+     * @deprecated since 2025.0, use {@link ModuleUnderTest#getOutputDirectory()}
      */
+    @Deprecated(since = "2025.0", forRemoval = true)
     public String getBuildDirectory() {
-        String customEnvironment = System.getProperty(CUSTOM_ENVIRONMENT_SYSTEM_PROPERTY);
-        return customEnvironment == null ? DEFAULT_BUILD_DIRECTORY
-                : String.format("%s-%s", DEFAULT_BUILD_DIRECTORY, customEnvironment);
+        return ModuleUnderTest.getOutputDirectory();
     }
 
     protected Path getDefaultHome() {

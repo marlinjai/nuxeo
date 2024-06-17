@@ -46,6 +46,7 @@ import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.bouncycastle.operator.OperatorCreationException;
 import org.bouncycastle.operator.jcajce.JcaContentSignerBuilder;
 import org.junit.rules.ExternalResource;
+import org.nuxeo.common.test.ModuleUnderTest;
 import org.nuxeo.runtime.test.runner.FeaturesRunner;
 
 /**
@@ -92,7 +93,7 @@ public class TemporaryKeyStore extends ExternalResource {
             keyPairEntries.forEach(asConsumer(entry -> keyStore.setKeyEntry(entry.alias(), entry.key().getPrivate(),
                     entry.password().toCharArray(), entry.certificates())));
             // write the keyStore content to the disk
-            keyStorePath = Files.createTempFile(Path.of(FeaturesRunner.getBuildDirectory()), "nuxeo-keyStore-",
+            keyStorePath = Files.createTempFile(Path.of(ModuleUnderTest.getOutputDirectory()), "nuxeo-keyStore-",
                     "." + keyStoreType.toLowerCase());
             try (OutputStream out = Files.newOutputStream(keyStorePath)) {
                 keyStore.store(out, keyStorePassword.toCharArray());

@@ -29,6 +29,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
+import org.nuxeo.common.test.ModuleUnderTest;
 import org.nuxeo.runtime.test.runner.FeaturesRunner;
 
 /**
@@ -37,7 +38,7 @@ import org.nuxeo.runtime.test.runner.FeaturesRunner;
 public class TestFileWatcherThread {
 
     @Rule
-    public TemporaryFolder folder = new TemporaryFolder(new File(FeaturesRunner.getBuildDirectory()));
+    public TemporaryFolder folder = new TemporaryFolder(new File(ModuleUnderTest.getOutputDirectory()));
 
     // test the case where nxserver/config exists
     @Test

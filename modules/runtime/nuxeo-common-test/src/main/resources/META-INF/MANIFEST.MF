@@ -1,0 +1,5 @@
+Manifest-Version: 1.0
+Bundle-Name: Nuxeo Common Test
+Bundle-Vendor: Nuxeo
+Bundle-ManifestVersion: 2
+Bundle-SymbolicName: org.nuxeo.common.test;singleton:=true

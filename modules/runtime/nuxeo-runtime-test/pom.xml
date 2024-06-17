@@ -160,6 +160,11 @@
       <artifactId>awaitility</artifactId>
       <scope>test</scope>
     </dependency>
+    <dependency>
+      <groupId>org.nuxeo.common</groupId>
+      <artifactId>nuxeo-common-test</artifactId>
+      <scope>compile</scope>
+    </dependency>
   </dependencies>
 
   <build>

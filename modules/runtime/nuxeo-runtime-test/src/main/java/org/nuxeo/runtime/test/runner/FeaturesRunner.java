@@ -51,6 +51,7 @@ import org.junit.runners.model.Statement;
 import org.junit.runners.model.TestClass;
 import org.nuxeo.common.function.ThrowableConsumer;
 import org.nuxeo.common.function.ThrowableRunnable;
+import org.nuxeo.common.test.ModuleUnderTest;
 import org.nuxeo.runtime.RuntimeServiceException;
 import org.nuxeo.runtime.test.TargetResourceLocator;
 
@@ -71,12 +72,6 @@ public class FeaturesRunner extends BlockJUnit4ClassRunner {
 
     protected static final AnnotationScanner scanner = new AnnotationScanner();
 
-    /** @since 11.1 */
-    protected static final String CUSTOM_ENVIRONMENT_SYSTEM_PROPERTY = "custom.environment";
-
-    /** @since 11.1 */
-    protected static final String DEFAULT_BUILD_DIRECTORY = "target";
-
     /**
      * Guice injector.
      */
@@ -91,14 +86,13 @@ public class FeaturesRunner extends BlockJUnit4ClassRunner {
     }
 
     /**
-     * Returns the Maven build directory, depending on the {@value #CUSTOM_ENVIRONMENT_SYSTEM_PROPERTY} system property.
+     * Returns the Maven build directory, depending on the {@code custom.environment} system property.
      *
      * @since 11.1
      */
+    @Deprecated(since = "2025.0", forRemoval = true)
     public static String getBuildDirectory() {
-        String customEnvironment = System.getProperty(CUSTOM_ENVIRONMENT_SYSTEM_PROPERTY);
-        return customEnvironment == null ? DEFAULT_BUILD_DIRECTORY
-                : String.format("%s-%s", DEFAULT_BUILD_DIRECTORY, customEnvironment);
+        return ModuleUnderTest.getOutputDirectory();
     }
 
     public FeaturesRunner(Class<?> classToRun) throws InitializationError {

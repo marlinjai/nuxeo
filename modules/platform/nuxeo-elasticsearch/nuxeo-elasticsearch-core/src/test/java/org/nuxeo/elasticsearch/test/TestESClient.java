@@ -24,6 +24,7 @@ import static org.junit.Assert.fail;
 import java.io.File;
 import java.io.IOException;
 
+import org.nuxeo.common.test.ModuleUnderTest;
 import org.opensearch.action.get.GetRequest;
 import org.opensearch.action.get.GetResponse;
 import org.opensearch.action.index.IndexRequest;
@@ -50,7 +51,7 @@ import org.nuxeo.runtime.test.runner.FeaturesRunner;
  */
 public abstract class TestESClient {
     @ClassRule
-    public static TemporaryFolder folder = new TemporaryFolder(new File(FeaturesRunner.getBuildDirectory()));
+    public static TemporaryFolder folder = new TemporaryFolder(new File(ModuleUnderTest.getOutputDirectory()));
 
     protected static ElasticSearchEmbeddedNode embeddedNode;
 
