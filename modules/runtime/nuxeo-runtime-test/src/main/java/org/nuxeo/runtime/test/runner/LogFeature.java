@@ -60,7 +60,7 @@ public class LogFeature implements RunnerFeature {
      * @since 11.1
      */
     @Override
-    public void beforeRun(FeaturesRunner runner) {
+    public void initialize(FeaturesRunner runner) {
         originalLevelByLogger.clear();
         addOrUpdateLoggerLevel(runner, null);
         addConsoleThresholdLogLevel(runner, null);
@@ -73,7 +73,7 @@ public class LogFeature implements RunnerFeature {
      * @since 11.1
      */
     @Override
-    public void afterRun(FeaturesRunner runner) {
+    public void stop(FeaturesRunner runner) {
         restoreLoggerLevel(runner, null);
         restoreConsoleThresholdLogLevel(runner, null);
     }

@@ -1,8 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<Configuration>
-  <Loggers>
-    <!-- Set level to ERROR to ignore warning explaining that admin password needs to be changed,
-         as it cannot be changed before startup. -->
-    <Logger name="org.apache.directory.server.core.DefaultDirectoryService" level="error"/>
-  </Loggers>
-</Configuration>

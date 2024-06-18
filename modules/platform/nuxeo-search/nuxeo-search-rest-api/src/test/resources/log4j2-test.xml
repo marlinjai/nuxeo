@@ -1,7 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<Configuration>
-  <Loggers>
-    <Logger name="org.elasticsearch.gateway.DanglingIndicesState" level="error" />
-    <Logger name="org.elasticsearch.cluster.service.ClusterApplierService" level="error" />
-  </Loggers>
-</Configuration>

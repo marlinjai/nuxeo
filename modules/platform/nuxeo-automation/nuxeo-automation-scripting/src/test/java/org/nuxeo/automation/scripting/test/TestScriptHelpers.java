@@ -45,13 +45,12 @@ import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.FeaturesRunner;
 import org.nuxeo.runtime.test.runner.LogCaptureFeature;
 import org.nuxeo.runtime.test.runner.LogCaptureFeature.FilterOn;
+import org.nuxeo.runtime.test.runner.LoggerLevel;
 import org.nuxeo.runtime.test.runner.WithFrameworkProperty;
 
 /**
  * @since 7.10
  */
-// this test needs "org.nuxeo.automation.scripting.helper.Console" logger to have level == WARN, see log4j2-test.xml
-// because we test scripting log which has logic depending on logger's level, see Console class
 @RunWith(FeaturesRunner.class)
 @Features({ PlatformFeature.class, LogCaptureFeature.class })
 @RepositoryConfig(cleanup = Granularity.METHOD)
@@ -59,6 +58,8 @@ import org.nuxeo.runtime.test.runner.WithFrameworkProperty;
 @Deploy("org.nuxeo.ecm.automation.scripting")
 @Deploy("org.nuxeo.ecm.automation.scripting:automation-scripting-contrib.xml")
 @FilterOn(loggerClass = Console.class)
+// set the level higher than INFO because we test scripting log which has logic depending on logger's level
+@LoggerLevel(klass = Console.class, level = "WARN")
 public class TestScriptHelpers {
 
     @Inject

@@ -1,12 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Configuration>
   <Loggers>
-    <!-- Remove WARN on deprecated on [ignore_throttled] parameter -->
-    <Logger name="org.opensearch.client.RestClient" level="error" />
-    <!-- Remove WARN on elastic embedded because dangling indices cannot be detected -->
-    <Logger name="org.opensearch.gateway.DanglingIndicesState" level="error" />
-    <!-- Remove WARN on elastic embedded because node and cluster identifiers change between test suites -->
-    <Logger name="org.opensearch.cluster.service.ClusterApplierService" level="error" />
     <!-- Remove pool warning from the console -->
     <Logger name="org.nuxeo.runtime.jtajca.NuxeoConnectionManagerConfiguration" additivity="false">
       <appender-ref ref="FILE" />

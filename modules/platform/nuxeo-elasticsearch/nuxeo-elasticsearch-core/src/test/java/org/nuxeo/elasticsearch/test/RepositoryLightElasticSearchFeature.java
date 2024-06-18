@@ -32,9 +32,14 @@ import org.nuxeo.runtime.api.Framework;
 import org.nuxeo.runtime.test.runner.Deploy;
 import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.FeaturesRunner;
+import org.nuxeo.runtime.test.runner.LogFeature;
+import org.nuxeo.runtime.test.runner.LoggerLevel;
 import org.nuxeo.runtime.test.runner.RunnerFeature;
 import org.nuxeo.runtime.test.runner.TransactionalFeature;
 import org.nuxeo.runtime.transaction.TransactionHelper;
+import org.opensearch.client.RestClient;
+import org.opensearch.cluster.service.ClusterApplierService;
+import org.opensearch.gateway.DanglingIndicesState;
 
 /**
  * @since 11.1
@@ -43,6 +48,12 @@ import org.nuxeo.runtime.transaction.TransactionHelper;
 @Deploy("org.nuxeo.elasticsearch.core:elasticsearch-test-contrib.xml")
 @Features({ CoreFeature.class })
 @RepositoryConfig(cleanup = Granularity.METHOD)
+// remove WARN on deprecated on [ignore_throttled] parameter
+@LoggerLevel(klass = RestClient.class, level = "ERROR")
+// remove WARN on elastic embedded because node and cluster identifiers change between test suites
+@LoggerLevel(klass = ClusterApplierService.class, level = "ERROR")
+// remove WARN on elastic embedded because dangling indices cannot be detected
+@LoggerLevel(klass = DanglingIndicesState.class, level = "ERROR")
 public class RepositoryLightElasticSearchFeature implements RunnerFeature {
 
     @Override

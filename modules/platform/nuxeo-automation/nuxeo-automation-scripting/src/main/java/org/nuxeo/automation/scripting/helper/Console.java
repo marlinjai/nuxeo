@@ -35,10 +35,6 @@ public class Console implements ContextHelper {
 
     private static final Logger log = LogManager.getLogger(Console.class);
 
-    protected static boolean infoEnabled = log.isInfoEnabled();
-
-    protected static boolean traceEnabled = log.isTraceEnabled();
-
     public void error(String inWhat) {
         log.error(inWhat);
     }
@@ -48,7 +44,7 @@ public class Console implements ContextHelper {
     }
 
     public void log(String inWhat) {
-        if (infoEnabled) {
+        if (log.isInfoEnabled()) {
             log.info(inWhat);
         } else if (Framework.isDevModeSet()) {
             log.warn("[LOG] {}", inWhat);
@@ -59,7 +55,7 @@ public class Console implements ContextHelper {
      * info() and log() are handled the same way
      */
     public void info(String inWhat) {
-        if (infoEnabled) {
+        if (log.isInfoEnabled()) {
             log.info(inWhat);
         } else if (Framework.isDevModeSet()) {
             log.warn("[INFO] {}", inWhat);
@@ -67,7 +63,7 @@ public class Console implements ContextHelper {
     }
 
     public void trace(String inWhat) {
-        if (traceEnabled) {
+        if (log.isTraceEnabled()) {
             log.trace(inWhat);
         } else if (Framework.isDevModeSet()) {
             log.warn("[TRACE] {}", inWhat);

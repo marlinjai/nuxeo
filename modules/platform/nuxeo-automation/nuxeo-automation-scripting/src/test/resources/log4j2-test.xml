@@ -1,8 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<Configuration>
-  <Loggers>
-    <Logger name="org.nuxeo.automation.scripting.helper" level="warn" /> <!-- needed by TestScriptHelpers -->
-
-    <Logger name="jdk.nashorn" level="trace" />
-  </Loggers>
-</Configuration>

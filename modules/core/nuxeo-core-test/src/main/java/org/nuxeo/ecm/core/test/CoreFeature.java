@@ -69,6 +69,8 @@ import org.nuxeo.runtime.test.runner.Deploy;
 import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.FeaturesRunner;
 import org.nuxeo.runtime.test.runner.HotDeployer;
+import org.nuxeo.runtime.test.runner.LogFeature;
+import org.nuxeo.runtime.test.runner.LoggerLevel;
 import org.nuxeo.runtime.test.runner.RunnerFeature;
 import org.nuxeo.runtime.test.runner.RuntimeFeature;
 import org.nuxeo.runtime.test.runner.RuntimeHarness;
@@ -111,6 +113,7 @@ import com.google.inject.Binder;
 @Features({
         // Runtime features
         ClusterFeature.class, //
+        LogFeature.class, //
         ManagementFeature.class, //
         RuntimeStreamFeature.class, //
         TransactionalFeature.class, //
@@ -120,6 +123,7 @@ import com.google.inject.Binder;
         CoreBulkFeature.class, //
         CoreEventFeature.class, //
         DummyLoginFeature.class })
+@LoggerLevel(klass = StreamOrphanBlobGC.class, level = "ERROR")
 public class CoreFeature implements RunnerFeature {
 
     private static final Logger log = LogManager.getLogger(CoreFeature.class);

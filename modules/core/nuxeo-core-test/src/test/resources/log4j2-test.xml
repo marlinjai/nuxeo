@@ -7,9 +7,6 @@
     </File>
   </Appenders>
   <Loggers>
-    <Logger name="org.nuxeo.ecm.core.blob.stream.StreamOrphanBlobGC" level="error" />
-    <!-- Needed by TestTrashBackwardMechanism -->
-    <logger name="org.nuxeo.ecm.core.lifecycle.event.BulkLifeCycleChangeListener" level="debug" />
     <Logger name="org.nuxeo.ecm.core.action.GarbageCollectOrphanBlobsAction" level="trace" >
       <AppenderRef ref="FULL_GC" />
     </Logger>

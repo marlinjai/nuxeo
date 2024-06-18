@@ -36,12 +36,14 @@ import org.nuxeo.ecm.core.api.Blobs;
 import org.nuxeo.ecm.core.api.blobholder.BlobHolder;
 import org.nuxeo.ecm.core.api.blobholder.SimpleBlobHolder;
 import org.nuxeo.ecm.core.convert.api.ConversionService;
+import org.nuxeo.ecm.core.convert.plugins.text.extractors.FullTextConverter;
 import org.nuxeo.ecm.core.test.CoreFeature;
 import org.nuxeo.ecm.platform.commandline.executor.api.CommandLineExecutorService;
 import org.nuxeo.runtime.test.runner.Deploy;
 import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.FeaturesRunner;
 import org.nuxeo.runtime.test.runner.LogCaptureFeature;
+import org.nuxeo.runtime.test.runner.LoggerLevel;
 
 @RunWith(FeaturesRunner.class)
 @Features({ CoreFeature.class, LogCaptureFeature.class })
@@ -176,6 +178,7 @@ public class TestConverters extends SimpleConverterTest {
 
     @Test
     @LogCaptureFeature.FilterOn(logLevel = "DEBUG")
+    @LoggerLevel(klass = FullTextConverter.class, level = "DEBUG")
     public void testFullTextConverterInfiniteLoop() throws IOException {
         Blob blob = Blobs.createBlob("foo", "foo/bar");
         BlobHolder bh = new SimpleBlobHolder(blob);

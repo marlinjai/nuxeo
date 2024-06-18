@@ -43,6 +43,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.keycloak.adapters.KeycloakDeployment;
+import org.keycloak.adapters.NodesRegistrationManagement;
 import org.keycloak.adapters.spi.AuthOutcome;
 import org.keycloak.common.crypto.CryptoIntegration;
 import org.keycloak.representations.AccessToken;
@@ -53,11 +54,13 @@ import org.nuxeo.ecm.platform.test.PlatformFeature;
 import org.nuxeo.runtime.test.runner.Deploy;
 import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.FeaturesRunner;
+import org.nuxeo.runtime.test.runner.LoggerLevel;
 import org.nuxeo.usermapper.test.UserMapperFeature;
 
 @RunWith(FeaturesRunner.class)
 @Features({ PlatformFeature.class, UserMapperFeature.class })
 @Deploy("org.nuxeo.ecm.platform.login.keycloak.test:OSGI-INF/keycloak-descriptor-bundle.xml")
+@LoggerLevel(klass = NodesRegistrationManagement.class, level = "FATAL") // hide "failed to register node to keycloak"
 public class TestKeycloakAuthenticationPlugin {
 
     private KeycloakRequestAuthenticator authenticatorMock = Mockito.mock(KeycloakRequestAuthenticator.class);

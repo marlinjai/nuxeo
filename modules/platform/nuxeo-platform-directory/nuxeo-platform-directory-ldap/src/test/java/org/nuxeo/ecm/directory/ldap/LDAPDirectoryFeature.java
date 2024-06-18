@@ -31,6 +31,7 @@ import org.nuxeo.runtime.test.runner.Defaults;
 import org.nuxeo.runtime.test.runner.Deploy;
 import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.FeaturesRunner;
+import org.nuxeo.runtime.test.runner.LoggerLevel;
 import org.nuxeo.runtime.test.runner.RunnerFeature;
 import org.nuxeo.runtime.test.runner.RuntimeFeature;
 import org.nuxeo.runtime.test.runner.RuntimeHarness;
@@ -50,6 +51,8 @@ import org.nuxeo.runtime.test.runner.RuntimeHarness;
 @Deploy("org.nuxeo.ecm.directory.ldap.tests")
 @Deploy("org.nuxeo.ecm.directory.ldap.tests:ldap-test-setup/DirectoryTypes.xml")
 @Deploy("org.nuxeo.ecm.directory.ldap.tests:TestSQLDirectories.xml")
+// ignore warning explaining that admin password needs to be changed, as it cannot be changed before startup
+@LoggerLevel(name = "org.apache.directory.server.core.DefaultDirectoryService", level = "ERROR")
 public class LDAPDirectoryFeature implements RunnerFeature {
 
     /**
