@@ -29,6 +29,7 @@ import org.apache.catalina.Context;
 import org.apache.catalina.LifecycleException;
 import org.apache.catalina.Wrapper;
 import org.apache.catalina.connector.Connector;
+import org.apache.catalina.core.StandardContext;
 import org.apache.catalina.startup.Tomcat;
 import org.apache.commons.io.FileUtils;
 import org.apache.logging.log4j.LogManager;
@@ -114,6 +115,11 @@ public class TomcatServerConfigurator implements ServerConfigurator {
         jarScanner.setScanAllFiles(false);
         jarScanner.setScanBootstrapClassPath(false);
         jarScanner.setScanClassPath(false);
+
+        if (context instanceof StandardContext standardContext) {
+            // we don't need it, and it produces WARN logs
+            standardContext.setClearReferencesRmiTargets(false);
+        }
     }
 
     @Override

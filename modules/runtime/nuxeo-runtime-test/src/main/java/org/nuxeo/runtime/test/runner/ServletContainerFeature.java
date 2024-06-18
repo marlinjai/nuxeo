@@ -25,13 +25,15 @@ import java.net.ServerSocket;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.apache.tomcat.util.descriptor.DigesterFactory;
 import org.nuxeo.runtime.server.ServerComponent;
 
 /**
  * Runs an embedded servlet container.
  */
 @Deploy("org.nuxeo.runtime.server")
-@Features(RuntimeFeature.class)
+@Features({ RuntimeFeature.class, LogFeature.class })
+@LoggerLevel(klass = DigesterFactory.class, level = "ERROR")
 public class ServletContainerFeature implements RunnerFeature {
 
     private static final Logger log = LogManager.getLogger(ServletContainerFeature.class);

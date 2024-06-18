@@ -29,6 +29,7 @@ import org.nuxeo.ecm.core.test.CoreFeature;
 import org.nuxeo.runtime.api.Framework;
 import org.nuxeo.runtime.management.ObjectNameFactory;
 import org.nuxeo.runtime.management.ServerLocator;
+import org.nuxeo.runtime.test.runner.BlacklistComponent;
 import org.nuxeo.runtime.test.runner.Deploy;
 import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.FeaturesRunner;
@@ -41,6 +42,8 @@ import org.nuxeo.runtime.transaction.TransactionHelper;
 @Features(CoreFeature.class)
 @Deploy("org.nuxeo.runtime.management")
 @Deploy("org.nuxeo.ecm.core.management")
+// it registers a locator after the standby bean registration, so test doesn't get the same server as StandbyComponent
+@BlacklistComponent("org.nuxeo.runtime.management.tests.isolated-server-contrib")
 public class CanStandbyAndResumeTest {
 
     @Test
