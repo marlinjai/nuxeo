@@ -24,6 +24,11 @@ import static com.unboundid.scim2.common.utils.ApiConstants.SCHEMAS_ENDPOINT;
 import static com.unboundid.scim2.common.utils.ApiConstants.SERVICE_PROVIDER_CONFIG_ENDPOINT;
 import static javax.servlet.http.HttpServletResponse.SC_INTERNAL_SERVER_ERROR;
 import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
+import static org.nuxeo.scim.v2.api.ScimV2ResourceType.SCIM_V2_RESOURCE_TYPE_GROUP;
+import static org.nuxeo.scim.v2.api.ScimV2ResourceType.SCIM_V2_RESOURCE_TYPE_RESOURCE_TYPE;
+import static org.nuxeo.scim.v2.api.ScimV2ResourceType.SCIM_V2_RESOURCE_TYPE_SCHEMA;
+import static org.nuxeo.scim.v2.api.ScimV2ResourceType.SCIM_V2_RESOURCE_TYPE_SERVICE_PROVIDER_CONFIG;
+import static org.nuxeo.scim.v2.api.ScimV2ResourceType.SCIM_V2_RESOURCE_TYPE_USER;
 
 import java.beans.IntrospectionException;
 import java.net.URI;
@@ -42,6 +47,7 @@ import org.nuxeo.ecm.webengine.app.jersey.WebEngineServlet;
 import org.nuxeo.ecm.webengine.model.WebObject;
 import org.nuxeo.ecm.webengine.model.impl.ModuleRoot;
 import org.nuxeo.runtime.api.Framework;
+import org.nuxeo.scim.v2.api.ScimV2ResourceType;
 import org.nuxeo.scim.v2.rest.marshalling.ResponseUtils;
 
 import com.unboundid.scim2.common.ScimResource;
@@ -83,16 +89,6 @@ public class ScimV2Root extends ModuleRoot {
     public static final String SCIM_V2_ENDPOINT_GROUPS = "/Groups";
 
     public static final String SCIM_V2_ENDPOINT_USERS = "/Users";
-
-    public static final String SCIM_V2_RESOURCE_TYPE_RESOURCE_TYPE = "ResourceType";
-
-    public static final String SCIM_V2_RESOURCE_TYPE_SERVICE_PROVIDER_CONFIG = "ServiceProviderConfig";
-
-    public static final String SCIM_V2_RESOURCE_TYPE_SCHEMA = "Schema";
-
-    public static final String SCIM_V2_RESOURCE_TYPE_GROUP = "Group";
-
-    public static final String SCIM_V2_RESOURCE_TYPE_USER = "User";
 
     public static final String SCIM_V2_SCHEMA_GROUP = "urn:ietf:params:scim:schemas:core:2.0:Group";
 
@@ -170,9 +166,9 @@ public class ScimV2Root extends ModuleRoot {
     @Path("/" + RESOURCE_TYPES_ENDPOINT)
     public ListResponse<ScimResource> getResourceTypes() throws ScimException {
         var userResourceType = getResourceTypeResource(SCIM_V2_RESOURCE_TYPE_USER);
-        setMeta(userResourceType, SCIM_V2_RESOURCE_TYPE_RESOURCE_TYPE, SCIM_V2_RESOURCE_TYPE_USER, null);
+        setMeta(userResourceType, SCIM_V2_RESOURCE_TYPE_RESOURCE_TYPE, SCIM_V2_RESOURCE_TYPE_USER.toString(), null);
         var groupResourceType = getResourceTypeResource(SCIM_V2_RESOURCE_TYPE_GROUP);
-        setMeta(groupResourceType, SCIM_V2_RESOURCE_TYPE_RESOURCE_TYPE, SCIM_V2_RESOURCE_TYPE_GROUP, null);
+        setMeta(groupResourceType, SCIM_V2_RESOURCE_TYPE_RESOURCE_TYPE, SCIM_V2_RESOURCE_TYPE_GROUP.toString(), null);
         return new ListResponse<>(List.of(userResourceType, groupResourceType));
     }
 
@@ -180,7 +176,7 @@ public class ScimV2Root extends ModuleRoot {
     @Path("/" + RESOURCE_TYPES_ENDPOINT + "/{resourceTypeName}")
     public ResourceTypeResource getResourceType(@PathParam("resourceTypeName") String resourceTypeName)
             throws ScimException {
-        var resourceType = getResourceTypeResource(resourceTypeName);
+        var resourceType = getResourceTypeResource(ScimV2ResourceType.fromValue(resourceTypeName));
         setMeta(resourceType, SCIM_V2_RESOURCE_TYPE_RESOURCE_TYPE, null, null);
         return resourceType;
     }
@@ -219,10 +215,10 @@ public class ScimV2Root extends ModuleRoot {
         }
     }
 
-    protected void setMeta(ScimResource resource, String resourceType, String locationSuffix, String version)
-            throws ScimException {
+    protected void setMeta(ScimResource resource, ScimV2ResourceType resourceType, String locationSuffix,
+            String version) throws ScimException {
         var meta = new Meta();
-        meta.setResourceType(resourceType);
+        meta.setResourceType(resourceType.toString());
         var uriString = locationSuffix == null ? getBaseURL() : String.join("/", getBaseURL(), locationSuffix);
         URI location = getURI(uriString);
         meta.setLocation(location);
@@ -240,13 +236,13 @@ public class ScimV2Root extends ModuleRoot {
         }
     }
 
-    protected ResourceTypeResource getResourceTypeResource(String name) throws ScimException {
-        return switch (name) {
-            case SCIM_V2_RESOURCE_TYPE_USER -> new ResourceTypeResource(SCIM_V2_RESOURCE_TYPE_USER, "User Account",
-                    getURI(SCIM_V2_ENDPOINT_USERS), getURI(SCIM_V2_SCHEMA_USER));
-            case SCIM_V2_RESOURCE_TYPE_GROUP -> new ResourceTypeResource(SCIM_V2_RESOURCE_TYPE_GROUP, "Group", // NOSONAR
+    protected ResourceTypeResource getResourceTypeResource(ScimV2ResourceType type) throws ScimException {
+        return switch (type) {
+            case SCIM_V2_RESOURCE_TYPE_USER -> new ResourceTypeResource(SCIM_V2_RESOURCE_TYPE_USER.toString(),
+                    "User Account", getURI(SCIM_V2_ENDPOINT_USERS), getURI(SCIM_V2_SCHEMA_USER));
+            case SCIM_V2_RESOURCE_TYPE_GROUP -> new ResourceTypeResource(SCIM_V2_RESOURCE_TYPE_GROUP.toString(), "Group", // NOSONAR
                     getURI(SCIM_V2_ENDPOINT_GROUPS), getURI(SCIM_V2_SCHEMA_GROUP));
-            default -> throw new ResourceNotFoundException("Cannot find resource type:" + name);
+            default -> throw new ResourceNotFoundException("Cannot find resource type:" + type);
         };
     }
 

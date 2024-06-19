@@ -43,11 +43,13 @@ import org.nuxeo.ecm.webengine.model.WebObject;
 import org.nuxeo.runtime.api.Framework;
 import org.nuxeo.scim.v2.rest.marshalling.ResponseUtils;
 
+import com.unboundid.scim2.common.ScimResource;
 import com.unboundid.scim2.common.exceptions.BadRequestException;
 import com.unboundid.scim2.common.exceptions.ResourceConflictException;
 import com.unboundid.scim2.common.exceptions.ResourceNotFoundException;
 import com.unboundid.scim2.common.exceptions.ScimException;
 import com.unboundid.scim2.common.exceptions.ServerErrorException;
+import com.unboundid.scim2.common.messages.ListResponse;
 import com.unboundid.scim2.common.types.GroupResource;
 
 /**
@@ -150,6 +152,12 @@ public class ScimV2GroupObject extends ScimV2BaseUMObject {
         } catch (DirectoryException e) {
             throw new ResourceNotFoundException("Cannot find group: " + uid);
         }
+    }
+
+    @Override
+    protected ListResponse<ScimResource> doSearch(Integer startIndex, Integer count, String filterString, String sortBy,
+            boolean descending) throws ScimException {
+        return mapper.queryGroups(startIndex, count, filterString, sortBy, descending, baseURL);
     }
 
 }

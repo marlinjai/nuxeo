@@ -171,6 +171,8 @@ public class ScimV2ComplianceTest {
         runTest(user::getByIdMethodTest);
         runTest(user::putMethodTest);
         runTest(user::deleteMethodTest);
+        runTest(user::getMethodTest);
+        runTest(user::searchMethodTest);
     }
 
     @Test
@@ -179,6 +181,8 @@ public class ScimV2ComplianceTest {
         runTest(group::getByIdMethodTest);
         runTest(group::putMethodTest);
         runTest(group::deleteMethodTest);
+        runTest(group::getMethodTest);
+        runTest(group::searchMethodTest);
     }
 
 }
