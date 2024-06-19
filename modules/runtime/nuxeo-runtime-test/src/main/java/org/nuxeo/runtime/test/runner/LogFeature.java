@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2017-2018 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2017-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -133,11 +133,11 @@ public class LogFeature implements RunnerFeature {
         consoleAppender = (ConsoleAppender) rootLogger.getAppenders().get(CONSOLE_APPENDER);
         rootLogger.removeAppender(consoleAppender);
         ConsoleAppender newAppender = ConsoleAppender.newBuilder()
-                .withName(CONSOLE_LOG_FEATURE_APPENDER)
-                .setTarget(Target.SYSTEM_OUT)
-                .withFilter(ThresholdFilter.createFilter(Level.toLevel(level),
-                        null, null))
-                .build();
+                                                     .setName(CONSOLE_LOG_FEATURE_APPENDER)
+                                                     .setTarget(Target.SYSTEM_OUT)
+                                                     .setFilter(ThresholdFilter.createFilter(Level.toLevel(level), null,
+                                                             null))
+                                                     .build();
         newAppender.start();
         rootLogger.addAppender(newAppender);
         hiddenAppender = newAppender;
@@ -157,10 +157,10 @@ public class LogFeature implements RunnerFeature {
 
     /**
      * Adds the console threshold log level. To be proceed a {@code Class} / {@code Method} should be annotated by
+     * 
      * @see ConsoleLogLevelThreshold
-     * <p>
+     *      <p>
      * @see #setConsoleLogThreshold(String)
-     *
      * @param runner the feature runner, cannot be {@code null}
      * @param method the framework method, can be {@code null}
      * @since 11.1

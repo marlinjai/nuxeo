@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2018 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2018-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -90,14 +90,10 @@ public class WorkManagerFeature implements RunnerFeature {
             System.out.println(getClass().getSimpleName() + ": " + msg); // NOSONAR
             log.info(msg);
             switch (workManagerType) {
-            case WORK_MANAGER_DEFAULT:
-                initDefaultImplementation(harness);
-                break;
-            case WORK_MANAGER_STREAM:
-                initStreamImplementation(harness);
-                break;
-            default:
-                throw new UnsupportedOperationException(workManagerType + " work manager type is not supported");
+                case WORK_MANAGER_DEFAULT -> initDefaultImplementation(harness);
+                case WORK_MANAGER_STREAM -> initStreamImplementation(harness);
+                default ->
+                    throw new UnsupportedOperationException(workManagerType + " work manager type is not supported");
             }
         } catch (Exception e) {
             throw new RuntimeServiceException("Unable to configure the work manager implementation", e);

@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2006-2015 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2006-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -119,19 +119,19 @@ public class StorageConfiguration {
                 defaultProperty(CHANGE_TOKEN_ENABLED_PROPERTY, CHANGE_TOKEN_ENABLED_DEFAULT));
         initJDBC();
         switch (coreType) {
-        case CORE_VCS:
-            isVCS = true;
-            break;
-        case CORE_MEM:
-            isDBS = true;
-            break;
-        case CORE_MONGODB:
-            isDBS = true;
-            initMongoDB();
-            break;
-        default:
-            isDBS = true;
-            initExternal();
+            case CORE_VCS:
+                isVCS = true;
+                break;
+            case CORE_MEM:
+                isDBS = true;
+                break;
+            case CORE_MONGODB:
+                isDBS = true;
+                initMongoDB();
+                break;
+            default:
+                isDBS = true;
+                initExternal();
         }
     }
 

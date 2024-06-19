@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2006-2019 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2006-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -60,6 +60,7 @@ import org.nuxeo.ecm.core.work.WorkManagerFeature;
 import org.nuxeo.lib.stream.log.Name;
 import org.nuxeo.runtime.api.Framework;
 import org.nuxeo.runtime.cluster.ClusterFeature;
+import org.nuxeo.runtime.management.ManagementFeature;
 import org.nuxeo.runtime.model.URLStreamRef;
 import org.nuxeo.runtime.stream.RuntimeStreamFeature;
 import org.nuxeo.runtime.stream.StreamService;
@@ -83,14 +84,11 @@ import com.google.inject.Binder;
  * <p>
  * In addition, by injecting the feature itself, some helper methods are available to open new sessions.
  */
-@Deploy("org.nuxeo.runtime.management")
-@Deploy("org.nuxeo.runtime.metrics")
 @Deploy("org.nuxeo.runtime.reload")
 @Deploy("org.nuxeo.runtime.kv")
 @Deploy("org.nuxeo.runtime.pubsub")
 @Deploy("org.nuxeo.runtime.mongodb")
 @Deploy("org.nuxeo.runtime.migration")
-@Deploy("org.nuxeo.runtime.stream")
 @Deploy("org.nuxeo.ecm.core.schema")
 @Deploy("org.nuxeo.ecm.core.query")
 @Deploy("org.nuxeo.ecm.core.api")
@@ -110,13 +108,18 @@ import com.google.inject.Binder;
 @Deploy("org.nuxeo.ecm.platform.commandline.executor")
 @Deploy("org.nuxeo.ecm.platform.el")
 @RepositoryConfig(cleanup = Granularity.METHOD)
-@Features({ ClusterFeature.class, //
-        TransactionalFeature.class, //
+@Features({
+        // Runtime features
+        ClusterFeature.class, //
+        ManagementFeature.class, //
         RuntimeStreamFeature.class, //
-        DummyLoginFeature.class, //
-        CoreEventFeature.class, //
+        TransactionalFeature.class, //
+        // Core features
+        // keep WorkManagerFeature before CoreBulkFeature because transactional waiter registration order matters
         WorkManagerFeature.class, //
-        CoreBulkFeature.class })
+        CoreBulkFeature.class, //
+        CoreEventFeature.class, //
+        DummyLoginFeature.class })
 public class CoreFeature implements RunnerFeature {
 
     private static final Logger log = LogManager.getLogger(CoreFeature.class);
@@ -144,7 +147,7 @@ public class CoreFeature implements RunnerFeature {
     }
 
     /**
-     *  Wait for version and blob GCs.
+     * Wait for version and blob GCs.
      */
     protected boolean awaitGC(Duration duration) throws InterruptedException {
         boolean blobGCDisabled = Framework.isBooleanPropertyFalse(StreamOrphanBlobGC.ENABLED_PROPERTY_NAME);
@@ -158,8 +161,9 @@ public class CoreFeature implements RunnerFeature {
         long docGCLag = 0;
         long blobGCLag = 0;
         do {
-            docGCLag = docGCDisabled? 0 : logManager.getLag(Name.ofUrn(StreamDocumentGC.STREAM_NAME),
-                    Name.ofUrn(StreamDocumentGC.COMPUTATION_NAME)).lag();
+            docGCLag = docGCDisabled ? 0
+                    : logManager.getLag(Name.ofUrn(StreamDocumentGC.STREAM_NAME),
+                            Name.ofUrn(StreamDocumentGC.COMPUTATION_NAME)).lag();
             if (docGCLag == 0) {
                 blobGCLag = blobGCDisabled ? 0
                         : logManager.getLag(Name.ofUrn(StreamOrphanBlobGC.STREAM_NAME),

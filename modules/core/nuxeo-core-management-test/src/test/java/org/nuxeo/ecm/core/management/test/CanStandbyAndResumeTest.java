@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2017 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2017-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,10 +16,11 @@
  */
 package org.nuxeo.ecm.core.management.test;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import javax.management.JMX;
 import javax.management.MBeanServer;
 
-import org.assertj.core.api.Assertions;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.nuxeo.ecm.core.management.standby.StandbyCommand;
@@ -34,8 +35,6 @@ import org.nuxeo.runtime.test.runner.FeaturesRunner;
 import org.nuxeo.runtime.transaction.TransactionHelper;
 
 /**
- *
- *
  * @since 9.2
  */
 @RunWith(FeaturesRunner.class)
@@ -53,11 +52,11 @@ public class CanStandbyAndResumeTest {
         // commit transaction before standby, to release resources held in thread-locals
         TransactionHelper.commitOrRollbackTransaction();
 
-        Assertions.assertThat(bean.isStandby()).isFalse();
+        assertThat(bean.isStandby()).isFalse();
         bean.standby(10);
-        Assertions.assertThat(bean.isStandby()).isTrue();
+        assertThat(bean.isStandby()).isTrue();
         bean.resume();
-        Assertions.assertThat(bean.isStandby()).isFalse();
+        assertThat(bean.isStandby()).isFalse();
     }
 
 }

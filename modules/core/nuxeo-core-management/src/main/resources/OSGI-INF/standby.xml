@@ -3,6 +3,7 @@
 
   <require>org.nuxeo.runtime.EventService</require>
   <require>org.nuxeo.runtime.management.ResourcePublisher</require>
+  <require>org.nuxeo.runtime.management.ServerLocator</require>
   <require>org.nuxeo.runtime.metrics.MetricsService</require>
 
   <implementation class="org.nuxeo.ecm.core.management.standby.StandbyComponent" />

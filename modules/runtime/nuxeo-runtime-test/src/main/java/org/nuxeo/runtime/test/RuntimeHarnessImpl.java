@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2006-2018 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2006-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,6 +19,7 @@
 package org.nuxeo.runtime.test;
 
 import static java.util.stream.Collectors.joining;
+import static java.util.stream.Collectors.toSet;
 
 import java.io.File;
 import java.io.IOException;
@@ -28,7 +29,6 @@ import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.file.Files;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -38,7 +38,6 @@ import java.util.Properties;
 import java.util.Set;
 import java.util.jar.Attributes;
 import java.util.jar.Manifest;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import org.apache.commons.io.FileUtils;
@@ -322,9 +321,9 @@ public class RuntimeHarnessImpl implements RuntimeHarness {
         Set<String> targets = extensionPoints.stream()
                                              .map(TargetExtensions::getTargetExtensions)
                                              .flatMap(Set::stream)
-                                             .collect(Collectors.toSet());
+                                             .collect(toSet());
 
-        String ext = Arrays.stream(ri.getExtensions())
+        String ext = Stream.of(ri.getExtensions())
                            .filter(e -> targets.contains(TargetExtensions.newTargetExtension(
                                    e.getTargetComponent().getName(), e.getExtensionPoint())))
                            .map(Extension::toXML)
@@ -397,7 +396,7 @@ public class RuntimeHarnessImpl implements RuntimeHarness {
         if (list == null) {
             return Stream.empty();
         } else {
-            return Arrays.stream(list.split("[, \t\n\r\f]")).map(bundle::getEntry).filter(Objects::nonNull);
+            return Stream.of(list.split("[, \t\n\r\f]")).map(bundle::getEntry).filter(Objects::nonNull);
         }
     }
 
@@ -495,7 +494,7 @@ public class RuntimeHarnessImpl implements RuntimeHarness {
                                         .stream()
                                         .filter(this::isAnEmptyTestProperty)
                                         .map(entry -> entry.getKey().toString())
-                                        .collect(Collectors.toList());
+                                        .toList();
         emptyProps.forEach(System::clearProperty);
         if (log.isDebugEnabled()) {
             emptyProps.forEach(property -> log.debug("Removed empty test system property: {}", property));

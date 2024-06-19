@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2015-2018 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2015-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,23 +18,17 @@
  */
 package org.nuxeo.automation.scripting.test;
 
-import static java.lang.Boolean.TRUE;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.Is.is;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertThat;
 
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.PrintStream;
-import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 
 import javax.inject.Inject;
 
 import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.core.LogEvent;
-import org.junit.After;
-import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.nuxeo.automation.scripting.helper.Console;
@@ -51,6 +45,7 @@ import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.FeaturesRunner;
 import org.nuxeo.runtime.test.runner.LogCaptureFeature;
 import org.nuxeo.runtime.test.runner.LogCaptureFeature.FilterOn;
+import org.nuxeo.runtime.test.runner.WithFrameworkProperty;
 
 /**
  * @since 7.10
@@ -75,49 +70,33 @@ public class TestScriptHelpers {
     @Inject
     protected LogCaptureFeature.Result logResult;
 
-    protected ByteArrayOutputStream outContent = new ByteArrayOutputStream();
-
-    protected PrintStream outStream;
-
-    protected OperationContext ctx;
-
-    @Before
-    public void setUpStreams() {
-        outStream = System.out;
-        System.setOut(new PrintStream(outContent));
-        ctx = new OperationContext(session);
-    }
-
-    @After
-    public void cleanUpStreams() throws IOException {
-        ctx.close();
-        outContent.close();
-        System.setOut(outStream);
+    @Test
+    public void canUseConsoleHelper() throws OperationException {
+        try (var ctx = new OperationContext(session)) {
+            automationService.run(ctx, "Scripting.UseConsoleHelper", Map.of());
+            List<LogEvent> logs = logResult.getCaughtEvents();
+            assertEquals(2, logs.size());
+            assertThat(logs.get(0).getLevel(), is(Level.WARN));
+            assertThat(logs.get(0).getMessage().getFormattedMessage(), is("Warnings"));
+            assertThat(logs.get(1).getLevel(), is(Level.ERROR));
+            assertThat(logs.get(1).getMessage().getFormattedMessage(), is("Errors"));
+        }
     }
 
     @Test
-    public void canUseConsoleHelper() throws OperationException {
-        automationService.run(ctx, "Scripting.UseConsoleHelper", Collections.emptyMap());
-        assertEquals("", outContent.toString());
-        List<LogEvent> logs = logResult.getCaughtEvents();
-        assertEquals(2, logs.size());
-        assertThat(logs.get(0).getLevel(), is(Level.WARN));
-        assertThat(logs.get(0).getMessage().getFormattedMessage(), is("Warnings"));
-        assertThat(logs.get(1).getLevel(), is(Level.ERROR));
-        assertThat(logs.get(1).getMessage().getFormattedMessage(), is("Errors"));
-
-        // test now in dev mode
-        logResult.clear();
-        Framework.getRuntime().setProperty(Framework.NUXEO_DEV_SYSTEM_PROP, TRUE);
-        automationService.run(ctx, "Scripting.UseConsoleHelper", Collections.emptyMap());
-        logs = logResult.getCaughtEvents();
-        assertEquals(3, logs.size());
-        assertThat(logs.get(0).getLevel(), is(Level.WARN));
-        assertThat(logs.get(0).getMessage().getFormattedMessage(), is("[INFO] Informations"));
-        assertThat(logs.get(1).getLevel(), is(Level.WARN));
-        assertThat(logs.get(1).getMessage().getFormattedMessage(), is("Warnings"));
-        assertThat(logs.get(2).getLevel(), is(Level.ERROR));
-        assertThat(logs.get(2).getMessage().getFormattedMessage(), is("Errors"));
+    @WithFrameworkProperty(name = Framework.NUXEO_DEV_SYSTEM_PROP, value = "true")
+    public void canHaveInfoLogsInDevMode() throws OperationException {
+        try (var ctx = new OperationContext(session)) {
+            automationService.run(ctx, "Scripting.UseConsoleHelper", Map.of());
+            List<LogEvent> logs = logResult.getCaughtEvents();
+            assertEquals(3, logs.size());
+            assertThat(logs.get(0).getLevel(), is(Level.WARN));
+            assertThat(logs.get(0).getMessage().getFormattedMessage(), is("[INFO] Informations"));
+            assertThat(logs.get(1).getLevel(), is(Level.WARN));
+            assertThat(logs.get(1).getMessage().getFormattedMessage(), is("Warnings"));
+            assertThat(logs.get(2).getLevel(), is(Level.ERROR));
+            assertThat(logs.get(2).getMessage().getFormattedMessage(), is("Errors"));
+        }
     }
 
 }

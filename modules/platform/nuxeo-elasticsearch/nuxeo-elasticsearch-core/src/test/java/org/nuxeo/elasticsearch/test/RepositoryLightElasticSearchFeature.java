@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2019 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2019-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,6 @@
  * Contributors:
  *     bdelbosc
  */
-
 package org.nuxeo.elasticsearch.test;
 
 import java.time.Duration;
@@ -40,9 +39,9 @@ import org.nuxeo.runtime.transaction.TransactionHelper;
 /**
  * @since 11.1
  */
-@Features({ CoreFeature.class })
 @Deploy("org.nuxeo.elasticsearch.core")
 @Deploy("org.nuxeo.elasticsearch.core:elasticsearch-test-contrib.xml")
+@Features({ CoreFeature.class })
 @RepositoryConfig(cleanup = Granularity.METHOD)
 public class RepositoryLightElasticSearchFeature implements RunnerFeature {
 

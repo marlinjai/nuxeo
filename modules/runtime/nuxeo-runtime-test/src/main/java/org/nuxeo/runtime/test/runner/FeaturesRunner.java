@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2006-2020 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2006-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -57,7 +57,6 @@ import org.nuxeo.runtime.test.TargetResourceLocator;
 
 import com.google.inject.Guice;
 import com.google.inject.Injector;
-import com.google.inject.Module;
 import com.google.inject.Stage;
 import com.google.inject.name.Names;
 
@@ -357,7 +356,7 @@ public class FeaturesRunner extends BlockJUnit4ClassRunner {
     }
 
     protected Injector onInjector(final RunNotifier aNotifier) {
-        return Guice.createInjector(Stage.DEVELOPMENT, (Module) aBinder -> {
+        return Guice.createInjector(Stage.DEVELOPMENT, aBinder -> {
             aBinder.bind(FeaturesRunner.class).toInstance(FeaturesRunner.this);
             aBinder.bind(RunNotifier.class).toInstance(aNotifier);
             aBinder.bind(TargetResourceLocator.class).toInstance(locator);
@@ -559,7 +558,7 @@ public class FeaturesRunner extends BlockJUnit4ClassRunner {
                 @Override
                 @SuppressWarnings({ "unchecked", "rawtypes" })
                 public void evaluate() throws Throwable {
-                    injector = injector.createChildInjector((Module) binder -> {
+                    injector = injector.createChildInjector(binder -> {
                         for (Object each : rules) {
                             binder.bind((Class) each.getClass()).annotatedWith(Names.named(name)).toInstance(each);
                             binder.requestInjection(each);

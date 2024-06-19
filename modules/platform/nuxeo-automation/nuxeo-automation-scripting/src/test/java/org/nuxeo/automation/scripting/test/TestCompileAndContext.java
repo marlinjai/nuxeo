@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2015 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2015-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,10 +25,8 @@ import static org.junit.Assert.assertNotNull;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
-import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStreamWriter;
-import java.io.PrintStream;
 import java.io.PrintWriter;
 import java.io.StringReader;
 import java.util.ArrayList;
@@ -42,8 +40,6 @@ import javax.script.CompiledScript;
 import javax.script.ScriptContext;
 
 import org.apache.commons.io.IOUtils;
-import org.junit.After;
-import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -53,9 +49,9 @@ import org.nuxeo.automation.scripting.internals.ScriptObjectMirrors;
 import org.nuxeo.ecm.core.api.CoreSession;
 import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.FeaturesRunner;
+import org.openjdk.nashorn.api.scripting.ScriptObjectMirror;
 
 import com.google.common.base.Charsets;
-import org.openjdk.nashorn.api.scripting.ScriptObjectMirror;
 
 /**
  * @since 7.2
@@ -65,26 +61,10 @@ import org.openjdk.nashorn.api.scripting.ScriptObjectMirror;
 public class TestCompileAndContext {
 
     @Inject
-    CoreSession session;
+    protected CoreSession session;
 
     @Inject
-    AutomationScriptingService pool;
-
-    ByteArrayOutputStream outContent = new ByteArrayOutputStream();
-
-    private PrintStream outStream;
-
-    @Before
-    public void setUpStreams() {
-        outStream = System.out;
-        System.setOut(new PrintStream(outContent));
-    }
-
-    @After
-    public void cleanUpStreams() throws IOException {
-        outContent.close();
-        System.setOut(outStream);
-    }
+    protected AutomationScriptingService pool;
 
     @Test
     public void serviceShouldBeDeclared() throws Exception {
@@ -196,7 +176,7 @@ public class TestCompileAndContext {
             out = new PrintWriter(context.getWriter());
         }
 
-        final public Object callMe(ScriptObjectMirror params) throws IOException {
+        final public Object callMe(ScriptObjectMirror params) {
 
             @SuppressWarnings("unchecked")
             Map<String, Object> map = (Map<String, Object>) ScriptObjectMirrors.unwrap(params);
@@ -236,22 +216,19 @@ public class TestCompileAndContext {
 
     @Test
     public void testIsolationScriptCtx() throws Exception {
-
         try (AutomationScriptingService.Session scripting1 = pool.get(session)) {
             ScriptObjectMirror mirror1 = (ScriptObjectMirror) scripting1.adapt(ScriptContext.class)
-                    .getAttribute("nashorn.global");
+                                                                        .getAttribute("nashorn.global");
             try (AutomationScriptingService.Session scripting2 = pool.get(session)) {
                 ScriptObjectMirror mirror2 = (ScriptObjectMirror) scripting2.adapt(ScriptContext.class)
-                        .getAttribute("nashorn.global");
+                                                                            .getAttribute("nashorn.global");
                 assertNotEquals(mirror1, mirror2);
             }
         }
-
     }
 
     @Test
     public void testAutomationCtxSharing() throws Exception {
-
         try (InputStream stream = this.getClass().getResourceAsStream("/shareAutomationContext.js")) {
             org.junit.Assert.assertNotNull(stream);
             try (AutomationScriptingService.Session scripting = pool.get(session)) {

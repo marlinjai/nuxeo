@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2018 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2018-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -83,14 +83,9 @@ public class RuntimeStreamFeature implements RunnerFeature {
             System.out.println(getClass().getSimpleName() + ": " + msg); // NOSONAR
             log.info(msg);
             switch (streamType) {
-            case STREAM_MEM:
-                initMem(harness);
-                break;
-            case STREAM_KAFKA:
-                initKafka(harness);
-                break;
-            default:
-                throw new UnsupportedOperationException(streamType + " stream type is not supported");
+                case STREAM_MEM -> initMem(harness);
+                case STREAM_KAFKA -> initKafka(harness);
+                default -> throw new UnsupportedOperationException(streamType + " stream type is not supported");
             }
         } catch (Exception e) {
             throw new RuntimeServiceException("Unable to configure the stream implementation", e);

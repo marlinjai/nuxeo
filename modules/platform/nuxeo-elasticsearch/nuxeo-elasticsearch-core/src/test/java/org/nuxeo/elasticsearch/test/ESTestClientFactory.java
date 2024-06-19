@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2017 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2017-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -52,14 +52,11 @@ public class ESTestClientFactory implements ESClientFactory {
     public ESClient create(ElasticSearchEmbeddedNode node, ElasticSearchClientConfig config) {
         // we don't use the provided config for the client
         String clientType = System.getProperty(CLIENT_PROPERTY);
-        switch (clientType != null ? clientType : DEFAULT_CLIENT) {
-        case TRANSPORT_CLIENT:
-            return createTransportClient(node);
-        case REST_CLIENT:
-            return createRestClient(node);
-        default:
-            throw new IllegalArgumentException("Unknown Elasticsearch client type: " + clientType);
-        }
+        return switch (clientType != null ? clientType : DEFAULT_CLIENT) {
+            case TRANSPORT_CLIENT -> createTransportClient(node);
+            case REST_CLIENT -> createRestClient(node);
+            default -> throw new IllegalArgumentException("Unknown Elasticsearch client type: " + clientType);
+        };
     }
 
     protected ESClient createTransportClient(ElasticSearchEmbeddedNode node) {

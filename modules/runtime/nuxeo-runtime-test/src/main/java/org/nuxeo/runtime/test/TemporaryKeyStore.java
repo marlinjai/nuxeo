@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2023 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2023-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -47,7 +47,6 @@ import org.bouncycastle.operator.OperatorCreationException;
 import org.bouncycastle.operator.jcajce.JcaContentSignerBuilder;
 import org.junit.rules.ExternalResource;
 import org.nuxeo.common.test.ModuleUnderTest;
-import org.nuxeo.runtime.test.runner.FeaturesRunner;
 
 /**
  * @since 2023.0
@@ -202,7 +201,7 @@ public class TemporaryKeyStore extends ExternalResource {
         }
     }
 
-    public record KeyStoreEntry<K> (String alias, String password, K key, X509Certificate certificate) {
+    public record KeyStoreEntry<K>(String alias, String password, K key, X509Certificate certificate) {
 
         public Certificate[] certificates() {
             if (certificate == null) {
