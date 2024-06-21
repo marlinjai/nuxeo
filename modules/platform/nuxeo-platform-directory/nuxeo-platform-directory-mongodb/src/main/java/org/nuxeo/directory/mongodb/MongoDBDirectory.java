@@ -145,9 +145,6 @@ public class MongoDBDirectory extends AbstractDirectory {
     }
 
     protected void createIndexes() {
-        if (isMultiTenant()) {
-            collection.createIndex(Indexes.hashed(TENANT_ID_FIELD));
-        }
         var schemaManager = Framework.getService(SchemaManager.class);
         var mongoDBIndexCreator = new MongoDBIndexCreator(schemaManager, collection);
         mongoDBIndexCreator.createIndexes(schemaManager.getSchema(descriptor.schemaName));

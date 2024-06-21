@@ -431,7 +431,9 @@ public class MongoDBKeyValueStore extends AbstractKeyValueStoreProvider {
                     new FindOneAndUpdateOptions().upsert(true).returnDocument(ReturnDocument.AFTER));
         } catch (MongoCommandException e) {
             // Cannot apply $inc to a value of non-numeric type; code: 16837
-            if (!e.getMessage().contains("Cannot apply $inc")) {
+            // - MongoDB: "Cannot apply $inc"
+            // - DocumentDB: "Cannot update value"
+            if (!e.getMessage().contains("Cannot apply $inc") && !e.getMessage().contains("Cannot update value")) {
                 throw new NuxeoException(e);
             }
             // for compatibility with other backends that don't have datatypes,

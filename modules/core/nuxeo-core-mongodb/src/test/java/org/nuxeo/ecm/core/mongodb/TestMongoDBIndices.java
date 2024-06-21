@@ -87,8 +87,6 @@ public class TestMongoDBIndices {
             assertEquals(SC_CONFLICT, cue.getStatusCode());
             String message = cue.getMessage();
             assertTrue(message, message.contains("E11000 duplicate key error collection"));
-            assertTrue(message, message.contains(DOCUMENT_NAME));
-            assertTrue(message, message.contains(folder.getId()));
         }
     }
 

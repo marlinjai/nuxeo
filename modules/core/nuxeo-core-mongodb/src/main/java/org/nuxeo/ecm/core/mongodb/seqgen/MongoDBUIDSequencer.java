@@ -66,6 +66,8 @@ public class MongoDBUIDSequencer extends AbstractUIDSequencer {
 
     public static final String SEQUENCE_VALUE_FIELD = "sequence";
 
+    protected static final int ERROR_IMMUTABLE_FIELD = 66;
+
     protected MongoCollection<Document> coll;
 
     @Override
@@ -83,7 +85,10 @@ public class MongoDBUIDSequencer extends AbstractUIDSequencer {
             try {
                 getSequencerCollection().replaceOne(filter, sequence, new ReplaceOptions().upsert(true));
             } catch (MongoWriteException e) {
-                if (ErrorCategory.fromErrorCode(e.getCode()) != ErrorCategory.DUPLICATE_KEY) {
+                if (e.getCode() == ERROR_IMMUTABLE_FIELD) {
+                    // DocumentDB doesn't support update with an explicit _id
+                    sequence.remove(MongoDBSerializationHelper.MONGODB_ID);
+                } else if (ErrorCategory.fromErrorCode(e.getCode()) != ErrorCategory.DUPLICATE_KEY) {
                     throw e;
                 }
                 // retry once, as not all server versions do server-side retries on upsert

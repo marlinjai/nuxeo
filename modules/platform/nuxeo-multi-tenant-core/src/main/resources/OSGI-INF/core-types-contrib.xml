@@ -10,6 +10,13 @@
     <schema name="multitenantxvocabulary" src="schemas/multi_tenant_xvocabulary.xsd"/>
     <schema name="multitenantl10nvocabulary" src="schemas/multi_tenant_l10nvocabulary.xsd"/>
     <schema name="multitenantl10nxvocabulary" src="schemas/multi_tenant_l10nxvocabulary.xsd"/>
+
+    <property schema="user" name="tenantId" indexOrder="ascending" />
+    <property schema="group" name="tenantId" indexOrder="ascending" />
+    <property schema="multitenantvocabulary" name="tenantId" indexOrder="ascending" />
+    <property schema="multitenantxvocabulary" name="tenantId" indexOrder="ascending" />
+    <property schema="multitenantl10nvocabulary" name="tenantId" indexOrder="ascending" />
+    <property schema="multitenantl10nxvocabulary" name="tenantId" indexOrder="ascending" />
   </extension>
 
   <extension target="org.nuxeo.ecm.core.schema.TypeService"
