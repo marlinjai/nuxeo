@@ -31,7 +31,6 @@ import java.util.Objects;
 
 import javax.inject.Inject;
 
-import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.nuxeo.ecm.core.api.DocumentModel;
@@ -39,8 +38,7 @@ import org.nuxeo.ecm.platform.usermanager.UserManager;
 import org.nuxeo.runtime.test.runner.Deploy;
 import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.FeaturesRunner;
-import org.nuxeo.scim.v2.mapper.AbstractMapper;
-import org.nuxeo.scim.v2.mapper.UserMapperFactory;
+import org.nuxeo.scim.v2.api.ScimV2MappingService;
 
 import com.unboundid.scim2.common.ScimResource;
 import com.unboundid.scim2.common.exceptions.BadRequestException;
@@ -57,12 +55,8 @@ import com.unboundid.scim2.common.messages.ListResponse;
 @Features(ScimV2Feature.class)
 public class ScimV2SearchTest {
 
-    protected static AbstractMapper mapper;
-
-    @BeforeClass
-    public static void begin() {
-        mapper = UserMapperFactory.getMapper();
-    }
+    @Inject
+    protected ScimV2MappingService mappingService;
 
     @Inject
     protected UserManager userManager;
@@ -92,7 +86,7 @@ public class ScimV2SearchTest {
 
     @Test
     public void testTooManyResults() {
-        assertThrows(BadRequestException.class, () -> mapper.queryUsers(1, 10000, null, null, false, null));
+        assertThrows(BadRequestException.class, () -> mappingService.queryUsers(1, 10000, null, null, false, null));
     }
 
     @Test
@@ -151,14 +145,14 @@ public class ScimV2SearchTest {
         newUserModel("Zee", "Zee", "Zee", "zee@the.org", 1, Calendar.getInstance(), null);
         newUserModel("Too", "Too", "Too", "too@the.org", 1, Calendar.getInstance(), null);
         newUserModel("Ham", "Ham", "Ham", "ham@the.org", 1, Calendar.getInstance(), null);
-        ListResponse<ScimResource> users = mapper.queryUsers(1, 10, null, "id", false, null);
+        ListResponse<ScimResource> users = mappingService.queryUsers(1, 10, null, "id", false, null);
         assertEquals(5, users.getResources().size());
         assertEquals("Administrator", ((Map<String, Object>) users.getResources().get(0)).get("id"));
         assertEquals("Guest", ((Map<String, Object>) users.getResources().get(1)).get("id"));
         assertEquals("Ham", ((Map<String, Object>) users.getResources().get(2)).get("id"));
         assertEquals("Too", ((Map<String, Object>) users.getResources().get(3)).get("id"));
         assertEquals("Zee", ((Map<String, Object>) users.getResources().get(4)).get("id"));
-        users = mapper.queryUsers(1, 10, null, "id", true, null);
+        users = mappingService.queryUsers(1, 10, null, "id", true, null);
         assertEquals(5, users.getResources().size());
         assertEquals("Administrator", ((Map<String, Object>) users.getResources().get(4)).get("id"));
         assertEquals("Guest", ((Map<String, Object>) users.getResources().get(3)).get("id"));
@@ -173,7 +167,7 @@ public class ScimV2SearchTest {
         newGroupModel("a", "Groupe a");
         newGroupModel("b", "Groupe b");
         newGroupModel("c", "Groupe c");
-        ListResponse<ScimResource> groups = mapper.queryGroups(1, 10, null, "id", false, null);
+        ListResponse<ScimResource> groups = mappingService.queryGroups(1, 10, null, "id", false, null);
         assertEquals(6, groups.getResources().size());
         assertEquals("a", ((Map<String, Object>) groups.getResources().get(0)).get("id"));
         assertEquals("administrators", ((Map<String, Object>) groups.getResources().get(1)).get("id"));
@@ -181,7 +175,7 @@ public class ScimV2SearchTest {
         assertEquals("c", ((Map<String, Object>) groups.getResources().get(3)).get("id"));
         assertEquals("members", ((Map<String, Object>) groups.getResources().get(4)).get("id"));
         assertEquals("powerusers", ((Map<String, Object>) groups.getResources().get(5)).get("id"));
-        groups = mapper.queryGroups(1, 10, null, "id", true, null);
+        groups = mappingService.queryGroups(1, 10, null, "id", true, null);
         assertEquals(6, groups.getResources().size());
         assertEquals("a", ((Map<String, Object>) groups.getResources().get(5)).get("id"));
         assertEquals("administrators", ((Map<String, Object>) groups.getResources().get(4)).get("id"));
@@ -192,7 +186,7 @@ public class ScimV2SearchTest {
     }
 
     protected int countUsers(String filter) throws ScimException {
-        return mapper.queryUsers(1, 10, filter, "id", false, null).getTotalResults();
+        return mappingService.queryUsers(1, 10, filter, "id", false, null).getTotalResults();
     }
 
     protected DocumentModel newUserModel(String username, String firstName, String lastName, String email,

@@ -51,7 +51,7 @@ public enum ScimV2ResourceType {
         this.stringValue = stringValue;
     }
 
-    public boolean equals(String stringValue) {
+    public boolean equalsString(String stringValue) {
         return this.toString().equals(stringValue);
     }
 

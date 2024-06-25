@@ -34,10 +34,10 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.nuxeo.runtime.api.Framework;
 import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.FeaturesRunner;
-import org.nuxeo.scim.v2.mapper.ConfigurableUserMapper;
-import org.nuxeo.scim.v2.mapper.UserMapperFactory;
+import org.nuxeo.scim.v2.api.ScimV2MappingService;
 import org.nuxeo.scim.v2.tests.ScimV2Feature;
 import org.wso2.scim2.testsuite.core.entities.TestResult;
 import org.wso2.scim2.testsuite.core.entities.Wire;
@@ -80,7 +80,8 @@ public class ScimV2ComplianceTest {
     public static void begin() {
         testResults = new ArrayList<>();
         log.info("Running SCIM 2.0 compliancy tests");
-        log.info("Mapper class: {}", UserMapperFactory.getMapperClass());
+        log.info("Mapper class: {}",
+                Framework.getService(ScimV2MappingService.class).getMapping().getClass().getSimpleName());
         log.info("---------------------------------");
     }
 

@@ -14,31 +14,22 @@
  * limitations under the License.
  *
  * Contributors:
- *     Antoine Taillefer
+ *     Guillaume Renard
  */
-package org.nuxeo.scim.v2.tests;
+package org.nuxeo.scim.v2.service;
 
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
-import org.nuxeo.scim.v2.mapper.StaticUserMapper;
-import org.nuxeo.scim.v2.mapper.UserMapperFactory;
+import org.nuxeo.common.xmap.annotation.XNode;
+import org.nuxeo.common.xmap.annotation.XObject;
+import org.nuxeo.scim.v2.api.ScimV2Mapping;
 
-/**
- * Tests the {@link StaticUserMapper}, that handles user mapping statically.
- *
- * @since 2023.14
- */
-public class ScimV2StaticUserMapperTest extends ScimV2ConfigurableUserMapperTest {
+@XObject("scimV2Mapping")
+public class ScimV2MappingDescriptor {
 
-    @BeforeClass
-    public static void begin() {
-        UserMapperFactory.setStaticMapper();
-        ScimV2ConfigurableUserMapperTest.begin();
-    }
+    @XNode("@class")
+    private Class<? extends ScimV2Mapping> mappingClass;
 
-    @AfterClass
-    public static void end() {
-        UserMapperFactory.resetMapper();
+    public Class<? extends ScimV2Mapping> getScimV2MappingClass() {
+        return mappingClass;
     }
 
 }

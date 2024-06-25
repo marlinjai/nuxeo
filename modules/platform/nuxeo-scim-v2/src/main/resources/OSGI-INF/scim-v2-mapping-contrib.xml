@@ -1,0 +1,14 @@
+<?xml version="1.0"?>
+<component name="org.nuxeo.scim.v2.service.DefaultScimV2Mapping">
+
+  <documentation>
+   This default scim v2 mapping contribution.
+  </documentation>
+
+  <extension target="org.nuxeo.scim.v2.ScimV2MappingService"
+             point="scimV2Mapping">
+    <scimV2Mapping
+      class="org.nuxeo.scim.v2.service.DefaultScimV2Mapping" />
+  </extension>
+
+</component>

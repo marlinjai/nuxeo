@@ -20,12 +20,9 @@
 package org.nuxeo.scim.v2.rest.usermanager;
 
 import static com.unboundid.scim2.common.exceptions.BadRequestException.INVALID_SYNTAX;
-import static com.unboundid.scim2.common.exceptions.ResourceConflictException.UNIQUENESS;
 import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
 import static javax.ws.rs.core.Response.Status.CREATED;
 import static org.nuxeo.scim.v2.rest.ScimV2Root.SCIM_V2_ENDPOINT_GROUPS;
-
-import java.net.URISyntaxException;
 
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
@@ -38,17 +35,13 @@ import javax.ws.rs.core.Response;
 
 import org.nuxeo.ecm.core.api.DocumentModel;
 import org.nuxeo.ecm.directory.DirectoryException;
-import org.nuxeo.ecm.platform.usermanager.UserManager;
 import org.nuxeo.ecm.webengine.model.WebObject;
-import org.nuxeo.runtime.api.Framework;
 import org.nuxeo.scim.v2.rest.marshalling.ResponseUtils;
 
 import com.unboundid.scim2.common.ScimResource;
 import com.unboundid.scim2.common.exceptions.BadRequestException;
-import com.unboundid.scim2.common.exceptions.ResourceConflictException;
 import com.unboundid.scim2.common.exceptions.ResourceNotFoundException;
 import com.unboundid.scim2.common.exceptions.ScimException;
-import com.unboundid.scim2.common.exceptions.ServerErrorException;
 import com.unboundid.scim2.common.messages.ListResponse;
 import com.unboundid.scim2.common.types.GroupResource;
 
@@ -97,24 +90,9 @@ public class ScimV2GroupObject extends ScimV2BaseUMObject {
             throw new BadRequestException("Cannot create group without a group resource as request body",
                     INVALID_SYNTAX);
         }
-        var groupName = group.getDisplayName();
-        if (groupName == null) {
-            throw new BadRequestException("Cannot create user without a displayName", INVALID_SYNTAX);
-        }
-        UserManager um = Framework.getService(UserManager.class);
-        if (um.getGroupModel(groupName) != null) {
-            throw new ResourceConflictException("Cannot create group with existing uid: " + groupName, UNIQUENESS);
-        }
-        DocumentModel newGroup = mapper.createNuxeoGroupFromGroupResource(group);
-        if (newGroup == null) {
-            throw new ServerErrorException("Cannot create group from resource: " + group);
-        }
-        try {
-            GroupResource groupResource = mapper.getGroupResourceFromNuxeoGroup(newGroup, baseURL);
-            return ResponseUtils.response(CREATED, groupResource);
-        } catch (URISyntaxException e) {
-            throw new ServerErrorException("Cannot create group: " + groupName, null, e);
-        }
+        DocumentModel newGroup = mappingService.createNuxeoGroupFromGroupResource(group);
+        GroupResource groupResource = mappingService.getGroupResourceFromNuxeoGroup(newGroup, baseURL);
+        return ResponseUtils.response(CREATED, groupResource);
     }
 
     protected GroupResource resolveGroupRessource(String uid) throws ScimException {
@@ -122,11 +100,7 @@ public class ScimV2GroupObject extends ScimV2BaseUMObject {
         if (groupModel == null) {
             throw new ResourceNotFoundException("Cannot find group: " + uid); // NOSONAR
         }
-        try {
-            return mapper.getGroupResourceFromNuxeoGroup(groupModel, baseURL);
-        } catch (URISyntaxException e) {
-            throw new ServerErrorException("Cannot find group: " + uid, null, e);
-        }
+        return mappingService.getGroupResourceFromNuxeoGroup(groupModel, baseURL);
     }
 
     protected GroupResource doUpdateGroup(String uid, GroupResource group) throws ScimException {
@@ -134,15 +108,8 @@ public class ScimV2GroupObject extends ScimV2BaseUMObject {
             throw new BadRequestException("Cannot update group without a group resource as request body",
                     INVALID_SYNTAX);
         }
-        DocumentModel groupModel = mapper.updateNuxeoGroupFromGroupResource(uid, group);
-        if (groupModel == null) {
-            throw new ResourceNotFoundException("Cannot find group: " + uid);
-        }
-        try {
-            return mapper.getGroupResourceFromNuxeoGroup(groupModel, baseURL);
-        } catch (URISyntaxException e) {
-            throw new ServerErrorException("Cannot update group: " + uid, null, e);
-        }
+        DocumentModel groupModel = mappingService.updateNuxeoGroupFromGroupResource(uid, group);
+        return mappingService.getGroupResourceFromNuxeoGroup(groupModel, baseURL);
     }
 
     protected Response doDeleteGroup(String uid) throws ScimException {
@@ -157,7 +124,7 @@ public class ScimV2GroupObject extends ScimV2BaseUMObject {
     @Override
     protected ListResponse<ScimResource> doSearch(Integer startIndex, Integer count, String filterString, String sortBy,
             boolean descending) throws ScimException {
-        return mapper.queryGroups(startIndex, count, filterString, sortBy, descending, baseURL);
+        return mappingService.queryGroups(startIndex, count, filterString, sortBy, descending, baseURL);
     }
 
 }

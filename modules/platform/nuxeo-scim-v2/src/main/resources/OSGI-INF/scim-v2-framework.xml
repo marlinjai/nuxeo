@@ -1,0 +1,22 @@
+<?xml version="1.0"?>
+<component name="org.nuxeo.scim.v2.ScimV2MappingService">
+  <implementation class="org.nuxeo.scim.v2.service.ScimV2MappingServiceImpl" />
+
+  <service>
+    <provide interface="org.nuxeo.scim.v2.api.ScimV2MappingService" />
+  </service>
+
+  <documentation>
+    This component is used to provide the mapping between Nuxeo and SCIM V2 User and Group resources.
+  </documentation>
+
+  <extension-point name="scimV2Mapping">
+    <documentation>
+      Defines the class used to map Nuxeo and SCIM V2 User and Group resources.
+
+      Your implementation can inherit from org.nuxeo.scim.v2.service.DefaultScimV2Mapping.
+
+    </documentation>
+    <object class="org.nuxeo.scim.v2.service.ScimV2MappingDescriptor" />
+  </extension-point>
+</component>

@@ -5,7 +5,8 @@ Bundle-SymbolicName: org.nuxeo.scim.v2;singleton:=true
 Bundle-Vendor: Nuxeo
 Bundle-Version: 1.0.0
 Nuxeo-WebModule: org.nuxeo.scim.v2.rest.ScimV2Module;name=scimV2;host=scimV2;package=org/nuxeo/scim/v2/rest
-Nuxeo-Component: OSGI-INF/scim-v2-authentication-contrib.xml,
+Nuxeo-Component: OSGI-INF/scim-v2-framework.xml,
+ OSGI-INF/scim-v2-mapping-contrib.xml,
+ OSGI-INF/scim-v2-authentication-contrib.xml,
  OSGI-INF/scim-v2-marshallers-contrib.xml,
- OSGI-INF/scim-v2-request-controller-contrib.xml,
- OSGI-INF/scim-v2-usermapper-contrib.xml
+ OSGI-INF/scim-v2-request-controller-contrib.xml

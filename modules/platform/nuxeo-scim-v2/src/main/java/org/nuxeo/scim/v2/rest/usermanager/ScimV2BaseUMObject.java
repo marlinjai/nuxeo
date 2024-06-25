@@ -37,8 +37,7 @@ import org.nuxeo.ecm.core.api.NuxeoPrincipal;
 import org.nuxeo.ecm.platform.usermanager.UserManager;
 import org.nuxeo.ecm.webengine.model.impl.DefaultObject;
 import org.nuxeo.runtime.api.Framework;
-import org.nuxeo.scim.v2.mapper.AbstractMapper;
-import org.nuxeo.scim.v2.mapper.UserMapperFactory;
+import org.nuxeo.scim.v2.api.ScimV2MappingService;
 
 import com.unboundid.scim2.common.ScimResource;
 import com.unboundid.scim2.common.exceptions.ForbiddenException;
@@ -56,7 +55,7 @@ public abstract class ScimV2BaseUMObject extends DefaultObject {
 
     protected String baseURL;
 
-    protected AbstractMapper mapper;
+    protected ScimV2MappingService mappingService;
 
     protected abstract String getPrefix();
 
@@ -67,12 +66,12 @@ public abstract class ScimV2BaseUMObject extends DefaultObject {
     protected void initialize(Object... args) {
         super.initialize(args);
         um = Framework.getService(UserManager.class);
+        mappingService =  Framework.getService(ScimV2MappingService.class);
         baseURL = (String) args[0];
         int idx = baseURL.lastIndexOf(getPrefix());
         if (idx > 0) {
             baseURL = baseURL.substring(0, idx + getPrefix().length()); // http://localhost:8080/nuxeo/scim/v2/Users
         }
-        mapper = UserMapperFactory.getMapper();
     }
 
     @POST

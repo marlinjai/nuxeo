@@ -20,13 +20,10 @@
 package org.nuxeo.scim.v2.rest.usermanager;
 
 import static com.unboundid.scim2.common.exceptions.BadRequestException.INVALID_SYNTAX;
-import static com.unboundid.scim2.common.exceptions.ResourceConflictException.UNIQUENESS;
 import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
 import static javax.ws.rs.core.Response.Status.CREATED;
 import static org.apache.commons.lang3.StringUtils.isBlank;
 import static org.nuxeo.scim.v2.rest.ScimV2Root.SCIM_V2_ENDPOINT_USERS;
-
-import java.net.URISyntaxException;
 
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
@@ -39,17 +36,13 @@ import javax.ws.rs.core.Response;
 
 import org.nuxeo.ecm.core.api.DocumentModel;
 import org.nuxeo.ecm.directory.DirectoryException;
-import org.nuxeo.ecm.platform.usermanager.UserManager;
 import org.nuxeo.ecm.webengine.model.WebObject;
-import org.nuxeo.runtime.api.Framework;
 import org.nuxeo.scim.v2.rest.marshalling.ResponseUtils;
 
 import com.unboundid.scim2.common.ScimResource;
 import com.unboundid.scim2.common.exceptions.BadRequestException;
-import com.unboundid.scim2.common.exceptions.ResourceConflictException;
 import com.unboundid.scim2.common.exceptions.ResourceNotFoundException;
 import com.unboundid.scim2.common.exceptions.ScimException;
-import com.unboundid.scim2.common.exceptions.ServerErrorException;
 import com.unboundid.scim2.common.messages.ListResponse;
 import com.unboundid.scim2.common.types.UserResource;
 
@@ -101,20 +94,9 @@ public class ScimV2UserObject extends ScimV2BaseUMObject {
         if (isBlank(userName)) {
             throw new BadRequestException("Cannot create user without a username", INVALID_SYNTAX);
         }
-        UserManager um = Framework.getService(UserManager.class);
-        if (um.getUserModel(userName) != null) {
-            throw new ResourceConflictException("Cannot create user with existing uid: " + userName, UNIQUENESS);
-        }
-        DocumentModel newUser = mapper.createNuxeoUserFromUserResource(user);
-        if (newUser == null) {
-            throw new ServerErrorException("Cannot create user from resource: " + user);
-        }
-        try {
-            UserResource userResource = mapper.getUserResourceFromNuxeoUser(newUser, baseURL);
-            return ResponseUtils.response(CREATED, userResource);
-        } catch (URISyntaxException e) {
-            throw new ServerErrorException("Cannot create user: " + userName, null, e);
-        }
+        DocumentModel newUser = mappingService.createNuxeoUserFromUserResource(user);
+        UserResource userResource = mappingService.getUserResourceFromNuxeoUser(newUser, baseURL);
+        return ResponseUtils.response(CREATED, userResource);
     }
 
     protected UserResource resolveUserRessource(String uid) throws ScimException {
@@ -122,26 +104,15 @@ public class ScimV2UserObject extends ScimV2BaseUMObject {
         if (userModel == null) {
             throw new ResourceNotFoundException("Cannot find user: " + uid); // NOSONAR
         }
-        try {
-            return mapper.getUserResourceFromNuxeoUser(userModel, baseURL);
-        } catch (URISyntaxException e) {
-            throw new ServerErrorException("Cannot find user: " + uid, null, e);
-        }
+        return mappingService.getUserResourceFromNuxeoUser(userModel, baseURL);
     }
 
     protected UserResource doUpdateUser(String uid, UserResource user) throws ScimException {
         if (user == null) {
             throw new BadRequestException("Cannot update user without a user resource as request body", INVALID_SYNTAX);
         }
-        DocumentModel userModel = mapper.updateNuxeoUserFromUserResource(uid, user);
-        if (userModel == null) {
-            throw new ResourceNotFoundException("Cannot find user: " + uid);
-        }
-        try {
-            return mapper.getUserResourceFromNuxeoUser(userModel, baseURL);
-        } catch (URISyntaxException e) {
-            throw new ServerErrorException("Cannot update user: " + uid, null, e);
-        }
+        DocumentModel userModel = mappingService.updateNuxeoUserFromUserResource(uid, user);
+        return mappingService.getUserResourceFromNuxeoUser(userModel, baseURL);
     }
 
     protected Response doDeleteUser(String uid) throws ScimException {
@@ -156,7 +127,7 @@ public class ScimV2UserObject extends ScimV2BaseUMObject {
     @Override
     protected ListResponse<ScimResource> doSearch(Integer startIndex, Integer count, String filterString, String sortBy,
             boolean descending) throws ScimException {
-        return mapper.queryUsers(startIndex, count, filterString, sortBy, descending, baseURL);
+        return mappingService.queryUsers(startIndex, count, filterString, sortBy, descending, baseURL);
     }
 
 }

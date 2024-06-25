@@ -1,0 +1,10 @@
+<?xml version="1.0"?>
+<component name="org.nuxeo.scim.v2.service.test.DummyScimV2TestMapping">
+  <require>org.nuxeo.scim.v2.service.DefaultScimV2Mapping</require>
+  <extension target="org.nuxeo.scim.v2.ScimV2MappingService"
+             point="scimV2Mapping">
+    <scimV2Mapping
+      class="org.nuxeo.scim.v2.tests.contrib.DummyScimV2TestMapping" />
+  </extension>
+
+</component>
