@@ -41,6 +41,7 @@ import java.time.DateTimeException;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.UUID;
 import java.util.function.UnaryOperator;
 import java.util.stream.Collectors;
 
@@ -123,19 +124,11 @@ public abstract class AbstractMapper {
 
     public DocumentModel createNuxeoGroupFromGroupResource(GroupResource group) {
         UserManager um = Framework.getService(UserManager.class);
-        String groupId = group.getDisplayName();
-        DocumentModel groupModel = um.getGroupModel(groupId);
-        if (groupModel == null) {
-            // create new group
-            DocumentModel newGroup = um.getBareGroupModel();
-            newGroup.setProperty(um.getGroupSchemaName(), um.getGroupIdField(), groupId);
-            updateGroupModel(newGroup, group);
-            return um.createGroup(newGroup);
-        }
-        // update existing group
-        updateGroupModel(groupModel, group);
-        um.updateGroup(groupModel);
-        return groupModel;
+        // create new group
+        DocumentModel newGroup = um.getBareGroupModel();
+        newGroup.setProperty(um.getGroupSchemaName(), um.getGroupIdField(), UUID.randomUUID().toString());
+        updateGroupModel(newGroup, group);
+        return um.createGroup(newGroup);
     }
 
     public DocumentModel updateNuxeoGroupFromGroupResource(String uid, GroupResource group) {

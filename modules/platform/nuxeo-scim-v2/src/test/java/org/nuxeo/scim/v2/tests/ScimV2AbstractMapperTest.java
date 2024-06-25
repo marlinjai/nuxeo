@@ -74,17 +74,17 @@ public class ScimV2AbstractMapperTest {
         // create group with no members and no subgroups
         var groupResource = newGroupResource("people", null, null); // NOSONAR
         withGroupModel(groupResource, mapper::createNuxeoGroupFromGroupResource,
-                groupModel -> checkGroupModel(groupModel, "people", "people", List.of(), List.of()));
+                groupModel -> checkGroupModel(groupModel, "people", List.of(), List.of()));
 
         // create group with empty members and empty subgroups
         groupResource = newGroupResource("people", List.of(), List.of());
         withGroupModel(groupResource, mapper::createNuxeoGroupFromGroupResource,
-                groupModel -> checkGroupModel(groupModel, "people", "people", List.of(), List.of()));
+                groupModel -> checkGroupModel(groupModel, "people", List.of(), List.of()));
 
         // create group with members and subgroups
         groupResource = newGroupResource("people", List.of("joe", "jack"), List.of("subGroup1", "subGroup2")); // NOSONAR
         withGroupModel(groupResource, mapper::createNuxeoGroupFromGroupResource,
-                groupModel -> checkGroupModel(groupModel, "people", "people", List.of("joe", "jack"),
+                groupModel -> checkGroupModel(groupModel, "people", List.of("joe", "jack"),
                         List.of("subGroup1", "subGroup2")));
     }
 
@@ -94,21 +94,21 @@ public class ScimV2AbstractMapperTest {
         withGroupModel("people", "People", List.of("joe"), List.of("subGroup1"), () -> { // NOSONAR
             var groupResource = newGroupResource("people", null, null);
             var groupModel = mapper.createNuxeoGroupFromGroupResource(groupResource);
-            checkGroupModel(groupModel, "people", "people", List.of("joe"), List.of("subGroup1"));
+            checkGroupModel(groupModel, "people", List.of(), List.of());
         });
 
         // update group with empty members and empty subgroups
         withGroupModel("people", "People", List.of("joe"), List.of("subGroup1"), () -> {
             var groupResource = newGroupResource("people", List.of(), List.of());
             var groupModel = mapper.createNuxeoGroupFromGroupResource(groupResource);
-            checkGroupModel(groupModel, "people", "people", List.of(), List.of());
+            checkGroupModel(groupModel, "people", List.of(), List.of());
         });
 
         // update group with members and subgroups
         withGroupModel("people", "People", List.of("joe"), List.of("subGroup1"), () -> {
             var groupResource = newGroupResource("people", List.of("joe", "jack"), List.of("subGroup1", "subGroup2"));
             var groupModel = mapper.createNuxeoGroupFromGroupResource(groupResource);
-            checkGroupModel(groupModel, "people", "people", List.of("joe", "jack"), List.of("subGroup1", "subGroup2"));
+            checkGroupModel(groupModel, "people", List.of("joe", "jack"), List.of("subGroup1", "subGroup2"));
         });
     }
 
@@ -141,14 +141,14 @@ public class ScimV2AbstractMapperTest {
         withGroupModel("people", "People", List.of("joe"), List.of("subGroup1"), () -> {
             var groupResource = newGroupResource(null, null, null);
             var groupModel = mapper.updateNuxeoGroupFromGroupResource("people", groupResource);
-            checkGroupModel(groupModel, "people", "People", List.of("joe"), List.of("subGroup1"));
+            checkGroupModel(groupModel, "People", List.of("joe"), List.of("subGroup1"));
         });
 
         // update group with blank displayName, empty members and empty subgroups
         withGroupModel("people", "People", List.of("joe"), List.of("subGroup1"), () -> {
             var groupResource = newGroupResource("", List.of(), List.of());
             var groupModel = mapper.updateNuxeoGroupFromGroupResource("people", groupResource);
-            checkGroupModel(groupModel, "people", "", List.of(), List.of());
+            checkGroupModel(groupModel, "", List.of(), List.of());
         });
 
         // update group with displayName, members and subgroups
@@ -156,7 +156,7 @@ public class ScimV2AbstractMapperTest {
             var groupResource = newGroupResource("OtherPeople", List.of("joe", "jack"),
                     List.of("subGroup1", "subGroup2"));
             var groupModel = mapper.updateNuxeoGroupFromGroupResource("people", groupResource);
-            checkGroupModel(groupModel, "people", "OtherPeople", List.of("joe", "jack"),
+            checkGroupModel(groupModel, "OtherPeople", List.of("joe", "jack"),
                     List.of("subGroup1", "subGroup2"));
         });
     }
@@ -254,9 +254,9 @@ public class ScimV2AbstractMapperTest {
         return groupModel;
     }
 
-    protected void checkGroupModel(DocumentModel groupModel, String groupName, String groupLabel, List<String> members,
+    protected void checkGroupModel(DocumentModel groupModel, String groupLabel, List<String> members,
             List<String> subGroups) {
-        assertEquals(groupName, groupModel.getPropertyValue("group:groupname"));
+        assertNotNull(groupModel.getPropertyValue("group:groupname"));
         assertEquals(groupLabel, groupModel.getPropertyValue("group:grouplabel"));
         assertEquals(members, groupModel.getPropertyValue("group:members"));
         assertEquals(subGroups, groupModel.getPropertyValue("group:subGroups"));
