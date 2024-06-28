@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2014-2017 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2014-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -480,9 +480,9 @@ public class ElasticSearchAdminImpl implements ElasticSearchAdmin {
                     searchAlias, writeIndex, searchIndex);
             getClient().updateAlias(searchAlias, writeIndex);
             searchIndex = writeIndex;
-            String newIndex = secondaryWriteIndexNames.remove(conf.getName());
+            secondaryWriteIndexNames.remove(conf.getName());
             reindexingPubSub.sendMessage(
-                    new ReindexingMessage(conf.getRepositoryName(), conf.getName(), newIndex, ReindexingState.END));
+                    new ReindexingMessage(conf.getRepositoryName(), conf.getName(), writeIndex, ReindexingState.END));
             getKvStore().put(conf.getName(), (String) null);
         }
         repoNames.put(searchIndex, conf.getRepositoryName());
@@ -649,12 +649,14 @@ public class ElasticSearchAdminImpl implements ElasticSearchAdmin {
             log.debug("Receiving message {}", message);
             switch (message.state) {
                 case START:
-                    secondaryWriteIndexNames.put(message.indexName, message.secondWriteIndexName);
+                    secondaryWriteIndexNames.put(message.indexName, message.otherIndex);
                     break;
                 case END:
                 case ABORT:
-                    repoNames.put(message.secondWriteIndexName, message.repository);
-                    secondaryWriteIndexNames.remove(message.indexName);
+                    repoNames.put(message.otherIndex, message.repository);
+                    String oldIndex = secondaryWriteIndexNames.remove(message.indexName);
+                    log.warn("Receive index alias update {} -> {} (old index: {}, can be deleted)", message.indexName,
+                            message.otherIndex, oldIndex);
                     break;
             }
         }

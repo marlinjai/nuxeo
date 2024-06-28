@@ -40,7 +40,7 @@ public class ReindexingMessage implements SerializableMessage {
 
     public final String indexName;
 
-    public final String secondWriteIndexName;
+    public final String otherIndex;
 
     public final ReindexingState state;
 
@@ -51,20 +51,20 @@ public class ReindexingMessage implements SerializableMessage {
     /**
      * @param repository being re-indexed
      * @param indexName the name of the search index
-     * @param secondIndexName the name of the second write index
+     * @param otherIndex the name of the second write index, or new index depending on the state
      * @param state the state of the reindexing
      */
-    public ReindexingMessage(String repository, String indexName, String secondIndexName, ReindexingState state) {
+    public ReindexingMessage(String repository, String indexName, String otherIndex, ReindexingState state) {
         Objects.requireNonNull(state);
         this.repository = repository;
         this.indexName = indexName;
-        this.secondWriteIndexName = secondIndexName;
+        this.otherIndex = otherIndex;
         this.state = state;
     }
 
     @Override
     public void serialize(OutputStream out) throws IOException {
-        String string = repository + SEP + indexName + SEP + secondWriteIndexName + SEP + state;
+        String string = repository + SEP + indexName + SEP + otherIndex + SEP + state;
         IOUtils.write(string, out, UTF_8);
     }
 
@@ -87,8 +87,8 @@ public class ReindexingMessage implements SerializableMessage {
 
     @Override
     public String toString() {
-        return getClass().getSimpleName() + "(" + repository + ", " + indexName + ", " + secondWriteIndexName
-                + ", " + state + ")";
+        return getClass().getSimpleName() + "(" + repository + ", " + indexName + ", " + otherIndex + ", " + state
+                + ")";
     }
 
     @Override
@@ -102,7 +102,7 @@ public class ReindexingMessage implements SerializableMessage {
         ReindexingMessage message = (ReindexingMessage) o;
         return new EqualsBuilder().append(repository, message.repository)
                                   .append(indexName, message.indexName)
-                                  .append(secondWriteIndexName, message.secondWriteIndexName)
+                                  .append(otherIndex, message.otherIndex)
                                   .append(state, message.state)
                                   .isEquals();
     }
@@ -111,7 +111,7 @@ public class ReindexingMessage implements SerializableMessage {
     public int hashCode() {
         return new HashCodeBuilder(17, 37).append(repository)
                                           .append(indexName)
-                                          .append(secondWriteIndexName)
+                                          .append(otherIndex)
                                           .append(state)
                                           .toHashCode();
     }
