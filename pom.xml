@@ -3633,7 +3633,7 @@
       <dependency>
         <groupId>org.wso2.scim2.testsuite</groupId>
         <artifactId>org.wso2.scim2.testsuite.core</artifactId>
-        <version>1.1-NX01-SNAPSHOT</version>
+        <version>1.1-NX01</version>
         <scope>test</scope>
         <exclusions>
           <!-- banned -->
@@ -4570,8 +4570,6 @@
                   <excludes>
                     <exclude>com.nuxeo*</exclude>
                     <exclude>org.nuxeo*</exclude>
-                    <!-- TODO: remove when switching from 1.1-NX01-SNAPSHOT to 1.1-NX01 -->
-                    <exclude>org.wso2.scim2.testsuite:*</exclude>
                   </excludes>
                 </requireReleaseDeps>
               </rules>
