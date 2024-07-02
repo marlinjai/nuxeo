@@ -27,7 +27,10 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
+import java.util.function.Predicate;
 
+import org.apache.commons.lang3.BooleanUtils;
 import org.nuxeo.ecm.core.api.DocumentModel;
 import org.nuxeo.ecm.platform.usermanager.UserManager;
 import org.nuxeo.runtime.api.Framework;
@@ -284,7 +287,9 @@ public class DefaultScimV2Mapping implements ScimV2Mapping {
             userModel.setProperty(userSchemaName, EMAIL, null);
             return;
         }
-        Email email = emails.get(0);
+        Predicate<Email> primaryEmail = Objects::nonNull;
+        primaryEmail = primaryEmail.and(email -> BooleanUtils.isTrue(email.getPrimary()));
+        Email email = emails.stream().filter(primaryEmail).findFirst().orElse(emails.get(0));
         if (email == null) {
             userModel.setProperty(userSchemaName, EMAIL, null);
         } else {
