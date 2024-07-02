@@ -126,8 +126,7 @@ public class ScimV2Root extends ModuleRoot {
         // TODO allow PatchConfig
         var patch = new PatchConfig(false);
         var bulk = new BulkConfig(false, 0, 0);
-        // TODO allow FilterConfig
-        var filter = new FilterConfig(false, 0);
+        var filter = new FilterConfig(true, 0);
         var changePassword = new ChangePasswordConfig(false);
         var sort = new SortConfig(true);
         var etag = new ETagConfig(false);
