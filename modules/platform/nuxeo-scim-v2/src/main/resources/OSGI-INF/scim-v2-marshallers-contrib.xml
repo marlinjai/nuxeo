@@ -12,6 +12,8 @@
       enable="true" />
     <register class="org.nuxeo.scim.v2.rest.marshalling.ListResponseWriter"
       enable="true" />
+    <register class="org.nuxeo.scim.v2.rest.marshalling.PatchRequestReader"
+      enable="true" />
     <register class="org.nuxeo.scim.v2.rest.marshalling.ResourceTypeResourceWriter"
       enable="true" />
     <register class="org.nuxeo.scim.v2.rest.marshalling.SchemaResourceWriter"

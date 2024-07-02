@@ -37,6 +37,7 @@ import javax.ws.rs.core.Response;
 import org.nuxeo.ecm.core.api.DocumentModel;
 import org.nuxeo.ecm.directory.DirectoryException;
 import org.nuxeo.ecm.webengine.model.WebObject;
+import org.nuxeo.scim.v2.rest.PATCH;
 import org.nuxeo.scim.v2.rest.marshalling.ResponseUtils;
 
 import com.unboundid.scim2.common.ScimResource;
@@ -44,6 +45,7 @@ import com.unboundid.scim2.common.exceptions.BadRequestException;
 import com.unboundid.scim2.common.exceptions.ResourceNotFoundException;
 import com.unboundid.scim2.common.exceptions.ScimException;
 import com.unboundid.scim2.common.messages.ListResponse;
+import com.unboundid.scim2.common.messages.PatchRequest;
 import com.unboundid.scim2.common.types.UserResource;
 
 /**
@@ -72,6 +74,13 @@ public class ScimV2UserObject extends ScimV2BaseUMObject {
     public UserResource updateUser(@PathParam("uid") String uid, UserResource user) throws ScimException {
         checkUpdateGuardPreconditions();
         return doUpdateUser(uid, user);
+    }
+
+    @PATCH
+    @Path("{uid}")
+    public UserResource patchUser(@PathParam("uid") String uid, PatchRequest patch) throws ScimException {
+        checkUpdateGuardPreconditions();
+        return doPatchUser(uid, patch);
     }
 
     @DELETE
@@ -112,6 +121,15 @@ public class ScimV2UserObject extends ScimV2BaseUMObject {
             throw new BadRequestException("Cannot update user without a user resource as request body", INVALID_SYNTAX);
         }
         DocumentModel userModel = mappingService.updateNuxeoUserFromUserResource(uid, user);
+        return mappingService.getUserResourceFromNuxeoUser(userModel, baseURL);
+    }
+
+    protected UserResource doPatchUser(String uid, PatchRequest patch) throws ScimException {
+        if (patch == null) {
+            throw new BadRequestException("Cannot patch user without a patch request resource as request body",
+                    INVALID_SYNTAX);
+        }
+        DocumentModel userModel = mappingService.patchNuxeoUser(uid, patch);
         return mappingService.getUserResourceFromNuxeoUser(userModel, baseURL);
     }
 

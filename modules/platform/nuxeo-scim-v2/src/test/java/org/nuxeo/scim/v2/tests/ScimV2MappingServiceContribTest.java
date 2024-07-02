@@ -44,6 +44,7 @@ import com.unboundid.scim2.common.types.UserResource;
  */
 @RunWith(FeaturesRunner.class)
 @Features(ScimV2Feature.class)
+@Deploy("org.nuxeo.scim.v2:test-scim-v2-user-schema-override.xml")
 @Deploy("org.nuxeo.scim.v2:test-scim-v2-mapping-contrib.xml")
 public class ScimV2MappingServiceContribTest {
 

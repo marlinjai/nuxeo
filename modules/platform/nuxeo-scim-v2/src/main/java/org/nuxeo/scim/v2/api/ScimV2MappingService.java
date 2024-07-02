@@ -23,6 +23,7 @@ import org.nuxeo.ecm.core.api.DocumentModel;
 import com.unboundid.scim2.common.ScimResource;
 import com.unboundid.scim2.common.exceptions.ScimException;
 import com.unboundid.scim2.common.messages.ListResponse;
+import com.unboundid.scim2.common.messages.PatchRequest;
 import com.unboundid.scim2.common.types.GroupResource;
 import com.unboundid.scim2.common.types.UserResource;
 
@@ -75,6 +76,16 @@ public interface ScimV2MappingService {
      * @throws ScimException if an error occurred
      */
     UserResource getUserResourceFromNuxeoUser(DocumentModel userModel, String baseURL) throws ScimException;
+
+    /**
+     * Patches a Nuxeo user model according to the patch request.
+     *
+     * @param uid the user uid
+     * @param patch the patch request
+     * @return the patched user
+     * @throws ScimException if an error occurred
+     */
+    DocumentModel patchNuxeoUser(String uid, PatchRequest patch) throws ScimException;
 
     /**
      * Searches for groups.

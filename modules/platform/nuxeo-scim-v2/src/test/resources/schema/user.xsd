@@ -27,4 +27,7 @@
   <xs:element name="scim_updated" type="xs:dateTime" />
   <xs:element name="active" type="xs:boolean" default="true" />
 
+  <xs:element name="workEmail" type="xs:string" />
+  <xs:element name="homeEmail" type="xs:string" />
+
 </xs:schema>

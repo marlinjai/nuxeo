@@ -123,8 +123,7 @@ public class ScimV2Root extends ModuleRoot {
     @Path("/" + SERVICE_PROVIDER_CONFIG_ENDPOINT)
     public ServiceProviderConfigResource getConfig() throws ScimException {
         var documentationUri = "https://doc.nuxeo.com/";
-        // TODO allow PatchConfig
-        var patch = new PatchConfig(false);
+        var patch = new PatchConfig(true);
         var bulk = new BulkConfig(false, 0, 0);
         var filter = new FilterConfig(true, 0);
         var changePassword = new ChangePasswordConfig(false);
@@ -239,7 +238,8 @@ public class ScimV2Root extends ModuleRoot {
         return switch (type) {
             case SCIM_V2_RESOURCE_TYPE_USER -> new ResourceTypeResource(SCIM_V2_RESOURCE_TYPE_USER.toString(),
                     "User Account", getURI(SCIM_V2_ENDPOINT_USERS), getURI(SCIM_V2_SCHEMA_USER));
-            case SCIM_V2_RESOURCE_TYPE_GROUP -> new ResourceTypeResource(SCIM_V2_RESOURCE_TYPE_GROUP.toString(), "Group", // NOSONAR
+            case SCIM_V2_RESOURCE_TYPE_GROUP -> new ResourceTypeResource(SCIM_V2_RESOURCE_TYPE_GROUP.toString(),
+                    "Group", // NOSONAR
                     getURI(SCIM_V2_ENDPOINT_GROUPS), getURI(SCIM_V2_SCHEMA_GROUP));
             default -> throw new ResourceNotFoundException("Cannot find resource type:" + type);
         };

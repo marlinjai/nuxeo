@@ -135,7 +135,7 @@ public class ScimV2MappingServiceTest {
         }));
 
         // get group with grouplabel, members and subgroups
-        withGroupModel("people", "People", List.of("joe", "jack"), List.of("subGroup1", "subGroup2"), //NOSONAR
+        withGroupModel("people", "People", List.of("joe", "jack"), List.of("subGroup1", "subGroup2"), // NOSONAR
                 ThrowableConsumer.asConsumer(groupModel -> {
                     var groupResource = mappingService.getGroupResourceFromNuxeoGroup(groupModel, GROUP_BASE_URL);
                     checkGroupResource(groupResource, "people", "People", List.of("joe", "jack"),
@@ -184,7 +184,7 @@ public class ScimV2MappingServiceTest {
         withGroupModel("people", "People", List.of("joe"), List.of("subGroup1"), ThrowableRunnable.asRunnable(() -> {
             var groupResource = newGroupResource(null, null, null);
             var groupModel = mappingService.updateNuxeoGroupFromGroupResource("people", groupResource);
-            checkGroupModel(groupModel, "People", List.of("joe"), List.of("subGroup1"));
+            checkGroupModel(groupModel, null, List.of("joe"), List.of("subGroup1"));
         }));
 
         // update group with blank displayName, empty members and empty subgroups
@@ -209,7 +209,7 @@ public class ScimV2MappingServiceTest {
         withUserModel("joe", "Joe", "Doe", "joe@devnull.com", ThrowableRunnable.asRunnable(() -> {
             var userResource = newUserResource("joe", null, null, null);
             var userModel = mappingService.updateNuxeoUserFromUserResource("joe", userResource);
-            checkUserModel(userModel, "joe", "Joe", "Doe", "joe@devnull.com");
+            checkUserModel(userModel, "joe", null, null, null);
         }));
 
         // update user with blank givenName, blank familyName and empty emails
@@ -223,14 +223,14 @@ public class ScimV2MappingServiceTest {
         withUserModel("joe", "Joe", "Doe", "joe@devnull.com", ThrowableRunnable.asRunnable(() -> {
             var userResource = newUserResource("joe", "Jack", null, List.of("jack@devnull.com")); // NOSONAR
             var userModel = mappingService.updateNuxeoUserFromUserResource("joe", userResource);
-            checkUserModel(userModel, "joe", "Jack", "Doe", "jack@devnull.com");
+            checkUserModel(userModel, "joe", "Jack", null, "jack@devnull.com");
         }));
 
         // update user with no givenName, familyName and emails
         withUserModel("joe", "Joe", "Doe", "joe@devnull.com", ThrowableRunnable.asRunnable(() -> {
             var userResource = newUserResource("joe", null, "Fat", List.of("jack@devnull.com"));
             var userModel = mappingService.updateNuxeoUserFromUserResource("joe", userResource);
-            checkUserModel(userModel, "joe", "Joe", "Fat", "jack@devnull.com");
+            checkUserModel(userModel, "joe", null, "Fat", "jack@devnull.com");
         }));
 
         // update user with givenName, familyName and emails

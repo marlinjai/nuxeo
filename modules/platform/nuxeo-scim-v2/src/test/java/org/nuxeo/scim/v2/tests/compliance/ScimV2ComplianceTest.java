@@ -35,6 +35,7 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.nuxeo.runtime.api.Framework;
+import org.nuxeo.runtime.test.runner.Deploy;
 import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.FeaturesRunner;
 import org.nuxeo.scim.v2.api.ScimV2MappingService;
@@ -57,6 +58,8 @@ import org.wso2.scim2.testsuite.core.utils.ComplianceConstants;
  */
 @RunWith(FeaturesRunner.class)
 @Features(ScimV2Feature.class)
+@Deploy("org.nuxeo.scim.v2:test-scim-v2-user-schema-override.xml")
+@Deploy("org.nuxeo.scim.v2:test-scim-v2-mapping-contrib.xml")
 public class ScimV2ComplianceTest {
 
     private static final Logger log = LogManager.getLogger(ScimV2ComplianceTest.class);
@@ -174,6 +177,7 @@ public class ScimV2ComplianceTest {
         runTest(user::deleteMethodTest);
         runTest(user::getMethodTest);
         runTest(user::searchMethodTest);
+        runTest(user::patchMethodTest);
     }
 
     @Test

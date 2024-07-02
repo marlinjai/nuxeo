@@ -79,22 +79,22 @@ public class DefaultScimV2Mapping implements ScimV2Mapping {
 
     @Override
     public DocumentModel beforeCreateGroup(DocumentModel groupModel, GroupResource groupResource) throws ScimException {
-        return beforeCreateOrUpdateGroup(groupModel, groupResource);
+        return updateNuxeoGroupFromGroupResource(groupModel, groupResource);
     }
 
     @Override
     public DocumentModel beforeCreateUser(DocumentModel userModel, UserResource userResource) {
-        return beforeCreateOrUpdateUser(userModel, userResource);
+        return updateNuxeoUserFromUserResource(userModel, userResource);
     }
 
     @Override
     public DocumentModel beforeUpdateGroup(DocumentModel groupModel, GroupResource groupResource) throws ScimException {
-        return beforeCreateOrUpdateGroup(groupModel, groupResource);
+        return updateNuxeoGroupFromGroupResource(groupModel, groupResource);
     }
 
     @Override
     public DocumentModel beforeUpdateUser(DocumentModel userModel, UserResource userResource) {
-        return beforeCreateOrUpdateUser(userModel, userResource);
+        return updateNuxeoUserFromUserResource(userModel, userResource);
     }
 
     @Override
@@ -155,7 +155,7 @@ public class DefaultScimV2Mapping implements ScimV2Mapping {
         String userSchemaName = um.getUserSchemaName();
         String userId = (String) userModel.getProperty(userSchemaName, um.getUserIdField());
         try {
-            UserResource userResource = getUserResourceFromUserModel(userId, baseURL);
+            UserResource userResource = newUserResource(userId, baseURL);
             String firstName = (String) userModel.getProperty(userSchemaName, FIRST_NAME);
             String lastName = (String) userModel.getProperty(userSchemaName, LAST_NAME);
             if (isNotBlank(firstName) || isNotBlank(lastName)) {
@@ -219,15 +219,11 @@ public class DefaultScimV2Mapping implements ScimV2Mapping {
         };
     }
 
-    protected DocumentModel beforeCreateOrUpdateGroup(DocumentModel groupModel, GroupResource groupResource) {
+    protected DocumentModel updateNuxeoGroupFromGroupResource(DocumentModel groupModel, GroupResource groupResource) {
         UserManager um = Framework.getService(UserManager.class);
         String groupSchemaName = um.getGroupSchemaName();
 
-        String displayName = groupResource.getDisplayName();
-        // don't nullify if not provided, need an explicit empty string for this
-        if (displayName != null) {
-            groupModel.setProperty(groupSchemaName, um.getGroupLabelField(), groupResource.getDisplayName());
-        }
+        groupModel.setProperty(groupSchemaName, um.getGroupLabelField(), groupResource.getDisplayName());
 
         List<Member> members = groupResource.getMembers();
         if (members == null) {
@@ -249,7 +245,7 @@ public class DefaultScimV2Mapping implements ScimV2Mapping {
         return groupModel;
     }
 
-    protected DocumentModel beforeCreateOrUpdateUser(DocumentModel userModel, UserResource userResource) {
+    protected DocumentModel updateNuxeoUserFromUserResource(DocumentModel userModel, UserResource userResource) {
         UserManager um = Framework.getService(UserManager.class);
         String userSchemaName = um.getUserSchemaName();
 
@@ -261,15 +257,17 @@ public class DefaultScimV2Mapping implements ScimV2Mapping {
         return userModel;
     }
 
-    protected UserResource getUserResourceFromUserModel(String userId, String baseURL) throws URISyntaxException {
+    protected UserResource newUserResource(String userId, String baseURL) throws URISyntaxException {
         UserResource userResource = new UserResource();
         userResource.setId(userId);
         userResource.setExternalId(userId);
 
         Meta meta = new Meta();
         meta.setResourceType(SCIM_V2_RESOURCE_TYPE_USER.toString());
-        URI location = new URI(String.join("/", baseURL, userId));
-        meta.setLocation(location);
+        if (baseURL != null) {
+            URI location = new URI(String.join("/", baseURL, userId));
+            meta.setLocation(location);
+        }
         meta.setVersion("1");
         userResource.setMeta(meta);
 
@@ -279,11 +277,7 @@ public class DefaultScimV2Mapping implements ScimV2Mapping {
     }
 
     protected void setEmail(List<Email> emails, DocumentModel userModel, String userSchemaName) {
-        // don't nullify if not provided, need an explicit empty list for this
-        if (emails == null) {
-            return;
-        }
-        if (emails.isEmpty()) {
+        if (emails == null || emails.isEmpty()) {
             userModel.setProperty(userSchemaName, EMAIL, null);
             return;
         }
@@ -298,19 +292,16 @@ public class DefaultScimV2Mapping implements ScimV2Mapping {
     }
 
     protected void setName(Name name, DocumentModel userModel, String userSchemaName) {
-        // don't nullify if not provided, need an explicit empty string for this
         if (name == null) {
+            userModel.setProperty(userSchemaName, FIRST_NAME, null);
+            userModel.setProperty(userSchemaName, LAST_NAME, null);
             return;
         }
         var givenName = name.getGivenName();
-        if (givenName != null) {
-            var firstName = trimToNull(givenName);
-            userModel.setProperty(userSchemaName, FIRST_NAME, firstName);
-        }
+        var firstName = givenName == null ? null : trimToNull(givenName);
+        userModel.setProperty(userSchemaName, FIRST_NAME, firstName);
         var familyName = name.getFamilyName();
-        if (familyName != null) {
-            var lastName = trimToNull(familyName);
-            userModel.setProperty(userSchemaName, LAST_NAME, lastName);
-        }
+        var lastName = familyName == null ? null : trimToNull(familyName);
+        userModel.setProperty(userSchemaName, LAST_NAME, lastName);
     }
 }
