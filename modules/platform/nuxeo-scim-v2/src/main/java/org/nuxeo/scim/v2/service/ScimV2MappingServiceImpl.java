@@ -164,7 +164,7 @@ public class ScimV2MappingServiceImpl extends DefaultComponent implements ScimV2
         UserManager um = Framework.getService(UserManager.class);
         String userId = user.getUserName();
         if (um.getUserModel(userId) != null) {
-            throw ResourceConflictException.uniqueness("Cannot create user with existing uid: " + userId);
+            throw new ResourceConflictException("Cannot create user with existing uid: " + userId, "uniqueness", null);
         }
         // create new user
         DocumentModel newUser = um.getBareUserModel();
