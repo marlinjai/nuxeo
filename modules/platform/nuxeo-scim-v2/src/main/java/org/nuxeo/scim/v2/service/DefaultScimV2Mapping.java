@@ -210,14 +210,13 @@ public class DefaultScimV2Mapping implements ScimV2Mapping {
         return switch (column.toLowerCase()) {
             case "id", "username" -> Framework.getService(UserManager.class).getUserIdField();
             case "emails", "emails.value" -> Framework.getService(UserManager.class).getUserEmailField();
-            case "givenname" -> "firstName";
-            case "familyname" -> "lastName";
+            case "givenname" -> FIRST_NAME;
+            case "familyname" -> LAST_NAME;
             default -> column;
         };
     }
 
-    protected DocumentModel beforeCreateOrUpdateGroup(DocumentModel groupModel, GroupResource groupResource)
-            throws ScimException {
+    protected DocumentModel beforeCreateOrUpdateGroup(DocumentModel groupModel, GroupResource groupResource) {
         UserManager um = Framework.getService(UserManager.class);
         String groupSchemaName = um.getGroupSchemaName();
 

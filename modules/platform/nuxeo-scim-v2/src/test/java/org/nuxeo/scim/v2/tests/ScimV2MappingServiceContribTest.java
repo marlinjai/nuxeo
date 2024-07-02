@@ -68,7 +68,8 @@ public class ScimV2MappingServiceContribTest {
         List<Email> emails = List.of(new Email().setValue("foo@bar.org"));
         userResource.setEmails(emails);
         mappingService.createNuxeoUserFromUserResource(userResource);
-        ListResponse<ScimResource> res = mappingService.queryUsers(0, 1, "userName eq \"foo@bar.org\"", null, false, null);
+        ListResponse<ScimResource> res = mappingService.queryUsers(0, 1, "userName eq \"foo@bar.org\"", null, false,
+                null);
         assertEquals(1, res.getTotalResults());
     }
 
