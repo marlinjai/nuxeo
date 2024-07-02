@@ -156,7 +156,6 @@
     <maven.surefire.version>2.22.2</maven.surefire.version>
     <opencensus.version>0.31.1</opencensus.version>
     <prometheus.client.version>0.11.0</prometheus.client.version>
-    <okhttp.version>4.12.0</okhttp.version>
     <protobuf.java.version>3.25.3</protobuf.java.version>
     <opensaml.version>4.3.2</opensaml.version>
     <quartz.version>2.5.0-rc1</quartz.version>
@@ -4239,11 +4238,6 @@
         <scope>test</scope>
       </dependency>
       <dependency>
-        <groupId>com.squareup.okhttp3</groupId>
-        <artifactId>okhttp</artifactId>
-        <version>${okhttp.version}</version>
-      </dependency>
-      <dependency>
         <groupId>org.apache.pdfbox</groupId>
         <artifactId>jbig2-imageio</artifactId>
         <version>${pdfbox.jbig2.version}</version>
@@ -4384,6 +4378,16 @@
         <groupId>io.jaegertracing</groupId>
         <artifactId>jaeger-thrift</artifactId>
         <version>1.8.1</version>
+      </dependency>
+      <dependency>
+        <groupId>com.squareup.okhttp3</groupId>
+        <artifactId>okhttp</artifactId>
+        <version>4.12.0</version>
+      </dependency>
+      <dependency>
+        <groupId>com.squareup.okio</groupId>
+        <artifactId>okio-jvm</artifactId>
+        <version>3.4.0</version>
       </dependency>
       <dependency>
         <groupId>org.apache.thrift</groupId>
