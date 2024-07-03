@@ -36,81 +36,81 @@ public interface ScimV2Mapping {
      * Hook to be executed after a group is created.
      *
      * @param groupModel the created group model
-     * @param groupResouce the group resource from which the group model is created
+     * @param groupResource the group resource from which the group model is created
      * @return the created group model
      * @throws ScimException if an error occurred
      */
-    DocumentModel afterCreateGroup(DocumentModel groupModel, GroupResource groupResouce) throws ScimException;
+    DocumentModel afterCreateGroup(DocumentModel groupModel, GroupResource groupResource) throws ScimException;
 
     /**
      * Hook to be executed after a user is created.
      *
      * @param userModel the created user model
-     * @param userResouce the user resource from which the user model is created
+     * @param userResource the user resource from which the user model is created
      * @return the created user model
      * @throws ScimException if an error occurred
      */
-    DocumentModel afterCreateUser(DocumentModel userModel, UserResource userResouce) throws ScimException;
+    DocumentModel afterCreateUser(DocumentModel userModel, UserResource userResource) throws ScimException;
 
     /**
      * Hook to be executed after a group is updated.
      *
      * @param groupModel the updated group model
-     * @param groupResouce the group resource from which the group model is updated
+     * @param groupResource the group resource from which the group model is updated
      * @return the updated group model
      * @throws ScimException if an error occurred
      */
-    DocumentModel afterUpdateGroup(DocumentModel groupModel, GroupResource groupResouce) throws ScimException;
+    DocumentModel afterUpdateGroup(DocumentModel groupModel, GroupResource groupResource) throws ScimException;
 
     /**
      * Hook to be executed after a user is updated.
      *
      * @param userModel the created user model
-     * @param userResouce the user resource from which the user model is updated
+     * @param userResource the user resource from which the user model is updated
      * @return the updated user model
      * @throws ScimException if an error occurred
      */
-    DocumentModel afterUpdateUser(DocumentModel userModel, UserResource userResouce) throws ScimException;
+    DocumentModel afterUpdateUser(DocumentModel userModel, UserResource userResource) throws ScimException;
 
     /**
      * Hook to be executed before a group is created.
      *
      * @param groupModel the group model about to be created
-     * @param groupResouce the group resource from which the group model is created
+     * @param groupResource the group resource from which the group model is created
      * @return the created group model
      * @throws ScimException if an error occurred
      */
-    DocumentModel beforeCreateGroup(DocumentModel groupModel, GroupResource groupResouce) throws ScimException;
+    DocumentModel beforeCreateGroup(DocumentModel groupModel, GroupResource groupResource) throws ScimException;
 
     /**
      * Hook to be executed before a user is created.
      *
      * @param userModel the user model about to be created
-     * @param userResouce the user resource from which the user model is created
+     * @param userResource the user resource from which the user model is created
      * @return the created user model
      * @throws ScimException if an error occurred
      */
-    DocumentModel beforeCreateUser(DocumentModel userModel, UserResource userResouce) throws ScimException;
+    DocumentModel beforeCreateUser(DocumentModel userModel, UserResource userResource) throws ScimException;
 
     /**
      * Hook to be executed before a group is updated.
      *
      * @param groupModel the group model about to be updated
-     * @param groupResouce the group resource from which the group model is updated
+     * @param groupResource the group resource from which the group model is updated
      * @return the updated group model
      * @throws ScimException if an error occurred
      */
-    DocumentModel beforeUpdateGroup(DocumentModel groupModel, GroupResource groupResouce) throws ScimException;
+    DocumentModel beforeUpdateGroup(DocumentModel groupModel, GroupResource groupResource) throws ScimException;
 
     /**
      * Hook to be executed before a user is updated.
      *
      * @param userModel the user model about to be updated
-     * @param userResouce the user resource from which the user model is updated
+     * @param userResource the user resource from which the user model is updated
      * @return the updated user model
      * @throws ScimException if an error occurred
      */
-    DocumentModel beforeUpdateUser(DocumentModel userModel, UserResource userResouce) throws ScimException;
+    DocumentModel beforeUpdateUser(DocumentModel userModel, UserResource userResource) throws ScimException;
 
     /**
      * Gets the Nuxeo group model attribute name matching the SCIM attribute name used in SCIM Search filtering and

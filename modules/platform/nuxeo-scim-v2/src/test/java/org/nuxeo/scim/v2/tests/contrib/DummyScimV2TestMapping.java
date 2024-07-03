@@ -40,7 +40,7 @@ public class DummyScimV2TestMapping extends DefaultScimV2Mapping {
      * Adds any created user to the "members" group.
      */
     @Override
-    public DocumentModel afterCreateUser(DocumentModel userModel, UserResource userResouce) {
+    public DocumentModel afterCreateUser(DocumentModel userModel, UserResource userResource) {
         UserManager um = Framework.getService(UserManager.class);
         NuxeoPrincipal principal = um.getPrincipal(userModel.getId());
         var groups = principal.getGroups();

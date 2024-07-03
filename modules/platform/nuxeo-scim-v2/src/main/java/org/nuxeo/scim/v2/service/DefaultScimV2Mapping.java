@@ -55,43 +55,43 @@ public class DefaultScimV2Mapping implements ScimV2Mapping {
     public static final String LAST_NAME = "lastName";
 
     @Override
-    public DocumentModel afterCreateGroup(DocumentModel groupModel, GroupResource groupResouce) {
+    public DocumentModel afterCreateGroup(DocumentModel groupModel, GroupResource groupResource) {
         return groupModel;
     }
 
     @Override
-    public DocumentModel afterCreateUser(DocumentModel userModel, UserResource userResouce) {
+    public DocumentModel afterCreateUser(DocumentModel userModel, UserResource userResource) {
         return userModel;
     }
 
     @Override
-    public DocumentModel afterUpdateGroup(DocumentModel groupModel, GroupResource groupResouce) {
+    public DocumentModel afterUpdateGroup(DocumentModel groupModel, GroupResource groupResource) {
         return groupModel;
     }
 
     @Override
-    public DocumentModel afterUpdateUser(DocumentModel userModel, UserResource userResouce) {
+    public DocumentModel afterUpdateUser(DocumentModel userModel, UserResource userResource) {
         return userModel;
     }
 
     @Override
-    public DocumentModel beforeCreateGroup(DocumentModel groupModel, GroupResource groupResouce) throws ScimException {
-        return beforeCreateOrUpdateGroup(groupModel, groupResouce);
+    public DocumentModel beforeCreateGroup(DocumentModel groupModel, GroupResource groupResource) throws ScimException {
+        return beforeCreateOrUpdateGroup(groupModel, groupResource);
     }
 
     @Override
-    public DocumentModel beforeCreateUser(DocumentModel userModel, UserResource userResouce) {
-        return beforeCreateOrUpdateUser(userModel, userResouce);
+    public DocumentModel beforeCreateUser(DocumentModel userModel, UserResource userResource) {
+        return beforeCreateOrUpdateUser(userModel, userResource);
     }
 
     @Override
-    public DocumentModel beforeUpdateGroup(DocumentModel groupModel, GroupResource groupResouce) throws ScimException {
-        return beforeCreateOrUpdateGroup(groupModel, groupResouce);
+    public DocumentModel beforeUpdateGroup(DocumentModel groupModel, GroupResource groupResource) throws ScimException {
+        return beforeCreateOrUpdateGroup(groupModel, groupResource);
     }
 
     @Override
-    public DocumentModel beforeUpdateUser(DocumentModel userModel, UserResource userResouce) {
-        return beforeCreateOrUpdateUser(userModel, userResouce);
+    public DocumentModel beforeUpdateUser(DocumentModel userModel, UserResource userResource) {
+        return beforeCreateOrUpdateUser(userModel, userResource);
     }
 
     @Override
@@ -216,18 +216,18 @@ public class DefaultScimV2Mapping implements ScimV2Mapping {
         };
     }
 
-    protected DocumentModel beforeCreateOrUpdateGroup(DocumentModel groupModel, GroupResource groupResouce)
+    protected DocumentModel beforeCreateOrUpdateGroup(DocumentModel groupModel, GroupResource groupResource)
             throws ScimException {
         UserManager um = Framework.getService(UserManager.class);
         String groupSchemaName = um.getGroupSchemaName();
 
-        String displayName = groupResouce.getDisplayName();
+        String displayName = groupResource.getDisplayName();
         // don't nullify if not provided, need an explicit empty string for this
         if (displayName != null) {
-            groupModel.setProperty(groupSchemaName, um.getGroupLabelField(), groupResouce.getDisplayName());
+            groupModel.setProperty(groupSchemaName, um.getGroupLabelField(), groupResource.getDisplayName());
         }
 
-        List<Member> members = groupResouce.getMembers();
+        List<Member> members = groupResource.getMembers();
         if (members == null) {
             // don't nullify if not provided, need an explicit empty list for this
             return groupModel;
@@ -247,14 +247,14 @@ public class DefaultScimV2Mapping implements ScimV2Mapping {
         return groupModel;
     }
 
-    protected DocumentModel beforeCreateOrUpdateUser(DocumentModel userModel, UserResource userResouce) {
+    protected DocumentModel beforeCreateOrUpdateUser(DocumentModel userModel, UserResource userResource) {
         UserManager um = Framework.getService(UserManager.class);
         String userSchemaName = um.getUserSchemaName();
 
-        Name name = userResouce.getName();
+        Name name = userResource.getName();
         setName(name, userModel, userSchemaName);
 
-        List<Email> emails = userResouce.getEmails();
+        List<Email> emails = userResource.getEmails();
         setEmail(emails, userModel, userSchemaName);
         return userModel;
     }
