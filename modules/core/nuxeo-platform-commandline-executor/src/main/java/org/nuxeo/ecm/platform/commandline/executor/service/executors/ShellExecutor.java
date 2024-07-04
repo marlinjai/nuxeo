@@ -169,6 +169,10 @@ public class ShellExecutor implements Executor {
             log.trace("Add command: {}", command);
             command = new LinkedList<>(); // reset for next loop
         }
+
+        // redirect the error stream only for the latest process
+        builders.get(builders.size() - 1).redirectErrorStream(true);
+
         // now start all process
         List<Process> processes = ProcessBuilder.startPipeline(builders);
 
@@ -181,6 +185,17 @@ public class ShellExecutor implements Executor {
 
         // get return code from processes
         int returnCode = getReturnCode(processes);
+
+        if (returnCode != 0) {
+            output.add("");
+            output.add("Errors from previous commands");
+            for (int i = 0; i < processes.size() - 1; i++) {
+                output.add(String.format("Command %02d:", i));
+                try (var stream = buffer(processes.get(i).getErrorStream())) {
+                    output.addAll(IOUtils.readLines(stream, Charset.defaultCharset())); // use the host charset
+                }
+            }
+        }
 
         return new ExecResult(null, output, 0, returnCode);
     }
@@ -204,7 +219,6 @@ public class ShellExecutor implements Executor {
         log.debug("Building Process for command: {}", () -> String.join(" ", processBuilder.command()));
         processBuilder.directory(new File(env.getWorkingDirectory()));
         processBuilder.environment().putAll(env.getParameters());
-        processBuilder.redirectErrorStream(true);
         return processBuilder;
     }
 
