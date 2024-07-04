@@ -18,8 +18,11 @@
  */
 package org.nuxeo.scim.v2.api;
 
+import java.util.function.UnaryOperator;
+
 import org.nuxeo.ecm.core.api.DocumentModel;
 
+import com.unboundid.scim2.common.GenericScimResource;
 import com.unboundid.scim2.common.ScimResource;
 import com.unboundid.scim2.common.exceptions.ScimException;
 import com.unboundid.scim2.common.messages.ListResponse;
@@ -97,11 +100,47 @@ public interface ScimV2MappingService {
      * @param sortBy the attribute whose value will be used to order the returned responses
      * @param descending if true, sorts descending, ascending otherwise
      * @param baseURL the location base URL of the returned SCIM objects
+     * @param transform operator to transform the resulting {@link GroupResource} into {@link GenericScimResource}
      * @return the query result
      * @throws ScimException if an error occurred
      */
     ListResponse<ScimResource> queryGroups(Integer startIndex, Integer count, String filterString, String sortBy,
-            boolean descending, String baseURL) throws ScimException;
+            boolean descending, String baseURL, UnaryOperator<ScimResource> transform) throws ScimException;
+
+    /**
+     * Searches for groups.
+     *
+     * @param startIndex the 1-based index of the first query result
+     * @param count specifies the desired maximum number of query results per page
+     * @param filterString the SCIM filter expression (see
+     *            https://datatracker.ietf.org/doc/html/rfc7644#section-3.4.2.2)
+     * @param sortBy the attribute whose value will be used to order the returned responses
+     * @param descending if true, sorts descending, ascending otherwise
+     * @param baseURL the location base URL of the returned SCIM objects
+     * @return the query result
+     * @throws ScimException if an error occurred
+     */
+    default ListResponse<ScimResource> queryGroups(Integer startIndex, Integer count, String filterString,
+            String sortBy, boolean descending, String baseURL) throws ScimException {
+        return queryGroups(startIndex, count, filterString, sortBy, descending, baseURL, UnaryOperator.identity());
+    }
+
+    /**
+     * Searches for users.
+     *
+     * @param startIndex the 1-based index of the first query result
+     * @param count specifies the desired maximum number of query results per page
+     * @param filterString the SCIM filter expression (see
+     *            https://datatracker.ietf.org/doc/html/rfc7644#section-3.4.2.2)
+     * @param sortBy the attribute whose value will be used to order the returned responses
+     * @param descending if true, sorts descending, ascending otherwise
+     * @param baseURL the location base URL of the returned SCIM objects
+     * @param transform operator to transform the resulting {@link UserResource} into {@link GenericScimResource}
+     * @return the query result
+     * @throws ScimException if an error occurred
+     */
+    ListResponse<ScimResource> queryUsers(Integer startIndex, Integer count, String filterString, String sortBy,
+            boolean descending, String baseURL, UnaryOperator<ScimResource> transform) throws ScimException;
 
     /**
      * Searches for users.
@@ -116,8 +155,10 @@ public interface ScimV2MappingService {
      * @return the query result
      * @throws ScimException if an error occurred
      */
-    ListResponse<ScimResource> queryUsers(Integer startIndex, Integer count, String filterString, String sortBy,
-            boolean descending, String baseURL) throws ScimException;
+    default ListResponse<ScimResource> queryUsers(Integer startIndex, Integer count, String filterString, String sortBy,
+            boolean descending, String baseURL) throws ScimException {
+        return queryUsers(startIndex, count, filterString, sortBy, descending, baseURL, UnaryOperator.identity());
+    }
 
     /**
      * Updates a Nuxeo group model according to the group resource.

@@ -67,6 +67,10 @@
       <artifactId>scim2-sdk-common</artifactId>
     </dependency>
     <dependency>
+      <groupId>com.unboundid.product.scim2</groupId>
+      <artifactId>scim2-sdk-server</artifactId>
+    </dependency>
+    <dependency>
       <groupId>com.fasterxml.jackson.core</groupId>
       <artifactId>jackson-core</artifactId>
     </dependency>

@@ -42,7 +42,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.UUID;
 import java.util.function.BiFunction;
-import java.util.stream.Collectors;
+import java.util.function.UnaryOperator;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
@@ -227,15 +227,16 @@ public class ScimV2MappingServiceImpl extends DefaultComponent implements ScimV2
 
     @Override
     public ListResponse<ScimResource> queryGroups(Integer startIndex, Integer count, String filterString, String sortBy,
-            boolean descending, String baseURL) throws ScimException {
-        return queryResources(startIndex, count, filterString, sortBy, descending, baseURL,
-                SCIM_V2_RESOURCE_TYPE_GROUP);
+            boolean descending, String baseURL, UnaryOperator<ScimResource> transform) throws ScimException {
+        return queryResources(startIndex, count, filterString, sortBy, descending, baseURL, SCIM_V2_RESOURCE_TYPE_GROUP,
+                transform);
     }
 
     @Override
     public ListResponse<ScimResource> queryUsers(Integer startIndex, Integer count, String filterString, String sortBy,
-            boolean descending, String baseURL) throws ScimException {
-        return queryResources(startIndex, count, filterString, sortBy, descending, baseURL, SCIM_V2_RESOURCE_TYPE_USER);
+            boolean descending, String baseURL, UnaryOperator<ScimResource> transform) throws ScimException {
+        return queryResources(startIndex, count, filterString, sortBy, descending, baseURL, SCIM_V2_RESOURCE_TYPE_USER,
+                transform);
     }
 
     @Override
@@ -394,13 +395,15 @@ public class ScimV2MappingServiceImpl extends DefaultComponent implements ScimV2
         return getPredicate(Parser.parseFilter(filterString), type, columnMapper);
     }
 
-    protected ListResponse<ScimResource> queryResources(Integer startIndex, Integer count, String filterString,
-            String sortBy, boolean descending, String baseURL, ScimV2ResourceType type) throws ScimException {
+    protected ListResponse<ScimResource> queryResources(Integer startIndex, Integer count, String filterString, // NOSONAR
+            String sortBy, boolean descending, String baseURL, ScimV2ResourceType type,
+            UnaryOperator<ScimResource> transform) throws ScimException {
         if (count == null) {
             count = DEFAULT_QUERY_COUNT;
         } else if (count > LIMIT_QUERY_COUNT) {
             throw BadRequestException.tooMany("Maximum value for count is " + LIMIT_QUERY_COUNT);
         }
+        UserManager um = Framework.getService(UserManager.class);
         DocumentModelList list = switch (type) {
             case SCIM_V2_RESOURCE_TYPE_USER -> Framework.getService(UserManager.class)
                                                         .searchUsers(getQueryBuilder(startIndex, count, filterString,
@@ -417,10 +420,18 @@ public class ScimV2MappingServiceImpl extends DefaultComponent implements ScimV2
             totalResults = -1;
         }
         return new ListResponse<>(totalResults, list.stream().map(ThrowableFunction.asFunction(model -> switch (type) {
-            case SCIM_V2_RESOURCE_TYPE_USER -> getUserResourceFromNuxeoUser(model, baseURL);
-            case SCIM_V2_RESOURCE_TYPE_GROUP -> getGroupResourceFromNuxeoGroup(model, baseURL);
+            case SCIM_V2_RESOURCE_TYPE_USER -> {
+                // searchUsers lazy fetches attributes such as groups
+                model = um.getUserModel(model.getId());
+                yield transform.apply(getUserResourceFromNuxeoUser(model, baseURL));
+            }
+            case SCIM_V2_RESOURCE_TYPE_GROUP -> {
+                // searchGroups lazy fetches attributes such as members
+                model = um.getGroupModel(model.getId());
+                yield transform.apply(getGroupResourceFromNuxeoGroup(model, baseURL));
+            }
             default -> throw new NotImplementedException("Unsupported resource type: " + type);
-        })).collect(Collectors.toList()), startIndex != null ? startIndex : 1, count);
+        })).toList(), startIndex != null ? startIndex : 1, count);
     }
 
     protected DocumentModel getGroupModel(UserManager userManager, String uid) throws ResourceNotFoundException {

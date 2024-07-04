@@ -3624,6 +3624,17 @@
         <artifactId>scim2-sdk-common</artifactId>
         <version>${scim.v2.sdk.version}</version>
       </dependency>
+      <dependency>
+        <groupId>com.unboundid.product.scim2</groupId>
+        <artifactId>scim2-sdk-server</artifactId>
+        <version>${scim.v2.sdk.version}</version>
+        <exclusions>
+          <exclusion>
+            <groupId>com.unboundid.product.scim2</groupId>
+            <artifactId>scim2-sdk-client</artifactId>
+          </exclusion>
+        </exclusions>
+      </dependency>
       <!-- SCIM v2 - Tests -->
       <dependency>
         <groupId>org.wso2.scim2.testsuite</groupId>

@@ -25,6 +25,8 @@ import static javax.ws.rs.core.Response.Status.CREATED;
 import static org.apache.commons.lang3.StringUtils.isBlank;
 import static org.nuxeo.scim.v2.rest.ScimV2Root.SCIM_V2_ENDPOINT_USERS;
 
+import java.beans.IntrospectionException;
+
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
@@ -34,6 +36,7 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.Response;
 
+import org.nuxeo.common.function.ThrowableUnaryOperator;
 import org.nuxeo.ecm.core.api.DocumentModel;
 import org.nuxeo.ecm.directory.DirectoryException;
 import org.nuxeo.ecm.webengine.model.WebObject;
@@ -44,9 +47,12 @@ import com.unboundid.scim2.common.ScimResource;
 import com.unboundid.scim2.common.exceptions.BadRequestException;
 import com.unboundid.scim2.common.exceptions.ResourceNotFoundException;
 import com.unboundid.scim2.common.exceptions.ScimException;
+import com.unboundid.scim2.common.exceptions.ServerErrorException;
 import com.unboundid.scim2.common.messages.ListResponse;
 import com.unboundid.scim2.common.messages.PatchRequest;
 import com.unboundid.scim2.common.types.UserResource;
+import com.unboundid.scim2.common.utils.SchemaUtils;
+import com.unboundid.scim2.server.utils.ResourceTypeDefinition;
 
 /**
  * SCIM 2.0 User object.
@@ -60,27 +66,27 @@ public class ScimV2UserObject extends ScimV2BaseUMObject {
     @POST
     public Response createUser(UserResource user) throws ScimException {
         checkUpdateGuardPreconditions();
-        return doCreateUser(user);
+        return ResponseUtils.response(CREATED, prepareCreated(doCreateUser(user), user));
     }
 
     @GET
     @Path("{uid}")
-    public UserResource getUserResource(@PathParam("uid") String uid) throws ScimException {
-        return resolveUserRessource(uid);
+    public ScimResource getUserResource(@PathParam("uid") String uid) throws ScimException {
+        return prepareRetrieved(resolveUserRessource(uid));
     }
 
     @PUT
     @Path("{uid}")
-    public UserResource updateUser(@PathParam("uid") String uid, UserResource user) throws ScimException {
+    public ScimResource updateUser(@PathParam("uid") String uid, UserResource user) throws ScimException {
         checkUpdateGuardPreconditions();
-        return doUpdateUser(uid, user);
+        return prepareReplaced(doUpdateUser(uid, user), user);
     }
 
     @PATCH
     @Path("{uid}")
-    public UserResource patchUser(@PathParam("uid") String uid, PatchRequest patch) throws ScimException {
+    public ScimResource patchUser(@PathParam("uid") String uid, PatchRequest patch) throws ScimException {
         checkUpdateGuardPreconditions();
-        return doPatchUser(uid, patch);
+        return this.prepareModified(doPatchUser(uid, patch), patch);
     }
 
     @DELETE
@@ -95,7 +101,7 @@ public class ScimV2UserObject extends ScimV2BaseUMObject {
         return SCIM_V2_ENDPOINT_USERS;
     }
 
-    protected Response doCreateUser(UserResource user) throws ScimException {
+    protected UserResource doCreateUser(UserResource user) throws ScimException {
         if (user == null) {
             throw new BadRequestException("Cannot create user without a user resource as request body", INVALID_SYNTAX);
         }
@@ -104,8 +110,7 @@ public class ScimV2UserObject extends ScimV2BaseUMObject {
             throw new BadRequestException("Cannot create user without a username", INVALID_SYNTAX);
         }
         DocumentModel newUser = mappingService.createNuxeoUserFromUserResource(user);
-        UserResource userResource = mappingService.getUserResourceFromNuxeoUser(newUser, baseURL);
-        return ResponseUtils.response(CREATED, userResource);
+        return mappingService.getUserResourceFromNuxeoUser(newUser, baseURL);
     }
 
     protected UserResource resolveUserRessource(String uid) throws ScimException {
@@ -145,7 +150,18 @@ public class ScimV2UserObject extends ScimV2BaseUMObject {
     @Override
     protected ListResponse<ScimResource> doSearch(Integer startIndex, Integer count, String filterString, String sortBy,
             boolean descending) throws ScimException {
-        return mappingService.queryUsers(startIndex, count, filterString, sortBy, descending, baseURL);
+        return mappingService.queryUsers(startIndex, count, filterString, sortBy, descending, baseURL,
+                ThrowableUnaryOperator.asUnaryOperator(r -> prepareRetrieved(r)));
+    }
+
+    @Override
+    protected ResourceTypeDefinition getResourceTypeDefinition() throws ScimException {
+        try {
+            return new ResourceTypeDefinition.Builder("users", SCIM_V2_ENDPOINT_USERS).setCoreSchema(
+                    SchemaUtils.getSchema(UserResource.class)).build();
+        } catch (IntrospectionException e) {
+            throw new ServerErrorException("Cannot get resource type definition");
+        }
     }
 
 }

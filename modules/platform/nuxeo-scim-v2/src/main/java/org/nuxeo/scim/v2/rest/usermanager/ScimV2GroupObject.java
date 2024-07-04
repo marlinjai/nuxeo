@@ -24,6 +24,8 @@ import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
 import static javax.ws.rs.core.Response.Status.CREATED;
 import static org.nuxeo.scim.v2.rest.ScimV2Root.SCIM_V2_ENDPOINT_GROUPS;
 
+import java.beans.IntrospectionException;
+
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
@@ -33,6 +35,7 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.Response;
 
+import org.nuxeo.common.function.ThrowableUnaryOperator;
 import org.nuxeo.ecm.core.api.DocumentModel;
 import org.nuxeo.ecm.directory.DirectoryException;
 import org.nuxeo.ecm.webengine.model.WebObject;
@@ -42,8 +45,11 @@ import com.unboundid.scim2.common.ScimResource;
 import com.unboundid.scim2.common.exceptions.BadRequestException;
 import com.unboundid.scim2.common.exceptions.ResourceNotFoundException;
 import com.unboundid.scim2.common.exceptions.ScimException;
+import com.unboundid.scim2.common.exceptions.ServerErrorException;
 import com.unboundid.scim2.common.messages.ListResponse;
 import com.unboundid.scim2.common.types.GroupResource;
+import com.unboundid.scim2.common.utils.SchemaUtils;
+import com.unboundid.scim2.server.utils.ResourceTypeDefinition;
 
 /**
  * SCIM 2.0 Group object.
@@ -57,20 +63,20 @@ public class ScimV2GroupObject extends ScimV2BaseUMObject {
     @POST
     public Response createGroup(GroupResource group) throws ScimException {
         checkUpdateGuardPreconditions();
-        return doCreateGroup(group);
+        return ResponseUtils.response(CREATED, prepareCreated(doCreateGroup(group), group));
     }
 
     @GET
     @Path("{uid}")
-    public GroupResource getGroupResource(@PathParam("uid") String uid) throws ScimException {
-        return resolveGroupRessource(uid);
+    public ScimResource getGroupResource(@PathParam("uid") String uid) throws ScimException {
+        return prepareRetrieved(resolveGroupRessource(uid));
     }
 
     @PUT
     @Path("{uid}")
-    public GroupResource updateGroup(@PathParam("uid") String uid, GroupResource group) throws ScimException {
+    public ScimResource updateGroup(@PathParam("uid") String uid, GroupResource group) throws ScimException {
         checkUpdateGuardPreconditions();
-        return doUpdateGroup(uid, group);
+        return prepareReplaced(doUpdateGroup(uid, group), group);
     }
 
     @DELETE
@@ -85,14 +91,14 @@ public class ScimV2GroupObject extends ScimV2BaseUMObject {
         return SCIM_V2_ENDPOINT_GROUPS;
     }
 
-    protected Response doCreateGroup(GroupResource group) throws ScimException {
+    protected ScimResource doCreateGroup(GroupResource group) throws ScimException {
         if (group == null) {
             throw new BadRequestException("Cannot create group without a group resource as request body",
                     INVALID_SYNTAX);
         }
         DocumentModel newGroup = mappingService.createNuxeoGroupFromGroupResource(group);
-        GroupResource groupResource = mappingService.getGroupResourceFromNuxeoGroup(newGroup, baseURL);
-        return ResponseUtils.response(CREATED, groupResource);
+        return mappingService.getGroupResourceFromNuxeoGroup(newGroup, baseURL);
+
     }
 
     protected GroupResource resolveGroupRessource(String uid) throws ScimException {
@@ -124,7 +130,18 @@ public class ScimV2GroupObject extends ScimV2BaseUMObject {
     @Override
     protected ListResponse<ScimResource> doSearch(Integer startIndex, Integer count, String filterString, String sortBy,
             boolean descending) throws ScimException {
-        return mappingService.queryGroups(startIndex, count, filterString, sortBy, descending, baseURL);
+        return mappingService.queryGroups(startIndex, count, filterString, sortBy, descending, baseURL,
+                ThrowableUnaryOperator.asUnaryOperator(r -> prepareRetrieved(r)));
+    }
+
+    @Override
+    protected ResourceTypeDefinition getResourceTypeDefinition() throws ScimException {
+        try {
+            return new ResourceTypeDefinition.Builder("groups", SCIM_V2_ENDPOINT_GROUPS).setCoreSchema(
+                    SchemaUtils.getSchema(GroupResource.class)).build();
+        } catch (IntrospectionException e) {
+            throw new ServerErrorException("Cannot get resource type definition");
+        }
     }
 
 }
