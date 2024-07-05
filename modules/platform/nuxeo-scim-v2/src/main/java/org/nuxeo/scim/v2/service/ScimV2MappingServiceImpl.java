@@ -103,7 +103,7 @@ public class ScimV2MappingServiceImpl extends DefaultComponent implements ScimV2
 
     protected static final int DEFAULT_QUERY_COUNT = 100;
 
-    protected static final int LIMIT_QUERY_COUNT = 1000;
+    public static final int LIMIT_QUERY_COUNT = 1000;
 
     protected static String getAttribute(Filter filter) {
         var path = filter.getAttributePath();

@@ -29,6 +29,7 @@ import static org.nuxeo.scim.v2.api.ScimV2ResourceType.SCIM_V2_RESOURCE_TYPE_RES
 import static org.nuxeo.scim.v2.api.ScimV2ResourceType.SCIM_V2_RESOURCE_TYPE_SCHEMA;
 import static org.nuxeo.scim.v2.api.ScimV2ResourceType.SCIM_V2_RESOURCE_TYPE_SERVICE_PROVIDER_CONFIG;
 import static org.nuxeo.scim.v2.api.ScimV2ResourceType.SCIM_V2_RESOURCE_TYPE_USER;
+import static org.nuxeo.scim.v2.service.ScimV2MappingServiceImpl.LIMIT_QUERY_COUNT;
 
 import java.beans.IntrospectionException;
 import java.net.URI;
@@ -125,7 +126,7 @@ public class ScimV2Root extends ModuleRoot {
         var documentationUri = "https://doc.nuxeo.com/";
         var patch = new PatchConfig(true);
         var bulk = new BulkConfig(false, 0, 0);
-        var filter = new FilterConfig(true, 0);
+        var filter = new FilterConfig(true, LIMIT_QUERY_COUNT);
         var changePassword = new ChangePasswordConfig(false);
         var sort = new SortConfig(true);
         var etag = new ETagConfig(false);
