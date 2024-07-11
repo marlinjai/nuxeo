@@ -109,11 +109,8 @@ public class TestFilesystemBlobProvider {
     @Test
     public void testRead() throws Exception {
         String key = PROVIDER_ID + ":" + tmpFilePath;
+        var blob = getManagedBlob(key);
 
-        BlobInfo blobInfo = new BlobInfo();
-        blobInfo.key = key;
-        BlobProvider blobProvider = blobManager.getBlobProvider(PROVIDER_ID);
-        ManagedBlob blob = (ManagedBlob) blobProvider.readBlob(blobInfo);
         assertNotNull(blob);
         assertEquals(key, blob.getKey());
         try (InputStream in = blob.getStream()) {
@@ -121,9 +118,10 @@ public class TestFilesystemBlobProvider {
         }
 
         // same with explicit blob
+        var blobInfo = new BlobInfo();
         blobInfo.key = tmpFilePath;
         blobInfo.mimeType = "text/plain";
-        blob = ((FilesystemBlobProvider) blobProvider).createBlob(blobInfo);
+        blob = ((FilesystemBlobProvider) blobManager.getBlobProvider(PROVIDER_ID)).createBlob(blobInfo);
         assertEquals(key, blob.getKey());
         assertEquals(tmpFile.getFileName().toString(), blob.getFilename());
         assertEquals("text/plain", blob.getMimeType());
@@ -134,6 +132,13 @@ public class TestFilesystemBlobProvider {
         }
     }
 
+    protected ManagedBlob getManagedBlob(String key) throws IOException {
+        BlobInfo blobInfo = new BlobInfo();
+        blobInfo.key = key;
+        BlobProvider blobProvider = blobManager.getBlobProvider(PROVIDER_ID);
+        return (ManagedBlob) blobProvider.readBlob(blobInfo);
+    }
+
     @Test
     @LogCaptureFeature.FilterOn(logLevel = "ERROR")
     @ConsoleLogLevelThreshold("FATAL")
@@ -141,11 +146,7 @@ public class TestFilesystemBlobProvider {
         String path = "/NO_SUCH_FILE_EXISTS";
         assertFalse(Files.exists(Paths.get(path)));
         String key = PROVIDER_ID + ":" + path;
-
-        BlobInfo blobInfo = new BlobInfo();
-        blobInfo.key = key;
-        BlobProvider blobProvider = blobManager.getBlobProvider(PROVIDER_ID);
-        ManagedBlob blob = (ManagedBlob) blobProvider.readBlob(blobInfo);
+        var blob = getManagedBlob(key);
         byte[] bytes;
         try (InputStream in = blob.getStream()) {
             bytes = IOUtils.toByteArray(in);
@@ -153,7 +154,7 @@ public class TestFilesystemBlobProvider {
         assertEquals(0, bytes.length);
         List<String> caughtEvents = logCaptureResult.getCaughtEventMessages();
         assertEquals(1, caughtEvents.size());
-        assertEquals("Failed to access file: testfs:/NO_SUCH_FILE_EXISTS", caughtEvents.get(0));
+        assertEquals("Failed to access file: testfs:" + path, caughtEvents.get(0));
     }
 
     @Test
@@ -167,10 +168,7 @@ public class TestFilesystemBlobProvider {
         try {
             // use relative path under root
             String key = PROVIDER_ID2 + ":" + tmpFile.getFileName().toString();
-            BlobInfo blobInfo = new BlobInfo();
-            blobInfo.key = key;
-            BlobProvider blobProvider = blobManager.getBlobProvider(PROVIDER_ID);
-            ManagedBlob blob = (ManagedBlob) blobProvider.readBlob(blobInfo);
+            var blob = getManagedBlob(key);
             assertNotNull(blob);
             assertEquals(key, blob.getKey());
             try (InputStream in = blob.getStream()) {
@@ -183,26 +181,12 @@ public class TestFilesystemBlobProvider {
 
     @Test
     public void testIllegalPath() throws IOException {
-        String illegalPath = "../foo";
+        String key = PROVIDER_ID + ":../foo";
+        var blob = getManagedBlob(key);
 
-        String PROVIDER_ID2 = "testfs2";
-        BlobProviderDescriptor descr = new BlobProviderDescriptor();
-        descr.klass = FilesystemBlobProvider.class;
-        descr.name = PROVIDER_ID2;
-        descr.properties = Collections.singletonMap(FilesystemBlobProvider.ROOT_PROP, tmpFile.getParent().toString());
-        ((BlobManagerComponent) blobManager).registerBlobProvider(descr);
-        try {
-            String key = PROVIDER_ID2 + ":" + illegalPath;
-            BlobInfo blobInfo = new BlobInfo();
-            blobInfo.key = key;
-            BlobProvider blobProvider = blobManager.getBlobProvider(PROVIDER_ID);
-            ManagedBlob blob = (ManagedBlob) blobProvider.readBlob(blobInfo);
-            assertNotNull(blob);
-            assertEquals(key, blob.getKey());
-            assertThrows("Illegal path: ../foo", IllegalArgumentException.class, blob::getStream);
-        } finally {
-            ((BlobManagerComponent) blobManager).unregisterBlobProvider(descr);
-        }
+        assertNotNull(blob);
+        assertEquals(key, blob.getKey());
+        assertThrows("Illegal path: ../foo", IllegalArgumentException.class, blob::getStream);
     }
 
 }
