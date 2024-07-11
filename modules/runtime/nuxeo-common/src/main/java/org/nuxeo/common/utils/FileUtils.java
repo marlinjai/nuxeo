@@ -339,7 +339,7 @@ public final class FileUtils {
      * @since 2021.40
      */
     public static void checkPathTraversal(String path) {
-        if (path != null && path.contains("..")) {
+        if (path != null && (path.equals("..") || path.contains("../") || path.contains("..\\"))) {
             throw new IllegalArgumentException("Illegal path: " + path);
         }
     }

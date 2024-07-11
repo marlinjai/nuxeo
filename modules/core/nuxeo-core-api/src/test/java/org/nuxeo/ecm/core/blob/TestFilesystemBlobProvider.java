@@ -189,4 +189,14 @@ public class TestFilesystemBlobProvider {
         assertThrows("Illegal path: ../foo", IllegalArgumentException.class, blob::getStream);
     }
 
+    @Test
+    public void testValidDotsInPath() throws IOException {
+        tmpFile = Files.move(tmpFile, Paths.get(tmpFile.getParent().toString(), "another...file..n.ame"));
+        String key = PROVIDER_ID + ":" + tmpFile;
+        ManagedBlob blob = getManagedBlob(key);
+
+        assertNotNull(blob);
+        assertEquals(key, blob.getKey());
+        assertEquals(CONTENT, IOUtils.toString(blob.getStream(), UTF_8));
+    }
 }
