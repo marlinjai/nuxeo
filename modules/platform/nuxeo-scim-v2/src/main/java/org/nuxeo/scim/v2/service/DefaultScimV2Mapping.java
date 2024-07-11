@@ -110,8 +110,10 @@ public class DefaultScimV2Mapping implements ScimV2Mapping {
         try {
             Meta meta = new Meta();
             meta.setResourceType(SCIM_V2_RESOURCE_TYPE_GROUP.toString());
-            URI location = new URI(String.join("/", baseURL, groupId));
-            meta.setLocation(location);
+            if (baseURL != null) {
+                URI location = new URI(String.join("/", baseURL, groupId));
+                meta.setLocation(location);
+            }
             meta.setVersion("1");
             groupResource.setMeta(meta);
 

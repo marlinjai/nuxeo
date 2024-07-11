@@ -49,7 +49,9 @@ import com.unboundid.scim2.common.exceptions.BadRequestException;
 import com.unboundid.scim2.common.exceptions.ResourceNotFoundException;
 import com.unboundid.scim2.common.exceptions.ScimException;
 import com.unboundid.scim2.common.messages.ListResponse;
+import com.unboundid.scim2.common.messages.PatchRequest;
 import com.unboundid.scim2.common.types.GroupResource;
+import com.unboundid.scim2.server.PATCH;
 import com.unboundid.scim2.server.annotations.ResourceType;
 import com.unboundid.scim2.server.utils.ResourcePreparer;
 import com.unboundid.scim2.server.utils.ResourceTypeDefinition;
@@ -93,6 +95,13 @@ public class ScimV2GroupObject extends ScimV2BaseUMObject {
         return newResourcePreparer().trimReplacedResource(doUpdateGroup(uid, group), group);
     }
 
+    @PATCH
+    @Path("{uid}")
+    public ScimResource patchGroup(@PathParam("uid") String uid, PatchRequest patch) throws ScimException {
+        checkUpdateGuardPreconditions();
+        return newResourcePreparer().trimModifiedResource(doPatchGroup(uid, patch), patch.getOperations());
+    }
+
     @DELETE
     @Path("{uid}")
     public Response deleteGroupResource(@PathParam("uid") String uid) throws ScimException {
@@ -121,6 +130,15 @@ public class ScimV2GroupObject extends ScimV2BaseUMObject {
                     INVALID_SYNTAX);
         }
         DocumentModel groupModel = mappingService.updateNuxeoGroupFromGroupResource(uid, group);
+        return mappingService.getGroupResourceFromNuxeoGroup(groupModel, baseURL);
+    }
+
+    protected GroupResource doPatchGroup(String uid, PatchRequest patch) throws ScimException {
+        if (patch == null) {
+            throw new BadRequestException("Cannot patch group without a patch request resource as request body",
+                    INVALID_SYNTAX);
+        }
+        DocumentModel groupModel = mappingService.patchNuxeoGroup(uid, patch);
         return mappingService.getGroupResourceFromNuxeoGroup(groupModel, baseURL);
     }
 

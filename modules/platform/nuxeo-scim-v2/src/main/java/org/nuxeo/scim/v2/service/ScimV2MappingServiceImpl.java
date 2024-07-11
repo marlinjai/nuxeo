@@ -173,6 +173,20 @@ public class ScimV2MappingServiceImpl extends DefaultComponent implements ScimV2
     }
 
     @Override
+    public DocumentModel patchNuxeoGroup(String uid, PatchRequest patch) throws ScimException {
+        DocumentModel groupModel = ScimV2Helper.getGroupModel(uid, true);
+        GroupResource groupResource = getGroupResourceFromNuxeoGroup(groupModel, null);
+        groupResource = (GroupResource) patchScimResource(groupResource, patch);
+        // handle "remove all members" case
+        if (groupResource.getMembers() == null) {
+            groupResource.setMembers(List.of());
+        }
+        groupModel = getMapping().beforeUpdateGroup(groupModel, groupResource);
+        Framework.getService(UserManager.class).updateGroup(groupModel);
+        return getMapping().afterUpdateGroup(groupModel, groupResource);
+    }
+
+    @Override
     public DocumentModel patchNuxeoUser(String uid, PatchRequest patch) throws ScimException {
         DocumentModel userModel = ScimV2Helper.getUserModel(uid);
         UserResource userResource = getUserResourceFromNuxeoUser(userModel, null);

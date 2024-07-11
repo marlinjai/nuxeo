@@ -78,6 +78,16 @@ public interface ScimV2MappingService {
     UserResource getUserResourceFromNuxeoUser(DocumentModel userModel, String baseURL) throws ScimException;
 
     /**
+     * Patches a Nuxeo group model according to the patch request.
+     *
+     * @param uid the group uid
+     * @param patch the patch request
+     * @return the patched group
+     * @throws ScimException if an error occurred
+     */
+    DocumentModel patchNuxeoGroup(String uid, PatchRequest patch) throws ScimException;
+
+    /**
      * Patches a Nuxeo user model according to the patch request.
      *
      * @param uid the user uid

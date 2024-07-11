@@ -191,6 +191,7 @@ public class ScimV2ComplianceTest {
         runTest(group::deleteMethodTest);
         runTest(group::getMethodTest);
         runTest(group::searchMethodTest);
+        runTest(group::patchMethodTest);
     }
 
 }
