@@ -19,6 +19,7 @@
  */
 package org.nuxeo.ecm.platform.routing.core.impl;
 
+import static javax.servlet.http.HttpServletResponse.SC_NOT_FOUND;
 import static org.nuxeo.ecm.core.api.security.SecurityConstants.SYSTEM_USERNAME;
 import static org.nuxeo.ecm.platform.query.nxql.CoreQueryDocumentPageProvider.CORE_SESSION_PROPERTY;
 import static org.nuxeo.ecm.platform.query.nxql.CoreQueryDocumentPageProvider.MAX_RESULTS_PROPERTY;
@@ -622,7 +623,7 @@ public class DocumentRoutingServiceImpl extends DefaultComponent implements Docu
             List<String> routeIds = new ArrayList<>();
             try (IterableQueryResult results = session.queryAndFetch(query, "NXQL")) {
                 if (results.size() == 0) {
-                    throw new NuxeoException("No route found for id: " + id);
+                    throw new NuxeoException("No route found for id: " + id, SC_NOT_FOUND);
                 }
                 if (results.size() != 1) {
                     throw new NuxeoException("More than one route model found with id: " + id);

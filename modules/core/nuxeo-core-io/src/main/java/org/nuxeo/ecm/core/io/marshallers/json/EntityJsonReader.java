@@ -19,6 +19,7 @@
 
 package org.nuxeo.ecm.core.io.marshallers.json;
 
+import static javax.servlet.http.HttpServletResponse.SC_BAD_REQUEST;
 import static org.nuxeo.ecm.core.io.registry.MarshallingConstants.ENTITY_FIELD_NAME;
 
 import java.io.IOException;
@@ -60,8 +61,9 @@ public abstract class EntityJsonReader<EntityType> extends AbstractJsonReader<En
         }
         String entityValue = entityNode.textValue();
         if (!entityType.equals(entityValue)) {
-            throw new MarshallingException("Json object entity-type is wrong. Expected is " + entityType + " but was "
-                    + entityValue);
+            throw new MarshallingException(
+                    "Json object entity-type is wrong. Expected is " + entityType + " but was " + entityValue,
+                    SC_BAD_REQUEST);
         }
         return readEntity(jn);
     }
