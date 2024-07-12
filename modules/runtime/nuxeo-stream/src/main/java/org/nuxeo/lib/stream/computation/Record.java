@@ -261,8 +261,8 @@ public class Record implements Externalizable {
         COMMIT,
         POISON_PILL,
         EXTERNAL_VALUE, // The record value is stored outside of the record
-        INTERNAL1, // Reserved for internal use
-        INTERNAL2,
+        END_OF_BATCH, // This record mark the end of a batch of records
+        INTERNAL2, // Reserved for internal usage
         USER1, // Available for users
         USER2;
 

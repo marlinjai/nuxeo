@@ -106,7 +106,8 @@ public abstract class AbstractBatchComputation extends AbstractComputation {
             newBatch = false;
         }
         batchRecords.add(record);
-        if (batchRecords.size() >= context.getPolicy().getBatchCapacity()) {
+        if (record.getFlags().contains(Record.Flag.END_OF_BATCH)
+                || batchRecords.size() >= context.getPolicy().getBatchCapacity()) {
             removeLastRecordOnRetry = true;
             batchProcess(context);
             removeLastRecordOnRetry = false;

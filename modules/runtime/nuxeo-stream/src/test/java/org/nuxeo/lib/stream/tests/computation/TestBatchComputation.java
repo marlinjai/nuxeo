@@ -24,6 +24,7 @@ import static org.nuxeo.lib.stream.computation.AbstractComputation.OUTPUT_1;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.Collections;
+import java.util.EnumSet;
 
 import org.junit.Test;
 import org.nuxeo.lib.stream.computation.AbstractBatchComputation;
@@ -98,6 +99,13 @@ public class TestBatchComputation {
         assertEquals(0, comp.failureCounter);
         assertEquals(3, comp.processCounter);
 
+        context.getRecords("o1").clear();
+        comp.init(context);
+        // check batch triggered by a record flag
+        aRecord.setFlags(EnumSet.of(Record.Flag.END_OF_BATCH));
+        context.getRecords("o1").clear();
+        comp.processRecord(context, "i1", aRecord);
+        assertEquals(1, context.getRecords("o1").size());
         comp.destroy();
     }
 
