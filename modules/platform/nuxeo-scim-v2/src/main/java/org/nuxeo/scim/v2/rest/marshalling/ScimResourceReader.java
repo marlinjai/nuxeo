@@ -14,7 +14,7 @@
  * limitations under the License.
  *
  * Contributors:
- *     Antoine Taillefer
+ *     Guillaume Renard
  */
 package org.nuxeo.scim.v2.rest.marshalling;
 
@@ -22,28 +22,38 @@ import static org.nuxeo.ecm.core.io.registry.reflect.Instantiations.SINGLETON;
 import static org.nuxeo.ecm.core.io.registry.reflect.Priorities.REFERENCE;
 
 import java.io.IOException;
+import java.io.InputStream;
+import java.lang.reflect.Type;
 
-import javax.ws.rs.ext.Provider;
+import javax.ws.rs.core.MediaType;
 
-import org.nuxeo.ecm.core.io.marshallers.json.AbstractJsonWriter;
+import org.nuxeo.ecm.core.io.marshallers.json.AbstractJsonReader;
 import org.nuxeo.ecm.core.io.registry.reflect.Setup;
 
-import com.fasterxml.jackson.core.JsonGenerator;
-import com.unboundid.scim2.common.messages.ErrorResponse;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.unboundid.scim2.common.ScimResource;
 import com.unboundid.scim2.common.utils.JsonUtils;
 
 /**
- * SCIM 2.0 {@link ErrorResponse} JSON writer.
+ * SCIM 2.0 {@link ScimResource} JSON reader.
  *
- * @since 2023.14
+ * @since 2023.15
  */
-@Provider
 @Setup(mode = SINGLETON, priority = REFERENCE)
-public class ErrorResponseWriter extends AbstractJsonWriter<ErrorResponse> {
+public class ScimResourceReader extends AbstractJsonReader<ScimResource> {
 
     @Override
-    public void write(ErrorResponse entity, JsonGenerator jg) throws IOException {
-        jg.writeTree(JsonUtils.valueToNode(entity));
+    @SuppressWarnings("unchecked")
+    public ScimResource read(Class<?> clazz, Type genericType, MediaType mediaType, InputStream in) throws IOException {
+        JsonNode jn = getNode(in, true);
+        return JsonUtils.nodeToValue(jn, (Class<? extends ScimResource>) clazz);
+    }
+
+    @Override
+    public ScimResource read(JsonNode jn) {
+        // abstract method to implement called by read(Class, Type, MediaType, InputStream) in super
+        // no need to implement it because we override read(Class, Type, MediaType, InputStream)
+        return null;
     }
 
 }

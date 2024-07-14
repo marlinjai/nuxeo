@@ -5,7 +5,7 @@
 
     <servlet>
       <servlet-name>Nuxeo SCIM 2.0 WebEngine Servlet</servlet-name>
-      <servlet-class>org.nuxeo.ecm.webengine.app.jersey.WebEngineServlet</servlet-class>
+      <servlet-class>org.nuxeo.scim.v2.rest.ScimV2Servlet</servlet-class>
       <init-param>
         <param-name>application.name</param-name>
         <param-value>scimV2</param-value>

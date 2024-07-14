@@ -1,32 +1,9 @@
 <?xml version="1.0"?>
 <component name="org.nuxeo.scim.v2.marshallers.contrib" version="1.0.0">
 
-  <extension target="org.nuxeo.ecm.core.io.MarshallerRegistry"
-    point="marshallers">
-
-    <register class="org.nuxeo.scim.v2.rest.marshalling.ErrorResponseWriter"
-      enable="true" />
-    <register class="org.nuxeo.scim.v2.rest.marshalling.GroupResourceReader"
-      enable="true" />
-    <register class="org.nuxeo.scim.v2.rest.marshalling.GroupResourceWriter"
-      enable="true" />
-    <register class="org.nuxeo.scim.v2.rest.marshalling.ListResponseWriter"
-      enable="true" />
-    <register class="org.nuxeo.scim.v2.rest.marshalling.PatchRequestReader"
-      enable="true" />
-    <register class="org.nuxeo.scim.v2.rest.marshalling.ResourceTypeResourceWriter"
-      enable="true" />
-    <register class="org.nuxeo.scim.v2.rest.marshalling.SchemaResourceWriter"
-      enable="true" />
-    <register class="org.nuxeo.scim.v2.rest.marshalling.SearchRequestReader"
-      enable="true" />
-    <register class="org.nuxeo.scim.v2.rest.marshalling.ServiceProviderConfigResourceWriter"
-      enable="true" />
-    <register class="org.nuxeo.scim.v2.rest.marshalling.UserResourceReader"
-      enable="true" />
-    <register class="org.nuxeo.scim.v2.rest.marshalling.UserResourceWriter"
-      enable="true" />
-
+  <extension target="org.nuxeo.ecm.core.io.MarshallerRegistry" point="marshallers">
+    <register class="org.nuxeo.scim.v2.rest.marshalling.ScimResourceReader" enable="true" />
+    <register class="org.nuxeo.scim.v2.rest.marshalling.ScimResourceWriter" enable="true" />
   </extension>
 
 </component>

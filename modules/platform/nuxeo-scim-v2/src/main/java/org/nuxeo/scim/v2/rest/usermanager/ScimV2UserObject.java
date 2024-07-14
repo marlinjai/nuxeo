@@ -20,12 +20,10 @@
 package org.nuxeo.scim.v2.rest.usermanager;
 
 import static com.unboundid.scim2.common.exceptions.BadRequestException.INVALID_SYNTAX;
+import static com.unboundid.scim2.common.utils.ApiConstants.MEDIA_TYPE_SCIM;
 import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
 import static javax.ws.rs.core.Response.Status.CREATED;
 import static org.apache.commons.lang3.StringUtils.isBlank;
-import static org.nuxeo.scim.v2.rest.ScimV2Root.SCIM_V2_ENDPOINT_USERS;
-
-import java.beans.IntrospectionException;
 
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
@@ -34,60 +32,71 @@ import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
+import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response;
 
 import org.nuxeo.common.function.ThrowableUnaryOperator;
 import org.nuxeo.ecm.core.api.DocumentModel;
 import org.nuxeo.ecm.directory.DirectoryException;
-import org.nuxeo.ecm.webengine.model.WebObject;
 import org.nuxeo.scim.v2.api.ScimV2QueryContext;
-import org.nuxeo.scim.v2.rest.PATCH;
-import org.nuxeo.scim.v2.rest.marshalling.ResponseUtils;
 
+import com.sun.jersey.api.core.HttpContext;
 import com.unboundid.scim2.common.ScimResource;
 import com.unboundid.scim2.common.exceptions.BadRequestException;
 import com.unboundid.scim2.common.exceptions.ResourceNotFoundException;
 import com.unboundid.scim2.common.exceptions.ScimException;
-import com.unboundid.scim2.common.exceptions.ServerErrorException;
 import com.unboundid.scim2.common.messages.ListResponse;
 import com.unboundid.scim2.common.messages.PatchRequest;
 import com.unboundid.scim2.common.types.UserResource;
-import com.unboundid.scim2.common.utils.SchemaUtils;
+import com.unboundid.scim2.server.PATCH;
+import com.unboundid.scim2.server.annotations.ResourceType;
+import com.unboundid.scim2.server.utils.ResourcePreparer;
 import com.unboundid.scim2.server.utils.ResourceTypeDefinition;
+import com.unboundid.scim2.server.utils.ServerUtils;
 
 /**
  * SCIM 2.0 User object.
  *
  * @since 2023.14
  */
-@WebObject(type = "users")
-@Produces(APPLICATION_JSON)
+@Produces({ MEDIA_TYPE_SCIM, APPLICATION_JSON })
+@ResourceType(description = "User Account", name = "User", schema = UserResource.class)
+@Path("/Users")
 public class ScimV2UserObject extends ScimV2BaseUMObject {
+
+    protected static final ResourceTypeDefinition RESOURCE_TYPE_DEFINITION = ResourceTypeDefinition.fromJaxRsResource(
+            ScimV2UserObject.class);
+
+    public ScimV2UserObject(@Context HttpContext httpContext) {
+        super(httpContext);
+    }
 
     @POST
     public Response createUser(UserResource user) throws ScimException {
         checkUpdateGuardPreconditions();
-        return ResponseUtils.response(CREATED, prepareCreated(doCreateUser(user), user));
+        return ServerUtils.setAcceptableType(
+                Response.status(CREATED).entity(newResourcePreparer().trimCreatedResource(doCreateUser(user), user)),
+                webContext.getHttpHeaders().getAcceptableMediaTypes()).build();
     }
 
     @GET
     @Path("{uid}")
     public ScimResource getUserResource(@PathParam("uid") String uid) throws ScimException {
-        return prepareRetrieved(resolveUserRessource(uid));
+        return newResourcePreparer().trimRetrievedResource(resolveUserResource(uid));
     }
 
     @PUT
     @Path("{uid}")
     public ScimResource updateUser(@PathParam("uid") String uid, UserResource user) throws ScimException {
         checkUpdateGuardPreconditions();
-        return prepareReplaced(doUpdateUser(uid, user), user);
+        return newResourcePreparer().trimReplacedResource(doUpdateUser(uid, user), user);
     }
 
     @PATCH
     @Path("{uid}")
     public ScimResource patchUser(@PathParam("uid") String uid, PatchRequest patch) throws ScimException {
         checkUpdateGuardPreconditions();
-        return this.prepareModified(doPatchUser(uid, patch), patch);
+        return newResourcePreparer().trimModifiedResource(doPatchUser(uid, patch), patch);
     }
 
     @DELETE
@@ -95,11 +104,6 @@ public class ScimV2UserObject extends ScimV2BaseUMObject {
     public Response deleteUserResource(@PathParam("uid") String uid) throws ScimException {
         checkUpdateGuardPreconditions();
         return doDeleteUser(uid);
-    }
-
-    @Override
-    protected String getPrefix() {
-        return SCIM_V2_ENDPOINT_USERS;
     }
 
     protected UserResource doCreateUser(UserResource user) throws ScimException {
@@ -114,7 +118,7 @@ public class ScimV2UserObject extends ScimV2BaseUMObject {
         return mappingService.getUserResourceFromNuxeoUser(newUser, baseURL);
     }
 
-    protected UserResource resolveUserRessource(String uid) throws ScimException {
+    protected UserResource resolveUserResource(String uid) throws ScimException {
         DocumentModel userModel = um.getUserModel(uid);
         if (userModel == null) {
             throw new ResourceNotFoundException("Cannot find user: " + uid); // NOSONAR
@@ -142,7 +146,7 @@ public class ScimV2UserObject extends ScimV2BaseUMObject {
     protected Response doDeleteUser(String uid) throws ScimException {
         try {
             um.deleteUser(uid);
-            return ResponseUtils.deleted();
+            return Response.noContent().build();
         } catch (DirectoryException e) {
             throw new ResourceNotFoundException("Cannot find user: " + uid);
         }
@@ -150,18 +154,11 @@ public class ScimV2UserObject extends ScimV2BaseUMObject {
 
     @Override
     protected ListResponse<ScimResource> doSearch(ScimV2QueryContext queryCtx) throws ScimException {
-        return mappingService.queryUsers(
-                queryCtx.withTransform(ThrowableUnaryOperator.asUnaryOperator(r -> prepareRetrieved(r))));
+        return mappingService.queryUsers(queryCtx.withTransform(
+                ThrowableUnaryOperator.asUnaryOperator(newResourcePreparer()::trimRetrievedResource)));
     }
 
-    @Override
-    protected ResourceTypeDefinition getResourceTypeDefinition() throws ScimException {
-        try {
-            return new ResourceTypeDefinition.Builder("users", SCIM_V2_ENDPOINT_USERS).setCoreSchema(
-                    SchemaUtils.getSchema(UserResource.class)).build();
-        } catch (IntrospectionException e) {
-            throw new ServerErrorException("Cannot get resource type definition");
-        }
+    protected ResourcePreparer<ScimResource> newResourcePreparer() throws BadRequestException {
+        return new ResourcePreparer<>(RESOURCE_TYPE_DEFINITION, webContext.getUriInfo());
     }
-
 }

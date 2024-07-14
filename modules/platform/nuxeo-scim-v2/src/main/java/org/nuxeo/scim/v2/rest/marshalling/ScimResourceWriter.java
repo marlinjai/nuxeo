@@ -14,8 +14,7 @@
  * limitations under the License.
  *
  * Contributors:
- *     Thierry Delprat
- *     Antoine Taillefer
+ *     Guillaume Renard
  */
 package org.nuxeo.scim.v2.rest.marshalling;
 
@@ -24,26 +23,23 @@ import static org.nuxeo.ecm.core.io.registry.reflect.Priorities.REFERENCE;
 
 import java.io.IOException;
 
-import javax.ws.rs.ext.Provider;
-
 import org.nuxeo.ecm.core.io.marshallers.json.AbstractJsonWriter;
 import org.nuxeo.ecm.core.io.registry.reflect.Setup;
 
 import com.fasterxml.jackson.core.JsonGenerator;
-import com.unboundid.scim2.common.types.GroupResource;
+import com.unboundid.scim2.common.ScimResource;
 import com.unboundid.scim2.common.utils.JsonUtils;
 
 /**
- * SCIM 2.0 {@link GroupResource} JSON writer.
+ * SCIM 2.0 {@link ScimResource} JSON writer.
  *
- * @since 2023.14
+ * @since 2023.15
  */
-@Provider
 @Setup(mode = SINGLETON, priority = REFERENCE)
-public class GroupResourceWriter extends AbstractJsonWriter<GroupResource> {
+public class ScimResourceWriter extends AbstractJsonWriter<ScimResource> {
 
     @Override
-    public void write(GroupResource entity, JsonGenerator jg) throws IOException {
+    public void write(ScimResource entity, JsonGenerator jg) throws IOException {
         jg.writeTree(JsonUtils.valueToNode(entity));
     }
 

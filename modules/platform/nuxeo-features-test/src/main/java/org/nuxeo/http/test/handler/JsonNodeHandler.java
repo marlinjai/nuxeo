@@ -50,9 +50,9 @@ public class JsonNodeHandler extends AbstractStatusCodeHandler<JsonNode> {
         String contentType = response.getType();
         if (contentType == null) {
             throw new AssertionError("HTTP Content-Type header is null, expected to start with:<application/json>");
-        } else if (!contentType.startsWith(MediaType.APPLICATION_JSON)) {
+        } else if (!contentType.startsWith(MediaType.APPLICATION_JSON) && !contentType.endsWith("+json")) {
             throw new AssertionError(
-                    "HTTP Content-Type header mismatch, expected to start with:<application/json> but was:<"
+                    "HTTP Content-Type header mismatch, expected to start with:<application/json>, or end with <..+json> but was:<"
                             + contentType + ">");
         }
         return MAPPER.readTree(response.getEntityInputStream());
