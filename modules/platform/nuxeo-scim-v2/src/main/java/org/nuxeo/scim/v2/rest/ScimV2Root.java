@@ -24,12 +24,12 @@ import static com.unboundid.scim2.common.utils.ApiConstants.SCHEMAS_ENDPOINT;
 import static com.unboundid.scim2.common.utils.ApiConstants.SERVICE_PROVIDER_CONFIG_ENDPOINT;
 import static javax.servlet.http.HttpServletResponse.SC_INTERNAL_SERVER_ERROR;
 import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
+import static org.nuxeo.scim.v2.api.ScimV2QueryContext.LIMIT_QUERY_COUNT;
 import static org.nuxeo.scim.v2.api.ScimV2ResourceType.SCIM_V2_RESOURCE_TYPE_GROUP;
 import static org.nuxeo.scim.v2.api.ScimV2ResourceType.SCIM_V2_RESOURCE_TYPE_RESOURCE_TYPE;
 import static org.nuxeo.scim.v2.api.ScimV2ResourceType.SCIM_V2_RESOURCE_TYPE_SCHEMA;
 import static org.nuxeo.scim.v2.api.ScimV2ResourceType.SCIM_V2_RESOURCE_TYPE_SERVICE_PROVIDER_CONFIG;
 import static org.nuxeo.scim.v2.api.ScimV2ResourceType.SCIM_V2_RESOURCE_TYPE_USER;
-import static org.nuxeo.scim.v2.service.ScimV2MappingServiceImpl.LIMIT_QUERY_COUNT;
 
 import java.beans.IntrospectionException;
 import java.net.URI;

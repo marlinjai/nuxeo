@@ -24,6 +24,7 @@ import static com.unboundid.scim2.common.utils.ApiConstants.QUERY_PARAMETER_ATTR
 import static com.unboundid.scim2.common.utils.ApiConstants.QUERY_PARAMETER_EXCLUDED_ATTRIBUTES;
 import static com.unboundid.scim2.common.utils.ApiConstants.QUERY_PARAMETER_FILTER;
 import static com.unboundid.scim2.common.utils.ApiConstants.QUERY_PARAMETER_PAGE_SIZE;
+import static com.unboundid.scim2.common.utils.ApiConstants.QUERY_PARAMETER_PAGE_START_INDEX;
 import static com.unboundid.scim2.common.utils.ApiConstants.QUERY_PARAMETER_SORT_BY;
 import static com.unboundid.scim2.common.utils.ApiConstants.QUERY_PARAMETER_SORT_ORDER;
 import static com.unboundid.scim2.common.utils.ApiConstants.SEARCH_WITH_POST_PATH_EXTENSION;
@@ -42,6 +43,7 @@ import org.nuxeo.ecm.platform.usermanager.UserManager;
 import org.nuxeo.ecm.webengine.model.impl.DefaultObject;
 import org.nuxeo.runtime.api.Framework;
 import org.nuxeo.scim.v2.api.ScimV2MappingService;
+import org.nuxeo.scim.v2.api.ScimV2QueryContext;
 
 import com.unboundid.scim2.common.GenericScimResource;
 import com.unboundid.scim2.common.ScimResource;
@@ -50,7 +52,6 @@ import com.unboundid.scim2.common.exceptions.ScimException;
 import com.unboundid.scim2.common.messages.ListResponse;
 import com.unboundid.scim2.common.messages.PatchOperation;
 import com.unboundid.scim2.common.messages.SearchRequest;
-import com.unboundid.scim2.common.utils.ApiConstants;
 import com.unboundid.scim2.server.utils.ResourcePreparer;
 import com.unboundid.scim2.server.utils.ResourceTypeDefinition;
 
@@ -68,8 +69,7 @@ public abstract class ScimV2BaseUMObject extends DefaultObject {
     @Context
     protected UriInfo uriInfo;
 
-    protected abstract ListResponse<ScimResource> doSearch(Integer startIndex, Integer count, String filterString,
-            String sortBy, boolean descending) throws ScimException;
+    protected abstract ListResponse<ScimResource> doSearch(ScimV2QueryContext queryCtx) throws ScimException;
 
     protected abstract String getPrefix();
 
@@ -89,11 +89,15 @@ public abstract class ScimV2BaseUMObject extends DefaultObject {
 
     @GET
     public ListResponse<ScimResource> getResources(
-            @QueryParam(ApiConstants.QUERY_PARAMETER_PAGE_START_INDEX) Integer startIndex,
+            @QueryParam(QUERY_PARAMETER_PAGE_START_INDEX) Integer startIndex,
             @QueryParam(QUERY_PARAMETER_PAGE_SIZE) Integer count, @QueryParam(QUERY_PARAMETER_FILTER) String filter,
             @QueryParam(QUERY_PARAMETER_SORT_BY) String sortBy,
             @QueryParam(QUERY_PARAMETER_SORT_ORDER) String sortOrder) throws ScimException {
-        return doSearch(startIndex, count, filter, sortBy, DESCENDING.getName().equalsIgnoreCase(sortOrder));
+        return doSearch(new ScimV2QueryContext().withStartIndex(startIndex)
+                                                .withCount(count)
+                                                .withFilterString(filter)
+                                                .withSortBy(sortBy)
+                                                .withDescending(DESCENDING.getName().equalsIgnoreCase(sortOrder)));
     }
 
     @POST
@@ -108,8 +112,11 @@ public abstract class ScimV2BaseUMObject extends DefaultObject {
                    .add(QUERY_PARAMETER_EXCLUDED_ATTRIBUTES,
                            request.getExcludedAttributes().stream().collect(Collectors.joining(",")));
         }
-        return doSearch(request.getStartIndex(), request.getCount(), request.getFilter(), request.getSortBy(),
-                DESCENDING.equals(request.getSortOrder()));
+        return doSearch(new ScimV2QueryContext().withStartIndex(request.getStartIndex())
+                                                .withCount(request.getCount())
+                                                .withFilterString(request.getFilter())
+                                                .withSortBy(request.getSortBy())
+                                                .withDescending(DESCENDING.equals(request.getSortOrder())));
     }
 
     protected void checkUpdateGuardPreconditions() throws ScimException {

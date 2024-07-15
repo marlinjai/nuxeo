@@ -39,6 +39,7 @@ import org.nuxeo.runtime.test.runner.Deploy;
 import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.FeaturesRunner;
 import org.nuxeo.scim.v2.api.ScimV2MappingService;
+import org.nuxeo.scim.v2.api.ScimV2QueryContext;
 
 import com.unboundid.scim2.common.ScimResource;
 import com.unboundid.scim2.common.exceptions.BadRequestException;
@@ -63,7 +64,7 @@ public class ScimV2SearchTest {
 
     @Test
     public void testEmailsContains() throws ScimException {
-        newUserModel("jdoe", "John", "Doe", "jdoe@the.org", 1, Calendar.getInstance(), null);
+        newUserModel("jdoe", "John", "Doe", "jdoe@the.org", 1, Calendar.getInstance(), null); // NOSONAR
         assertEquals(1, countUsers("emails co \"the\""));
         assertEquals(1, countUsers("emails.value co \"doe\""));
     }
@@ -86,7 +87,8 @@ public class ScimV2SearchTest {
 
     @Test
     public void testTooManyResults() {
-        assertThrows(BadRequestException.class, () -> mappingService.queryUsers(1, 10000, null, null, false, null));
+        assertThrows(BadRequestException.class,
+                () -> mappingService.queryUsers(new ScimV2QueryContext().withCount(10000)));
     }
 
     @Test
@@ -145,14 +147,15 @@ public class ScimV2SearchTest {
         newUserModel("Zee", "Zee", "Zee", "zee@the.org", 1, Calendar.getInstance(), null);
         newUserModel("Too", "Too", "Too", "too@the.org", 1, Calendar.getInstance(), null);
         newUserModel("Ham", "Ham", "Ham", "ham@the.org", 1, Calendar.getInstance(), null);
-        ListResponse<ScimResource> users = mappingService.queryUsers(1, 10, null, "id", false, null);
+        ListResponse<ScimResource> users = mappingService.queryUsers(
+                new ScimV2QueryContext().withCount(10).withSortBy("id"));
         assertEquals(5, users.getResources().size());
         assertEquals("Administrator", ((Map<String, Object>) users.getResources().get(0)).get("id"));
         assertEquals("Guest", ((Map<String, Object>) users.getResources().get(1)).get("id"));
         assertEquals("Ham", ((Map<String, Object>) users.getResources().get(2)).get("id"));
         assertEquals("Too", ((Map<String, Object>) users.getResources().get(3)).get("id"));
         assertEquals("Zee", ((Map<String, Object>) users.getResources().get(4)).get("id"));
-        users = mappingService.queryUsers(1, 10, null, "id", true, null);
+        users = mappingService.queryUsers(new ScimV2QueryContext().withCount(10).withSortBy("id").withDescending(true));
         assertEquals(5, users.getResources().size());
         assertEquals("Administrator", ((Map<String, Object>) users.getResources().get(4)).get("id"));
         assertEquals("Guest", ((Map<String, Object>) users.getResources().get(3)).get("id"));
@@ -167,7 +170,8 @@ public class ScimV2SearchTest {
         newGroupModel("a", "Groupe a");
         newGroupModel("b", "Groupe b");
         newGroupModel("c", "Groupe c");
-        ListResponse<ScimResource> groups = mappingService.queryGroups(1, 10, null, "id", false, null);
+        ListResponse<ScimResource> groups = mappingService.queryGroups(
+                new ScimV2QueryContext().withCount(10).withSortBy("id"));
         assertEquals(6, groups.getResources().size());
         assertEquals("a", ((Map<String, Object>) groups.getResources().get(0)).get("id"));
         assertEquals("administrators", ((Map<String, Object>) groups.getResources().get(1)).get("id"));
@@ -175,7 +179,8 @@ public class ScimV2SearchTest {
         assertEquals("c", ((Map<String, Object>) groups.getResources().get(3)).get("id"));
         assertEquals("members", ((Map<String, Object>) groups.getResources().get(4)).get("id"));
         assertEquals("powerusers", ((Map<String, Object>) groups.getResources().get(5)).get("id"));
-        groups = mappingService.queryGroups(1, 10, null, "id", true, null);
+        groups = mappingService.queryGroups(
+                new ScimV2QueryContext().withCount(10).withSortBy("id").withDescending(true));
         assertEquals(6, groups.getResources().size());
         assertEquals("a", ((Map<String, Object>) groups.getResources().get(5)).get("id"));
         assertEquals("administrators", ((Map<String, Object>) groups.getResources().get(4)).get("id"));
@@ -186,7 +191,8 @@ public class ScimV2SearchTest {
     }
 
     protected int countUsers(String filter) throws ScimException {
-        return mappingService.queryUsers(1, 10, filter, "id", false, null).getTotalResults();
+        return mappingService.queryUsers(
+                new ScimV2QueryContext().withCount(10).withSortBy("id").withFilterString(filter)).getTotalResults();
     }
 
     protected DocumentModel newUserModel(String username, String firstName, String lastName, String email,

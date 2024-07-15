@@ -30,6 +30,7 @@ import static org.nuxeo.ecm.core.query.sql.model.Predicates.lte;
 import static org.nuxeo.ecm.core.query.sql.model.Predicates.not;
 import static org.nuxeo.ecm.core.query.sql.model.Predicates.noteq;
 import static org.nuxeo.ecm.core.query.sql.model.Predicates.notilike;
+import static org.nuxeo.scim.v2.api.ScimV2QueryContext.FETCH_GROUP_MEMBERS_CTX_PARAM;
 import static org.nuxeo.scim.v2.api.ScimV2ResourceType.SCIM_V2_RESOURCE_TYPE_GROUP;
 import static org.nuxeo.scim.v2.api.ScimV2ResourceType.SCIM_V2_RESOURCE_TYPE_USER;
 
@@ -42,7 +43,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.UUID;
 import java.util.function.BiFunction;
-import java.util.function.UnaryOperator;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
@@ -65,6 +65,7 @@ import org.nuxeo.runtime.model.ComponentInstance;
 import org.nuxeo.runtime.model.DefaultComponent;
 import org.nuxeo.scim.v2.api.ScimV2Mapping;
 import org.nuxeo.scim.v2.api.ScimV2MappingService;
+import org.nuxeo.scim.v2.api.ScimV2QueryContext;
 import org.nuxeo.scim.v2.api.ScimV2ResourceType;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -100,10 +101,6 @@ import com.unboundid.scim2.common.utils.SchemaUtils;
 public class ScimV2MappingServiceImpl extends DefaultComponent implements ScimV2MappingService {
 
     private static final Logger log = LogManager.getLogger(ScimV2MappingServiceImpl.class);
-
-    protected static final int DEFAULT_QUERY_COUNT = 100;
-
-    public static final int LIMIT_QUERY_COUNT = 1000;
 
     protected static String getAttribute(Filter filter) {
         var path = filter.getAttributePath();
@@ -226,17 +223,13 @@ public class ScimV2MappingServiceImpl extends DefaultComponent implements ScimV2
     }
 
     @Override
-    public ListResponse<ScimResource> queryGroups(Integer startIndex, Integer count, String filterString, String sortBy,
-            boolean descending, String baseURL, UnaryOperator<ScimResource> transform) throws ScimException {
-        return queryResources(startIndex, count, filterString, sortBy, descending, baseURL, SCIM_V2_RESOURCE_TYPE_GROUP,
-                transform);
+    public ListResponse<ScimResource> queryGroups(ScimV2QueryContext queryCtx) throws ScimException {
+        return queryResources(queryCtx, SCIM_V2_RESOURCE_TYPE_GROUP);
     }
 
     @Override
-    public ListResponse<ScimResource> queryUsers(Integer startIndex, Integer count, String filterString, String sortBy,
-            boolean descending, String baseURL, UnaryOperator<ScimResource> transform) throws ScimException {
-        return queryResources(startIndex, count, filterString, sortBy, descending, baseURL, SCIM_V2_RESOURCE_TYPE_USER,
-                transform);
+    public ListResponse<ScimResource> queryUsers(ScimV2QueryContext queryCtx) throws ScimException {
+        return queryResources(queryCtx, SCIM_V2_RESOURCE_TYPE_USER);
     }
 
     @Override
@@ -395,22 +388,20 @@ public class ScimV2MappingServiceImpl extends DefaultComponent implements ScimV2
         return getPredicate(Parser.parseFilter(filterString), type, columnMapper);
     }
 
-    protected ListResponse<ScimResource> queryResources(Integer startIndex, Integer count, String filterString, // NOSONAR
-            String sortBy, boolean descending, String baseURL, ScimV2ResourceType type,
-            UnaryOperator<ScimResource> transform) throws ScimException {
-        if (count == null) {
-            count = DEFAULT_QUERY_COUNT;
-        } else if (count > LIMIT_QUERY_COUNT) {
-            throw BadRequestException.tooMany("Maximum value for count is " + LIMIT_QUERY_COUNT);
-        }
+    protected ListResponse<ScimResource> queryResources(ScimV2QueryContext queryCtx, ScimV2ResourceType type)
+            throws ScimException {
         UserManager um = Framework.getService(UserManager.class);
         DocumentModelList list = switch (type) {
             case SCIM_V2_RESOURCE_TYPE_USER -> Framework.getService(UserManager.class)
-                                                        .searchUsers(getQueryBuilder(startIndex, count, filterString,
-                                                                sortBy, descending, type, this::mapUserColumnName));
+                                                        .searchUsers(getQueryBuilder(queryCtx.getStartIndex(), queryCtx.getCount(),
+                                                                queryCtx.getFilterString(), queryCtx.getSortBy(),
+                                                                queryCtx.isDescending(), type,
+                                                                this::mapUserColumnName));
             case SCIM_V2_RESOURCE_TYPE_GROUP -> Framework.getService(UserManager.class)
-                                                         .searchGroups(getQueryBuilder(startIndex, count, filterString,
-                                                                 sortBy, descending, type, this::mapGroupColumnName));
+                                                         .searchGroups(getQueryBuilder(queryCtx.getStartIndex(), queryCtx.getCount(),
+                                                                 queryCtx.getFilterString(), queryCtx.getSortBy(),
+                                                                 queryCtx.isDescending(), type,
+                                                                 this::mapGroupColumnName));
             default -> throw new NotImplementedException("Unsupported resource type: " + type);
         };
         int totalResults;
@@ -423,15 +414,17 @@ public class ScimV2MappingServiceImpl extends DefaultComponent implements ScimV2
             case SCIM_V2_RESOURCE_TYPE_USER -> {
                 // searchUsers lazy fetches attributes such as groups
                 model = um.getUserModel(model.getId());
-                yield transform.apply(getUserResourceFromNuxeoUser(model, baseURL));
+                yield queryCtx.getTransform().apply(getUserResourceFromNuxeoUser(model, queryCtx.getBaseURL()));
             }
             case SCIM_V2_RESOURCE_TYPE_GROUP -> {
-                // searchGroups lazy fetches attributes such as members
-                model = um.getGroupModel(model.getId());
-                yield transform.apply(getGroupResourceFromNuxeoGroup(model, baseURL));
+                if (!queryCtx.isContextParamFalse(FETCH_GROUP_MEMBERS_CTX_PARAM)) {
+                    // searchGroups lazy fetches attributes such as members
+                    model = um.getGroupModel(model.getId());
+                }
+                yield queryCtx.getTransform().apply(getGroupResourceFromNuxeoGroup(model, queryCtx.getBaseURL()));
             }
             default -> throw new NotImplementedException("Unsupported resource type: " + type);
-        })).toList(), startIndex != null ? startIndex : 1, count);
+        })).toList(), queryCtx.getStartIndex() != null ? queryCtx.getStartIndex() : 1, queryCtx.getCount());
     }
 
     protected DocumentModel getGroupModel(UserManager userManager, String uid) throws ResourceNotFoundException {

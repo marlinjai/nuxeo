@@ -32,6 +32,7 @@ import org.nuxeo.runtime.test.runner.Deploy;
 import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.FeaturesRunner;
 import org.nuxeo.scim.v2.api.ScimV2MappingService;
+import org.nuxeo.scim.v2.api.ScimV2QueryContext;
 
 import com.unboundid.scim2.common.ScimResource;
 import com.unboundid.scim2.common.exceptions.ScimException;
@@ -69,8 +70,8 @@ public class ScimV2MappingServiceContribTest {
         List<Email> emails = List.of(new Email().setValue("foo@bar.org"));
         userResource.setEmails(emails);
         mappingService.createNuxeoUserFromUserResource(userResource);
-        ListResponse<ScimResource> res = mappingService.queryUsers(0, 1, "userName eq \"foo@bar.org\"", null, false,
-                null);
+        ListResponse<ScimResource> res = mappingService.queryUsers(
+                new ScimV2QueryContext().withCount(10).withFilterString("userName eq \"foo@bar.org\""));
         assertEquals(1, res.getTotalResults());
     }
 

@@ -20,8 +20,11 @@
 package org.nuxeo.scim.v2.rest.usermanager;
 
 import static com.unboundid.scim2.common.exceptions.BadRequestException.INVALID_SYNTAX;
+import static com.unboundid.scim2.common.utils.ApiConstants.QUERY_PARAMETER_ATTRIBUTES;
+import static com.unboundid.scim2.common.utils.ApiConstants.QUERY_PARAMETER_EXCLUDED_ATTRIBUTES;
 import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
 import static javax.ws.rs.core.Response.Status.CREATED;
+import static org.nuxeo.scim.v2.api.ScimV2QueryContext.FETCH_GROUP_MEMBERS_CTX_PARAM;
 import static org.nuxeo.scim.v2.rest.ScimV2Root.SCIM_V2_ENDPOINT_GROUPS;
 
 import java.beans.IntrospectionException;
@@ -37,8 +40,11 @@ import javax.ws.rs.core.Response;
 
 import org.nuxeo.common.function.ThrowableUnaryOperator;
 import org.nuxeo.ecm.core.api.DocumentModel;
+import org.nuxeo.ecm.core.query.sql.model.Predicates;
+import org.nuxeo.ecm.core.query.sql.model.QueryBuilder;
 import org.nuxeo.ecm.directory.DirectoryException;
 import org.nuxeo.ecm.webengine.model.WebObject;
+import org.nuxeo.scim.v2.api.ScimV2QueryContext;
 import org.nuxeo.scim.v2.rest.marshalling.ResponseUtils;
 
 import com.unboundid.scim2.common.ScimResource;
@@ -102,7 +108,16 @@ public class ScimV2GroupObject extends ScimV2BaseUMObject {
     }
 
     protected GroupResource resolveGroupRessource(String uid) throws ScimException {
-        DocumentModel groupModel = um.getGroupModel(uid);
+        DocumentModel groupModel = null;
+        if (isFetchMembers()) {
+            groupModel = um.getGroupModel(uid);
+        } else {
+            // searchGroups lazy fetches attributes such as members
+            var groups = um.searchGroups(new QueryBuilder().predicate(Predicates.like("groupname", uid)).limit(1));
+            if (!groups.isEmpty()) {
+                groupModel = groups.get(0);
+            }
+        }
         if (groupModel == null) {
             throw new ResourceNotFoundException("Cannot find group: " + uid); // NOSONAR
         }
@@ -128,10 +143,10 @@ public class ScimV2GroupObject extends ScimV2BaseUMObject {
     }
 
     @Override
-    protected ListResponse<ScimResource> doSearch(Integer startIndex, Integer count, String filterString, String sortBy,
-            boolean descending) throws ScimException {
-        return mappingService.queryGroups(startIndex, count, filterString, sortBy, descending, baseURL,
-                ThrowableUnaryOperator.asUnaryOperator(r -> prepareRetrieved(r)));
+    protected ListResponse<ScimResource> doSearch(ScimV2QueryContext queryCtx) throws ScimException {
+        queryCtx.withContextParam(FETCH_GROUP_MEMBERS_CTX_PARAM, isFetchMembers());
+        return mappingService.queryGroups(
+                queryCtx.withTransform(ThrowableUnaryOperator.asUnaryOperator(r -> prepareRetrieved(r))));
     }
 
     @Override
@@ -142,6 +157,16 @@ public class ScimV2GroupObject extends ScimV2BaseUMObject {
         } catch (IntrospectionException e) {
             throw new ServerErrorException("Cannot get resource type definition");
         }
+    }
+
+    protected boolean isFetchMembers() {
+        var excludedAttributes = uriInfo.getQueryParameters().getFirst(QUERY_PARAMETER_EXCLUDED_ATTRIBUTES);
+        var includedAttributes = uriInfo.getQueryParameters().getFirst(QUERY_PARAMETER_ATTRIBUTES);
+        if ((excludedAttributes != null && excludedAttributes.contains("members"))
+                || includedAttributes != null && !includedAttributes.contains("members")) {
+            return false;
+        }
+        return true;
     }
 
 }

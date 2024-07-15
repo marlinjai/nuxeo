@@ -40,6 +40,7 @@ import org.nuxeo.common.function.ThrowableUnaryOperator;
 import org.nuxeo.ecm.core.api.DocumentModel;
 import org.nuxeo.ecm.directory.DirectoryException;
 import org.nuxeo.ecm.webengine.model.WebObject;
+import org.nuxeo.scim.v2.api.ScimV2QueryContext;
 import org.nuxeo.scim.v2.rest.PATCH;
 import org.nuxeo.scim.v2.rest.marshalling.ResponseUtils;
 
@@ -148,10 +149,9 @@ public class ScimV2UserObject extends ScimV2BaseUMObject {
     }
 
     @Override
-    protected ListResponse<ScimResource> doSearch(Integer startIndex, Integer count, String filterString, String sortBy,
-            boolean descending) throws ScimException {
-        return mappingService.queryUsers(startIndex, count, filterString, sortBy, descending, baseURL,
-                ThrowableUnaryOperator.asUnaryOperator(r -> prepareRetrieved(r)));
+    protected ListResponse<ScimResource> doSearch(ScimV2QueryContext queryCtx) throws ScimException {
+        return mappingService.queryUsers(
+                queryCtx.withTransform(ThrowableUnaryOperator.asUnaryOperator(r -> prepareRetrieved(r))));
     }
 
     @Override
