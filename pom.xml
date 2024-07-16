@@ -3264,6 +3264,10 @@
             <groupId>log4j</groupId>
             <artifactId>log4j</artifactId>
           </exclusion>
+          <exclusion>
+            <groupId>org.apache.lucene</groupId>
+            <artifactId>lucene-core</artifactId>
+          </exclusion>
         </exclusions>
       </dependency>
       <dependency>
