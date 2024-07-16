@@ -59,10 +59,22 @@ public final class BooleanType extends PrimitiveType {
         }
     }
 
+    /**
+     * @throws IllegalArgumentException if {@link PrimitiveType#PRIMITIVE_TYPE_STRICT_VALIDATION_PROPERTY} is set to
+     *             true and the string is not equal to null, "true" or "false"
+     */
     @Override
     public Object decode(String str) {
         if (StringUtils.isEmpty(str)) {
             return null;
+        }
+        if (isStrictValidation()) {
+            if ("true".equalsIgnoreCase(str)) {
+                return Boolean.TRUE;
+            } else if ("false".equalsIgnoreCase(str)) {
+                return Boolean.FALSE;
+            }
+            throw new IllegalArgumentException("Cannot decode invalid string " + str);
         }
         return Boolean.valueOf(str);
     }

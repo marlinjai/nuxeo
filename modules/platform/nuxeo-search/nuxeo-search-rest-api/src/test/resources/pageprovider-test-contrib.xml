@@ -184,6 +184,9 @@
         <predicate parameter="pt:doubleField" operator="=">
           <field schema="primitivetypes" name="doubleField" />
         </predicate>
+        <predicate parameter="pt:booleanField" operator="=">
+          <field schema="primitivetypes" name="booleanField" />
+        </predicate>
         <fixedPart>
           ecm:primaryType = 'PrimitiveTypes'
           AND ecm:isVersion = 0

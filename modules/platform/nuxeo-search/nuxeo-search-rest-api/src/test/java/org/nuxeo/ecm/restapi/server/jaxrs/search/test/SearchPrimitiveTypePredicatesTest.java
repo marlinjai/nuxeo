@@ -85,6 +85,7 @@ public class SearchPrimitiveTypePredicatesTest {
         doc0.setPropertyValue("pt:longField", 0L);
         doc0.setPropertyValue("pt:floatField", 0F);
         doc0.setPropertyValue("pt:doubleField", 0D);
+        doc0.setPropertyValue("pt:booleanField", false);
         doc0 = session.createDocument(doc0);
 
         doc1 = session.createDocumentModel("/", "doc1", "PrimitiveTypes");
@@ -92,9 +93,71 @@ public class SearchPrimitiveTypePredicatesTest {
         doc1.setPropertyValue("pt:longField", 1L);
         doc1.setPropertyValue("pt:floatField", 1F);
         doc1.setPropertyValue("pt:doubleField", 1D);
+        doc1.setPropertyValue("pt:booleanField", true);
         doc1 = session.createDocument(doc1);
 
         txFeature.nextTransaction();
+    }
+
+    @Test
+    public void testBooleanType() {
+        httpClient.buildGetRequest(PP_EXECUTE_PATH)
+                  .addQueryParameter("booleanField", "false") // NOSONAR
+                  .executeAndConsume(new JsonNodeHandler(), node -> {
+                      List<JsonNode> entries = JsonNodeHelper.getEntries(node);
+                      assertEquals(1, entries.size());
+                      JsonNode entry = entries.get(0);
+                      assertEquals(doc0.getId(), entry.get("uid").asText());
+                  });
+
+        httpClient.buildGetRequest(PP_EXECUTE_PATH)
+                  .addQueryParameter("booleanField", "true")
+                  .executeAndConsume(new JsonNodeHandler(), node -> {
+                      List<JsonNode> entries = JsonNodeHelper.getEntries(node);
+                      assertEquals(1, entries.size());
+                      JsonNode entry = entries.get(0);
+                      assertEquals(doc1.getId(), entry.get("uid").asText());
+                  });
+
+        // bad query parameter, match document with boolean type field value = false
+        httpClient.buildGetRequest(PP_EXECUTE_PATH)
+                  .addQueryParameter("booleanField", "foo")
+                  .executeAndConsume(new JsonNodeHandler(), node -> {
+                      List<JsonNode> entries = JsonNodeHelper.getEntries(node);
+                      assertEquals(1, entries.size());
+                      JsonNode entry = entries.get(0);
+                      assertEquals(doc0.getId(), entry.get("uid").asText());
+                  });
+    }
+
+    @Test
+    @WithFrameworkProperty(name = PRIMITIVE_TYPE_STRICT_VALIDATION_PROPERTY, value = "true")
+    public void testBooleanTypeStrictValidation() {
+        httpClient.buildGetRequest(PP_EXECUTE_PATH)
+                  .addQueryParameter("booleanField", "false")
+                  .executeAndConsume(new JsonNodeHandler(), node -> {
+                      List<JsonNode> entries = JsonNodeHelper.getEntries(node);
+                      assertEquals(1, entries.size());
+                      JsonNode entry = entries.get(0);
+                      assertEquals(doc0.getId(), entry.get("uid").asText());
+                  });
+
+        httpClient.buildGetRequest(PP_EXECUTE_PATH)
+                  .addQueryParameter("booleanField", "true")
+                  .executeAndConsume(new JsonNodeHandler(), node -> {
+                      List<JsonNode> entries = JsonNodeHelper.getEntries(node);
+                      assertEquals(1, entries.size());
+                      JsonNode entry = entries.get(0);
+                      assertEquals(doc1.getId(), entry.get("uid").asText());
+                  });
+
+        httpClient.buildGetRequest(PP_EXECUTE_PATH)
+                  .addQueryParameter("booleanField", "foo")
+                  .executeAndConsume(new JsonNodeHandler(SC_BAD_REQUEST), node -> {
+                      assertEquals("exception", node.get("entity-type").asText());
+                      assertEquals("400", node.get("status").asText());
+                      assertTrue(node.get("message").asText().startsWith("java.lang.IllegalArgumentException"));
+                  });
     }
 
     /**

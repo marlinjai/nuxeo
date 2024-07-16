@@ -7,5 +7,6 @@
   <xs:element name="longField" type="xs:long" />
   <xs:element name="floatField" type="xs:float" />
   <xs:element name="doubleField" type="xs:double" />
+  <xs:element name="booleanField" type="xs:boolean" />
 
 </xs:schema>

@@ -125,7 +125,18 @@ public class TestTypes {
         assertEquals(false, type.convert("false"));
         assertEquals(true, type.convert(1));
         assertEquals(false, type.convert(0));
+        assertEquals(false, type.decode("false"));
         assertEquals(true, type.decode("true"));
+        assertEquals(false, type.decode("foo"));
+    }
+
+    @Test
+    @WithFrameworkProperty(name = PRIMITIVE_TYPE_STRICT_VALIDATION_PROPERTY, value = "true")
+    public void testBooleanTypeStrictValidation() {
+        SimpleType type = BooleanType.INSTANCE;
+
+        // If strict validation is enabled, an exception is thrown when a string cannot be decoded as a Boolean
+        assertThrows(IllegalArgumentException.class, () -> type.decode("foo"));
     }
 
     @Test
