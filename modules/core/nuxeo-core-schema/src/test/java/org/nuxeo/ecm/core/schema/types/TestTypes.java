@@ -62,7 +62,7 @@ public class TestTypes {
         assertEquals(AnyType.ID, type.getName());
         assertTrue(type.isAnyType());
         assertFalse(type.isSimpleType());
-        // assertFalse(type.isPrimitive());
+        // assertFalse(type.isPrimitive()); // NOSONAR
         assertFalse(type.isComplexType());
 
         assertNull(type.getSuperType());
@@ -81,7 +81,7 @@ public class TestTypes {
     public void testStringType() throws TypeException {
         SimpleType type = StringType.INSTANCE;
 
-        assertEquals("string", type.getName());
+        assertEquals("string", type.getName()); // NOSONAR
         assertTrue(type.isSimpleType());
         assertTrue(type.isPrimitive());
         assertFalse(type.isComplexType());
@@ -162,7 +162,7 @@ public class TestTypes {
 
     @Test
     @WithFrameworkProperty(name = PRIMITIVE_TYPE_STRICT_VALIDATION_PROPERTY, value = "true")
-    public void testIntegerTypeStrictValidation() throws TypeException {
+    public void testIntegerTypeStrictValidation() {
         SimpleType type = IntegerType.INSTANCE;
 
         // If strict validation is enabled, an exception is thrown when a string cannot be decoded as an Integer
@@ -216,7 +216,7 @@ public class TestTypes {
 
     @Test
     @WithFrameworkProperty(name = PRIMITIVE_TYPE_STRICT_VALIDATION_PROPERTY, value = "true")
-    public void testDoubleTypeStrictValidation() throws TypeException {
+    public void testDoubleTypeStrictValidation() {
         SimpleType type = DoubleType.INSTANCE;
 
         // If strict validation is enabled, an exception is thrown when a string cannot be decoded as a Double
@@ -267,7 +267,7 @@ public class TestTypes {
 
     @Test
     @WithFrameworkProperty(name = PRIMITIVE_TYPE_STRICT_VALIDATION_PROPERTY, value = "true")
-    public void testLongTypeStrictValidation() throws TypeException {
+    public void testLongTypeStrictValidation() {
         SimpleType type = LongType.INSTANCE;
 
         // If strict validation is enabled, the Java's L number (long) specification is handled and such strings can be
@@ -342,7 +342,7 @@ public class TestTypes {
         assertEquals("composite type", type.getName());
         assertFalse(type.isSimpleType());
         // XXX: Not is CompositeType API. Why?
-        // assertFalse(type.isPrimitive());
+        // assertFalse(type.isPrimitive()); // NOSONAR
         assertFalse(type.isComplexType());
         assertFalse(type.isAnyType());
         assertNull(type.getSuperType());
@@ -402,7 +402,7 @@ public class TestTypes {
         assertEquals("complexChain", field.getName().getLocalName());
         assertEquals("complexChain", field.getType().getName());
         field = sm.getField("tp:complexChain/stringItem");
-        assertEquals("stringItem", field.getName().getLocalName());
+        assertEquals("stringItem", field.getName().getLocalName()); // NOSONAR
         assertEquals("string", field.getType().getName());
         field = sm.getField("tp:complexChain/complexItem");
         assertEquals("complexItem", field.getName().getLocalName());
@@ -450,7 +450,7 @@ public class TestTypes {
         schema = getSchema("dc:contributors");
         assertEquals("dublincore", schema.getName());
         schema = getSchema("tp:stringArray");
-        assertEquals("testProperties", schema.getName());
+        assertEquals("testProperties", schema.getName()); // NOSONAR
         schema = getSchema("tp:complexChain");
         assertEquals("testProperties", schema.getName());
         schema = getSchema("tp:complexChain/stringItem");

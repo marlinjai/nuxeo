@@ -23,7 +23,6 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.nuxeo.ecm.core.schema.types.PrimitiveType.PRIMITIVE_TYPE_STRICT_VALIDATION_PROPERTY;
 
-import java.io.IOException;
 import java.util.List;
 
 import javax.inject.Inject;
@@ -109,7 +108,7 @@ public class SearchPrimitiveTypePredicatesTest {
 
     @Test
     @WithFrameworkProperty(name = PRIMITIVE_TYPE_STRICT_VALIDATION_PROPERTY, value = "true")
-    public void testIntegerTypeStrictValidation() throws IOException {
+    public void testIntegerTypeStrictValidation() {
         testPrimitiveTypeStrictValidation("integerField");
     }
 
@@ -120,7 +119,7 @@ public class SearchPrimitiveTypePredicatesTest {
 
     @Test
     @WithFrameworkProperty(name = PRIMITIVE_TYPE_STRICT_VALIDATION_PROPERTY, value = "true")
-    public void testLongTypeStrictValidation() throws IOException {
+    public void testLongTypeStrictValidation() {
         testPrimitiveTypeStrictValidation("longField");
     }
 
@@ -135,7 +134,7 @@ public class SearchPrimitiveTypePredicatesTest {
 
     @Test
     @WithFrameworkProperty(name = PRIMITIVE_TYPE_STRICT_VALIDATION_PROPERTY, value = "true")
-    public void testFloatTypeStrictValidation() throws IOException {
+    public void testFloatTypeStrictValidation() {
         testPrimitiveTypeStrictValidation("floatField");
     }
 
@@ -146,7 +145,7 @@ public class SearchPrimitiveTypePredicatesTest {
 
     @Test
     @WithFrameworkProperty(name = PRIMITIVE_TYPE_STRICT_VALIDATION_PROPERTY, value = "true")
-    public void testDoubleTypeStrictValidation() throws IOException {
+    public void testDoubleTypeStrictValidation() {
         testPrimitiveTypeStrictValidation("doubleField");
     }
 
