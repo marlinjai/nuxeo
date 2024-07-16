@@ -560,6 +560,18 @@ public class TransactionHelper {
         }
     }
 
+    // beforeCompletion called last, afterCompletion called first
+    public static void registerInterposedSynchronization(Synchronization handler) {
+        if (!isTransactionActiveOrPreparing()) {
+            throw new TransactionRuntimeException("Cannot register Synchronization if transaction is not active");
+        }
+        try {
+            ((TransactionImpl) NuxeoContainer.getTransactionManager().getTransaction()).registerInterposedSynchronization(handler);
+        } catch (IllegalStateException | SystemException cause) {
+            throw new RuntimeException("Cannot register synch handler in current tx", cause);
+        }
+    }
+
     /**
      * Enlists a XA resource in the current transaction.
      *

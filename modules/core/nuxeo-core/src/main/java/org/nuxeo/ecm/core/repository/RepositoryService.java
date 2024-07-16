@@ -330,9 +330,10 @@ public class RepositoryService extends DefaultComponent {
             }
             throw new NuxeoException(e);
         }
-        // register synchronization for transaction commit/rollback
+        // register interposed synchronization for transaction commit/rollback
+        // so it's executed before other afterCompletion hooks
         // and to return to pool and remove from thread-local at end of transaction
-        TransactionHelper.registerSynchronization(new SessionSynchronization(session, cleanup));
+        TransactionHelper.registerInterposedSynchronization(new SessionSynchronization(session, cleanup));
         session.start();
         return session;
     }
