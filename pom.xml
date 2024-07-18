@@ -4660,6 +4660,7 @@
             <nuxeo.test.s3storage.bucket_prefix>${nuxeo.test.s3storage.bucket_prefix}</nuxeo.test.s3storage.bucket_prefix>
             <nuxeo.test.s3storage.provider.test.bucket_prefix>${nuxeo.test.s3storage.provider.test.bucket_prefix}</nuxeo.test.s3storage.provider.test.bucket_prefix>
             <nuxeo.test.s3storage.provider.other.bucket_prefix>${nuxeo.test.s3storage.provider.other.bucket_prefix}</nuxeo.test.s3storage.provider.other.bucket_prefix>
+            <nuxeo.test.s3storage.crypt.kms.clientside.key>${nuxeo.test.s3storage.crypt.kms.clientside.key}</nuxeo.test.s3storage.crypt.kms.clientside.key>
             <nuxeo.test.gcp.project>${nuxeo.test.gcp.project}</nuxeo.test.gcp.project>
             <nuxeo.test.gcp.bucket>${nuxeo.test.gcp.bucket}</nuxeo.test.gcp.bucket>
             <nuxeo.test.gcp.bucket_prefix>${nuxeo.test.gcp.bucket_prefix}</nuxeo.test.gcp.bucket_prefix>

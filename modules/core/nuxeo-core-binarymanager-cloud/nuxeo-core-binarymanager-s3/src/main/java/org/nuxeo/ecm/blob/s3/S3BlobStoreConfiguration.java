@@ -18,6 +18,7 @@
  */
 package org.nuxeo.ecm.blob.s3;
 
+import static com.amazonaws.regions.Region.getRegion;
 import static com.amazonaws.services.s3.model.ObjectLockEnabled.ENABLED;
 import static com.amazonaws.services.s3.model.ObjectLockRetentionMode.COMPLIANCE;
 import static com.amazonaws.services.s3.model.ObjectLockRetentionMode.GOVERNANCE;
@@ -62,15 +63,21 @@ import com.amazonaws.AmazonServiceException;
 import com.amazonaws.ClientConfiguration;
 import com.amazonaws.auth.AWSCredentialsProvider;
 import com.amazonaws.client.builder.AwsClientBuilder.EndpointConfiguration;
+import com.amazonaws.regions.Region;
+import com.amazonaws.regions.Regions;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3Builder;
 import com.amazonaws.services.s3.AmazonS3ClientBuilder;
-import com.amazonaws.services.s3.AmazonS3EncryptionClientBuilder;
-import com.amazonaws.services.s3.model.CryptoConfiguration;
+import com.amazonaws.services.s3.AmazonS3EncryptionClientV2Builder;
+import com.amazonaws.services.s3.model.CryptoConfigurationV2;
+import com.amazonaws.services.s3.model.CryptoMode;
+import com.amazonaws.services.s3.model.CryptoRangeGetMode;
 import com.amazonaws.services.s3.model.DefaultRetention;
 import com.amazonaws.services.s3.model.EncryptionMaterials;
+import com.amazonaws.services.s3.model.EncryptionMaterialsProvider;
 import com.amazonaws.services.s3.model.GetObjectLockConfigurationRequest;
 import com.amazonaws.services.s3.model.GetObjectLockConfigurationResult;
+import com.amazonaws.services.s3.model.KMSEncryptionMaterialsProvider;
 import com.amazonaws.services.s3.model.ObjectLockConfiguration;
 import com.amazonaws.services.s3.model.ObjectLockRetentionMode;
 import com.amazonaws.services.s3.model.ObjectLockRule;
@@ -122,6 +129,16 @@ public class S3BlobStoreConfiguration extends CloudBlobStoreConfiguration {
     public static final String SERVERSIDE_ENCRYPTION_PROPERTY = "crypt.serverside";
 
     public static final String SERVERSIDE_ENCRYPTION_KMS_KEY_PROPERTY = "crypt.kms.key";
+
+    /**
+     * @since 2023.17
+     */
+    public static final String CLIENTSIDE_ENCRYPTION_KMS_KEY_PROPERTY = "crypt.kms.clientside.key";
+
+    /**
+     * @since 2023.17
+     */
+    public static final String CLIENTSIDE_ENCRYPTION_KMS_REGION_PROPERTY = "crypt.kms.clientside.region";
 
     public static final String PRIVKEY_ALIAS_PROPERTY = "crypt.key.alias";
 
@@ -302,7 +319,10 @@ public class S3BlobStoreConfiguration extends CloudBlobStoreConfiguration {
         AWSCredentialsProvider awsCredentialsProvider = getAWSCredentialsProvider();
         ClientConfiguration clientConfiguration = getClientConfiguration();
         EncryptionMaterials encryptionMaterials = getEncryptionMaterials();
-        useClientSideEncryption = encryptionMaterials != null;
+        boolean useKeyStoreClientSideEncryption = encryptionMaterials != null;
+        var clientSideKMSKeyId = getProperty(CLIENTSIDE_ENCRYPTION_KMS_KEY_PROPERTY);
+        boolean useKMSClientSideEncryption = isNotBlank(clientSideKMSKeyId);
+        useClientSideEncryption = useKeyStoreClientSideEncryption || useKMSClientSideEncryption;
         Path p = Paths.get(bucketPrefix);
         int subDirsDepth = getSubDirsDepth();
         if (subDirsDepth == 0) {
@@ -314,13 +334,35 @@ public class S3BlobStoreConfiguration extends CloudBlobStoreConfiguration {
         pathSeparatorIsBackslash = FileSystems.getDefault().getSeparator().equals("\\");
         AmazonS3Builder<?, ?> s3Builder;
         if (useClientSideEncryption) {
-            CryptoConfiguration cryptoConfiguration = new CryptoConfiguration();
-            s3Builder = AmazonS3EncryptionClientBuilder.standard()
-                                                       .withCredentials(awsCredentialsProvider)
-                                                       .withClientConfiguration(clientConfiguration)
-                                                       .withCryptoConfiguration(cryptoConfiguration)
-                                                       .withEncryptionMaterials(new StaticEncryptionMaterialsProvider(
-                                                               encryptionMaterials));
+            // we need the deprecated CryptoRangeGetMode.ALL to support copy/move
+            // of large objects (>5GB) with transfer manager
+            @SuppressWarnings("deprecation")
+            var cryptoConfig = new CryptoConfigurationV2().withRangeGetMode(CryptoRangeGetMode.ALL);
+            EncryptionMaterialsProvider emp;
+            if (useKeyStoreClientSideEncryption) {
+                log.info("Client-side encryption enabled with local key store");
+                // The following setting allows the client to read V1 encrypted objects
+                cryptoConfig.withCryptoMode(CryptoMode.AuthenticatedEncryption);
+                emp = new StaticEncryptionMaterialsProvider(encryptionMaterials);
+            } else {
+                // KMS client-side encryption
+                log.info("Client-side encryption enabled with KMS key id: {}", clientSideKMSKeyId);
+                Region kmsRegion;
+                var customKMSRegion = getProperty(CLIENTSIDE_ENCRYPTION_KMS_REGION_PROPERTY);
+                if (isNotBlank(customKMSRegion)) {
+                    kmsRegion = getRegion(Regions.fromName(customKMSRegion));
+                } else {
+                    // If crypt.kms.clientside.region not specified, fallback on the bucket region
+                    kmsRegion = getRegion(Regions.fromName(getBucketRegion()));
+                }
+                cryptoConfig.withAwsKmsRegion(kmsRegion);
+                emp = new KMSEncryptionMaterialsProvider(clientSideKMSKeyId);
+            }
+            s3Builder = AmazonS3EncryptionClientV2Builder.standard()
+                                                         .withCredentials(awsCredentialsProvider)
+                                                         .withClientConfiguration(clientConfiguration)
+                                                         .withCryptoConfiguration(cryptoConfig)
+                                                         .withEncryptionMaterialsProvider(emp);
         } else {
             s3Builder = AmazonS3ClientBuilder.standard()
                                              .withCredentials(awsCredentialsProvider)
@@ -601,16 +643,21 @@ public class S3BlobStoreConfiguration extends CloudBlobStoreConfiguration {
     }
 
     protected void configureRegionOrEndpoint(AmazonS3Builder<?, ?> s3Builder) {
-        String bucketRegion = getProperty(BUCKET_REGION_PROPERTY);
-        if (isBlank(bucketRegion)) {
-            bucketRegion = NuxeoAWSRegionProvider.getInstance().getRegion();
-        }
+        var bucketRegion = getBucketRegion();
         String endpoint = getProperty(ENDPOINT_PROPERTY);
         if (isNotBlank(endpoint)) {
             s3Builder.withEndpointConfiguration(new EndpointConfiguration(endpoint, bucketRegion));
         } else {
             s3Builder.withRegion(bucketRegion);
         }
+    }
+
+    protected String getBucketRegion() {
+        var bucketRegion = getProperty(BUCKET_REGION_PROPERTY);
+        if (isBlank(bucketRegion)) {
+            bucketRegion = NuxeoAWSRegionProvider.getInstance().getRegion();
+        }
+        return bucketRegion;
     }
 
     protected void configureAccelerateMode(AmazonS3Builder<?, ?> s3Builder) {

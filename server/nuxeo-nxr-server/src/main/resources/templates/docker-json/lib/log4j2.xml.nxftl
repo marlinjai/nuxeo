@@ -148,6 +148,9 @@
 
     <Logger name="org.elasticsearch.bootstrap" level="error" />
 
+    <!-- Remove WARN on Range gets do not provide authenticated encryption -->
+    <Logger name="com.amazonaws.services.s3.AmazonS3EncryptionClientV2" level="error" />
+
     <Root level="warn">
       <AppenderRef ref="ConsoleJSONAppender" />
     </Root>
