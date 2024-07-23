@@ -155,6 +155,7 @@ public class TestNuxeoHostFilter {
     @Test
     @WithFrameworkProperty(name = PARAM_NUXEO_ALLOWED_HOSTS, value = "localhost")
     public void testDeniedForwardedHostFiltering() throws IOException, ServletException {
+        when(request.getServerName()).thenReturn("localhost");
         when(request.getHeader(X_FORWARDED_HOST)).thenReturn("not.localhost");
         filter.doFilter(request, response, finisher);
         assertFalse(finisher.called);
@@ -164,6 +165,7 @@ public class TestNuxeoHostFilter {
     @WithFrameworkProperty(name = PARAM_NUXEO_ALLOWED_HOSTS, value = "localhost")
     public void testDeniedNuxeoVirtualHostFiltering() throws IOException, ServletException {
         when(request.getHeader(NUXEO_VIRTUAL_HOST)).thenReturn("not.localhost");
+        when(request.getServerName()).thenReturn("localhost");
         filter.doFilter(request, response, finisher);
         assertFalse(finisher.called);
     }
