@@ -57,11 +57,15 @@ public class NuxeoHostFilter extends HttpFilter {
         String allowedHostsProp = Framework.getProperty(PARAM_NUXEO_ALLOWED_HOSTS);
         if (StringUtils.isNotBlank(allowedHostsProp)) {
             String nuxeoUrl = Framework.getProperty(PARAM_NUXEO_URL);
-            try {
-                allowedHostnames.add(new URI(nuxeoUrl).getHost());
-            } catch (NullPointerException | URISyntaxException e) {
-                var errorMessage = "Invalid nuxeo.url param: " + nuxeoUrl + " Please check your nuxeo.conf";
-                throw new NuxeoException(errorMessage, e);
+            if (StringUtils.isNotBlank(nuxeoUrl)) {
+                try {
+                    String host = new URI(nuxeoUrl).getHost();
+                    if (StringUtils.isNotBlank(host)) {
+                        allowedHostnames.add(host);
+                    }
+                } catch (URISyntaxException e) {
+                    throw new NuxeoException(e);
+                }
             }
             allowedHostnames.addAll(
                     Arrays.stream(allowedHostsProp.split(",")).filter(StringUtils::isNotBlank).toList());
@@ -83,7 +87,20 @@ public class NuxeoHostFilter extends HttpFilter {
         var hostHeaders = new HashSet<String>();
         hostHeaders.add(request.getServerName());
         CollectionUtils.addIgnoreNull(hostHeaders, request.getHeader(X_FORWARDED_HOST));
-        CollectionUtils.addIgnoreNull(hostHeaders, request.getHeader(NUXEO_VIRTUAL_HOST));
+        String nvhHeader = request.getHeader(NUXEO_VIRTUAL_HOST);
+        if (StringUtils.isNotBlank(nvhHeader)) {
+            try {
+                String host = new URI(nvhHeader).getHost();
+                if (StringUtils.isNotBlank(host)) {
+                    hostHeaders.add(host);
+                } else {
+                    throw new NuxeoException("Rejecting null resulting host of url: " + nvhHeader + " from "
+                            + NUXEO_VIRTUAL_HOST + " header", SC_BAD_REQUEST);
+                }
+            } catch (URISyntaxException e) {
+                throw new NuxeoException(e, SC_BAD_REQUEST);
+            }
+        }
         return allowedHostnames.containsAll(hostHeaders);
     }
 

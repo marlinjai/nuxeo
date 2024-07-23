@@ -17,7 +17,10 @@
 
 package org.nuxeo.ecm.platform.web.requestcontroller.filter;
 
+import static javax.servlet.http.HttpServletResponse.SC_BAD_REQUEST;
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -38,6 +41,7 @@ import javax.servlet.http.HttpServletResponse;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.nuxeo.ecm.core.api.NuxeoException;
 import org.nuxeo.ecm.platform.web.common.requestcontroller.filter.NuxeoHostFilter;
 import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.FeaturesRunner;
@@ -163,9 +167,41 @@ public class TestNuxeoHostFilter {
 
     @Test
     @WithFrameworkProperty(name = PARAM_NUXEO_ALLOWED_HOSTS, value = "localhost")
-    public void testDeniedNuxeoVirtualHostFiltering() throws IOException, ServletException {
-        when(request.getHeader(NUXEO_VIRTUAL_HOST)).thenReturn("not.localhost");
+    public void testWellformedVirtualHostFiltering() throws IOException, ServletException {
         when(request.getServerName()).thenReturn("localhost");
+        when(request.getHeader(NUXEO_VIRTUAL_HOST)).thenReturn("http://localhost/");
+        filter.doFilter(request, response, finisher);
+        assertTrue(finisher.called);
+    }
+
+    @Test
+    @WithFrameworkProperty(name = PARAM_NUXEO_ALLOWED_HOSTS, value = "localhost")
+    public void testMalformedVirtualHostFiltering() {
+        when(request.getHeader(NUXEO_VIRTUAL_HOST)).thenReturn("http://localhost/^");
+        var t = assertThrows(NuxeoException.class, () -> filter.doFilter(request, response, finisher));
+        assertEquals("java.net.URISyntaxException: Illegal character in path at index 17: http://localhost/^", t.getMessage());
+        assertEquals(SC_BAD_REQUEST, t.getStatusCode());
+        assertFalse(finisher.called);
+    }
+
+    @Test
+    @WithFrameworkProperty(name = PARAM_NUXEO_ALLOWED_HOSTS, value = "localhost")
+    public void testRejectNullResultingVirtualHostFiltering() throws IOException, ServletException {
+        when(request.getServerName()).thenReturn("localhost");
+        when(request.getHeader(NUXEO_VIRTUAL_HOST)).thenReturn("rejectable.null.resulting.host");
+        var t = assertThrows(NuxeoException.class, () -> filter.doFilter(request, response, finisher));
+        assertEquals(
+                "Rejecting null resulting host of url: rejectable.null.resulting.host from nuxeo-virtual-host header",
+                t.getMessage());
+        assertEquals(SC_BAD_REQUEST, t.getStatusCode());
+        assertFalse(finisher.called);
+    }
+
+    @Test
+    @WithFrameworkProperty(name = PARAM_NUXEO_ALLOWED_HOSTS, value = "localhost")
+    public void testDeniedNuxeoVirtualHostFiltering() throws IOException, ServletException {
+        when(request.getServerName()).thenReturn("localhost");
+        when(request.getHeader(NUXEO_VIRTUAL_HOST)).thenReturn("http://not.localhost/");
         filter.doFilter(request, response, finisher);
         assertFalse(finisher.called);
     }
@@ -173,7 +209,7 @@ public class TestNuxeoHostFilter {
     @Test
     @WithFrameworkProperty(name = PARAM_NUXEO_ALLOWED_HOSTS, value = "localhost")
     public void testMultipleHeadersAllowedHostFiltering() throws IOException, ServletException {
-        setMultipleHostHeaders("localhost", "localhost", "localhost");
+        setMultipleHostHeaders("localhost", "localhost", "http://localhost:8080/");
         filter.doFilter(request, response, finisher);
         assertTrue(finisher.called);
     }
@@ -182,7 +218,9 @@ public class TestNuxeoHostFilter {
     @WithFrameworkProperty(name = PARAM_NUXEO_ALLOWED_HOSTS, value = "localhost")
     public void testMultipleHeadersMixedHostFiltering() throws IOException, ServletException {
         setMultipleHostHeaders("localhost", MY_HOST_ORG, "localhost");
-        filter.doFilter(request, response, finisher);
+        var t = assertThrows(NuxeoException.class, () -> filter.doFilter(request, response, finisher));
+        assertEquals("Rejecting null resulting host of url: localhost from nuxeo-virtual-host header", t.getMessage());
+        assertEquals(SC_BAD_REQUEST, t.getStatusCode());
         assertFalse(finisher.called);
     }
 
