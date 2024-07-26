@@ -645,7 +645,7 @@ public class JDBCMapper extends JDBCRowMapper implements Mapper {
             }
             // ps MUST NOT be auto-closed because it's referenced by a cursor
             PreparedStatement ps = connection.prepareStatement(q.selectInfo.sql, ResultSet.TYPE_FORWARD_ONLY,
-                    ResultSet.CONCUR_READ_ONLY, ResultSet.HOLD_CURSORS_OVER_COMMIT);
+                    ResultSet.CONCUR_READ_ONLY);
             ps.setFetchSize(batchSize);
             int i = 1;
             for (Serializable object : q.selectParams) {

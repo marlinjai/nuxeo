@@ -76,6 +76,7 @@ public class ScrollingIndexingWorker extends BaseIndexingWorker implements Work 
     protected void doWork() {
         if (TransactionHelper.isTransactionActiveOrMarkedRollback()) {
             TransactionHelper.commitOrRollbackTransaction();
+            // Use a long transaction for the duration of the scroll
             TransactionHelper.startTransaction(TRANSACTION_TIMEOUT_SECONDS);
         }
         String jobName = getSchedulePath().getPath();
@@ -90,8 +91,6 @@ public class ScrollingIndexingWorker extends BaseIndexingWorker implements Work 
                 scheduleBucketWorker(ret.getResults(), false);
                 bucketCount += 1;
                 ret = session.scroll(ret.getScrollId());
-                TransactionHelper.commitOrRollbackTransaction();
-                TransactionHelper.startTransaction();
             }
             if (syncAlias) {
                 scheduleBucketWorker(Collections.emptyList(), true);

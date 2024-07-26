@@ -50,6 +50,7 @@ import org.nuxeo.runtime.transaction.TransactionHelper;
  * @since 8.3
  */
 public class DocumentsSizeUpdater extends AbstractQuotaStatsUpdater {
+
     private static Logger log = LogManager.getLogger(DocumentsSizeUpdater.class);
 
     public static final String DISABLE_QUOTA_CHECK_LISTENER = "disableQuotaListener";
@@ -79,6 +80,9 @@ public class DocumentsSizeUpdater extends AbstractQuotaStatsUpdater {
 
     /** @since 11.1 */
     public static final int DEFAULT_INIT_SCROLL_KEEP_ALIVE = 120;
+
+    /** @since 2023.17 */
+    protected static final int TRANSACTION_TIMEOUT_SECONDS = 3_600 * 48; // 2 days
 
     @Override
     public void computeInitialStatistics(CoreSession session, QuotaStatsInitialWork currentWorker, String path) {
@@ -132,17 +136,18 @@ public class DocumentsSizeUpdater extends AbstractQuotaStatsUpdater {
 
     protected long scrollAndDo(CoreSession session, String query, int scrollSize, int scrollKeepAlive,
             BiConsumer<String, Long> consumer) {
+        session.save();
+        if (TransactionHelper.isTransactionActiveOrMarkedRollback()) {
+            TransactionHelper.commitOrRollbackTransaction();
+            // Use a long transaction for the duration of the scroll
+            TransactionHelper.startTransaction(TRANSACTION_TIMEOUT_SECONDS);
+        }
         long count = 0;
         ScrollResult<String> scroll = session.scroll(query, scrollSize, scrollKeepAlive);
         while (scroll.hasResults()) {
             for (String uuid : scroll.getResults()) {
                 consumer.accept(uuid, ++count);
             }
-            // commit current scroll
-            session.save();
-            TransactionHelper.commitOrRollbackTransaction();
-            TransactionHelper.startTransaction();
-            // next scroll
             scroll = session.scroll(scroll.getScrollId());
         }
         return count;
