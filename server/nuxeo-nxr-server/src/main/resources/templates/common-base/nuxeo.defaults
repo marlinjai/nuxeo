@@ -204,6 +204,7 @@ kafka.request.timeout.ms=30000
 kafka.session.timeout.ms=50000
 kafka.heartbeat.interval.ms=4000
 kafka.acks=1
+slowConsumer.kafka.max.poll.interval.ms=172800000
 
 # SASL
 kafka.sasl.enabled=false

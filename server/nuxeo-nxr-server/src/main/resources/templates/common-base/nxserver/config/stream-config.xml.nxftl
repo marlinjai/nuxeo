@@ -19,6 +19,10 @@
       <match name="internal/" />
       <match name="retention/" />
     </logConfig>
+    <logConfig name="slowConsumer" type="kafka">
+      <option name="kafkaConfig">slowConsumer</option>
+      <match name="bulk/scroller" />
+    </logConfig>
     <logConfig name="bulk" type="kafka">
       <option name="kafkaConfig">bulk</option>
       <log name="bulk/command" size="${nuxeo.core.bulk.scroller.concurrencyMax}" />
