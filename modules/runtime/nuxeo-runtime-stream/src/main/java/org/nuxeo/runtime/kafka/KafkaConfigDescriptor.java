@@ -19,6 +19,8 @@
  */
 package org.nuxeo.runtime.kafka;
 
+import static java.util.Objects.requireNonNullElse;
+
 import java.util.Properties;
 
 import org.nuxeo.common.xmap.annotation.XNode;
@@ -51,6 +53,7 @@ public class KafkaConfigDescriptor implements Descriptor {
     @XNode("@name")
     public String name;
 
+    @Deprecated
     @XNode("@zkServers")
     public String zkServers;
 
@@ -59,6 +62,10 @@ public class KafkaConfigDescriptor implements Descriptor {
 
     @XNode("@randomPrefix")
     public Boolean randomPrefix = Boolean.FALSE;
+
+    // @since 2023.18
+    @XNode("@copy")
+    public String copy;
 
     @XNode("producer")
     public ProducerProperties producerProperties = new ProducerProperties();
@@ -73,6 +80,29 @@ public class KafkaConfigDescriptor implements Descriptor {
     @Override
     public String getId() {
         return name;
+    }
+
+    // initialize copied properties
+    public void init(KafkaConfigDescriptor source) {
+        if (source == null) {
+            return;
+        }
+        if (source.copy != null) {
+            throw new IllegalArgumentException(
+                    "KafkaConfigDescriptor: " + getId() + " cannot copy another copied configuration");
+        }
+        topicPrefix = requireNonNullElse(topicPrefix, source.topicPrefix);
+        adminProperties.properties = mergeProperties(source.adminProperties.properties, adminProperties.properties);
+        consumerProperties.properties = mergeProperties(source.consumerProperties.properties,
+                consumerProperties.properties);
+        producerProperties.properties = mergeProperties(source.producerProperties.properties,
+                producerProperties.properties);
+    }
+
+    protected Properties mergeProperties(Properties source, Properties update) {
+        Properties sourceProps = (Properties) source.clone();
+        sourceProps.putAll(update);
+        return sourceProps;
     }
 
 }

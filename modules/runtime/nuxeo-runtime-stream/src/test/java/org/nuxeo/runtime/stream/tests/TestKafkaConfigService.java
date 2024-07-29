@@ -22,6 +22,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 import javax.inject.Inject;
@@ -56,6 +57,7 @@ public class TestKafkaConfigService {
         assertNotNull(service.getAdminProperties(config1));
         assertNotNull(service.getConsumerProperties(config1));
         assertNotNull(service.getProducerProperties(config1));
+        assertEquals("5", service.getConsumerProperties(config1).get("max.poll.records"));
         assertEquals("kafka-broker-1:9092,kafka-broker-2:9092",
                 service.getProducerProperties(config1).getProperty("bootstrap.servers"));
         assertNotEquals("RANDOM()", service.getTopicPrefix(config1));
@@ -64,5 +66,18 @@ public class TestKafkaConfigService {
         assertNotNull(service.getConsumerProperties(config2));
         assertNotNull(service.getProducerProperties(config2));
         assertEquals("foo", service.getTopicPrefix(config2));
+
+        // config3 is init with a copy of config1
+        String config3 = "config3";
+        assertEquals(service.getTopicPrefix(config1), service.getTopicPrefix(config3));
+        assertEquals(service.getProducerProperties(config1), service.getProducerProperties(config3));
+        assertEquals(service.getConsumerProperties(config1).get("heartbeat.interval.ms"),
+                service.getConsumerProperties(config3).get("heartbeat.interval.ms"));
+        assertNotNull(service.getConsumerProperties(config3));
+        // overrides
+        assertEquals("1", service.getConsumerProperties(config3).get("max.poll.records"));
+        assertEquals("5", service.getConsumerProperties(config1).get("max.poll.records"));
+        assertEquals("123", service.getConsumerProperties(config3).get("newProp"));
+        assertNull(service.getConsumerProperties(config1).get("newProp"));
     }
 }

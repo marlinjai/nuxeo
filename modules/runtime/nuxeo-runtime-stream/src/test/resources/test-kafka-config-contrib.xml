@@ -26,6 +26,12 @@
       </producer>
     </kafkaConfig>
 
+    <kafkaConfig name="config3" copy="config1">
+      <consumer>
+        <property name="max.poll.records">1</property>
+        <property name="newProp">123</property>
+      </consumer>
+    </kafkaConfig>
   </extension>
 
 </component>
