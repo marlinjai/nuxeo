@@ -579,7 +579,10 @@ public abstract class AbstractSession implements CoreSession, Serializable {
         DocumentModel docModel = readModel(doc);
         options.put(CoreEventConstants.PARENT_PATH, srcDocModel.getParentRef());
         notifyEvent(DocumentEventTypes.DOCUMENT_MOVED, docModel, options, null, comment, true, false);
-
+        if (dst != null && dstDoc.hasFacet(FacetNames.ORDERABLE)) {
+            // the last shall be last
+            orderBefore(dst, name, null);
+        }
         return docModel;
     }
 

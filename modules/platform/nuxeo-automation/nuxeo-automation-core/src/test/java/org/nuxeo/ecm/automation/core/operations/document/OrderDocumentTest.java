@@ -19,6 +19,7 @@
 package org.nuxeo.ecm.automation.core.operations.document;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
@@ -57,9 +58,11 @@ public class OrderDocumentTest {
     @Inject
     AutomationService service;
 
-    protected DocumentModel folder1;
+    protected DocumentModel oFolder1;
 
     protected DocumentModel folder2;
+
+    protected DocumentModel oFolder3;
 
     protected DocumentModel file11;
 
@@ -73,49 +76,62 @@ public class OrderDocumentTest {
 
     protected DocumentModel file21;
 
+    protected DocumentModel file22;
+
+    protected DocumentModel file31;
+
+    protected DocumentModel file32;
+
     protected OperationContext ctx;
 
     @Before
     public void initRepo() throws Exception {
 
-        folder1 = session.createDocumentModel("/", "Folder1", "OrderedFolder");
-        folder1.setPropertyValue("dc:title", "Folder1");
-        folder1 = session.createDocument(folder1);
-        session.save();
+        oFolder1 = session.createDocumentModel("/", "ofolder1", "OrderedFolder");
+        oFolder1.setPropertyValue("dc:title", "Ordered Folder1");
+        oFolder1 = session.createDocument(oFolder1);
 
-        folder2 = session.createDocumentModel("/", "Folder2", "OrderedFolder");
-        folder2.setPropertyValue("dc:title", "Folder1");
-        folder2 = session.createDocument(folder2);
-        session.save();
-
-        file11 = session.createDocumentModel("/Folder1", "File11", "File");
+        file11 = session.createDocumentModel("/ofolder1", "File11", "File");
         file11.setPropertyValue("dc:title", "File11");
         file11 = session.createDocument(file11);
-        session.save();
 
-        file12 = session.createDocumentModel("/Folder1", "File12", "File");
-        file12.setPropertyValue("dc:title", "File11");
+        file12 = session.createDocumentModel("/ofolder1", "File12", "File");
+        file12.setPropertyValue("dc:title", "File12");
         file12 = session.createDocument(file12);
-        session.save();
 
-        file13 = session.createDocumentModel("/Folder1", "File13", "File");
+        file13 = session.createDocumentModel("/ofolder1", "File13", "File");
         file13.setPropertyValue("dc:title", "File13");
         file13 = session.createDocument(file13);
-        session.save();
 
-        file14 = session.createDocumentModel("/Folder1", "File14", "File");
+        file14 = session.createDocumentModel("/ofolder1", "File14", "File");
         file14.setPropertyValue("dc:title", "File14");
         file14 = session.createDocument(file14);
-        session.save();
 
-        file15 = session.createDocumentModel("/Folder1", "File15", "File");
+        file15 = session.createDocumentModel("/ofolder1", "File15", "File");
         file15.setPropertyValue("dc:title", "File15");
         file15 = session.createDocument(file15);
-        session.save();
 
-        file21 = session.createDocumentModel("/Folder2", "File21", "File");
+        folder2 = session.createDocumentModel("/", "folder2", "Folder");
+        folder2.setPropertyValue("dc:title", "Normal Folder 2");
+        folder2 = session.createDocument(folder2);
+
+        file21 = session.createDocumentModel("/folder2", "File21", "File");
         file21.setPropertyValue("dc:title", "File21");
         file21 = session.createDocument(file21);
+
+        file22 = session.createDocumentModel("/folder2", "File22", "File");
+        file22.setPropertyValue("dc:title", "File22");
+        file22 = session.createDocument(file22);
+
+        oFolder3 = session.createDocumentModel("/", "ofolder3", "OrderedFolder");
+        oFolder3 = session.createDocument(oFolder3);
+
+        file31 = session.createDocumentModel("/ofolder3", "File31", "File");
+        file31 = session.createDocument(file31);
+
+        file32 = session.createDocumentModel("/ofolder3", "File32", "File");
+        file32 = session.createDocument(file32);
+
         session.save();
         ctx = new OperationContext(session);
     }
@@ -142,6 +158,10 @@ public class OrderDocumentTest {
         assertEquals(Long.valueOf(2), file13.getPos());
         assertEquals(Long.valueOf(3), file14.getPos());
         assertEquals(Long.valueOf(4), file15.getPos());
+        assertNull(file21.getPos());
+        assertNull(file22.getPos());
+        assertEquals(Long.valueOf(0), file31.getPos());
+        assertEquals(Long.valueOf(1), file32.getPos());
 
         // Effective
         moveBefore(file12, file11);
@@ -235,6 +255,26 @@ public class OrderDocumentTest {
         assertEquals(Long.valueOf(3), file13.getPos());
         assertEquals(Long.valueOf(2), file14.getPos());
         assertEquals(Long.valueOf(4), file15.getPos());
+    }
+
+    @Test
+    public void testMoveIntoOrderedFolder() {
+        assertEquals(Long.valueOf(4), file15.getPos());
+        assertNull(file22.getPos());
+
+        // Move a file from an unordered folder to an ordered folder
+        session.move(file22.getRef(), oFolder1.getRef(), file22.getName());
+        file22 = session.getDocument(file22.getRef());
+        assertEquals(Long.valueOf(5), file22.getPos());
+
+        // Move a file from an ordered to another ordered folder
+        assertEquals(Long.valueOf(0), file31.getPos());
+        assertEquals(Long.valueOf(1), file32.getPos());
+        session.move(file31.getRef(), oFolder1.getRef(), file31.getName());
+        file31 = session.getDocument(file31.getRef());
+        assertEquals(Long.valueOf(6), file31.getPos());
+        // expected, same case than after removal, no ecm:pos changes
+        assertEquals(Long.valueOf(1), file32.getPos());
     }
 
     protected void moveBefore(DocumentModel src, DocumentModel dest) throws OperationException {
