@@ -19,8 +19,12 @@
 package org.nuxeo.ecm.core.model.stream;
 
 import java.io.Serializable;
+import java.util.Collections;
+import java.util.Objects;
+import java.util.Set;
 
 import org.apache.avro.reflect.Nullable;
+import org.apache.commons.lang3.builder.ToStringBuilder;
 
 /**
  * Domain Event for Document.
@@ -58,13 +62,18 @@ public class DocumentDomainEvent implements Serializable {
     @Nullable
     public String seriesId;
 
+    @Nullable
+    public Set<String> facets;
+
+    public Set<String> getFacets() {
+        return Objects.requireNonNullElse(facets, Collections.emptySet());
+    }
+
     public DocumentDomainEvent() {
     }
 
-    @Override public String toString() {
-        return "DocumentDomainEvent{" + "source='" + source + '\'' + ", event='" + event + '\'' + ", repository='"
-                + repository + '\'' + ", id='" + id + '\'' + ", name='" + name + '\'' + ", type='" + type + '\''
-                + ", user='" + user + '\'' + ", isVersion=" + isVersion + ", isProxy=" + isProxy + ", seriesId='"
-                + seriesId + '\'' + '}';
+    @Override
+    public String toString() {
+        return ToStringBuilder.reflectionToString(this);
     }
 }

@@ -81,6 +81,8 @@ public class DocumentDomainEventProducer extends DomainEventProducer {
         event.type = doc.getType().getName();
         event.isVersion = doc.isVersion();
         event.isProxy = doc.isProxy();
+        var facets = doc.getAllFacets();
+        event.facets = facets.isEmpty() ? null : facets;
         if (event.isVersion || event.isProxy) {
             event.seriesId = doc.getVersionSeriesId();
         }

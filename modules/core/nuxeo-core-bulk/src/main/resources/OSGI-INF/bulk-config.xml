@@ -15,6 +15,7 @@
     <schema name="NuxeoLogEvent-2023.7" file="avro/NuxeoLogEvent-0xCA271CCAAF986742.avsc" />
     <schema name="BlobDomainEvent-2023.0,BlobDomainEvent-2021.54" file="avro/BlobDomainEvent-0x12FED19D1674451B.avsc" />
     <schema name="DocumentDomainEvent-2023.3,DocumentDomainEvent-2021.54" file="avro/DocumentDomainEvent-0x65D1150CBADF06B3.avsc" />
+    <schema name="DocumentDomainEvent-2021.58,DocumentDomainEvent-2023.16" file="avro/DocumentDomainEvent-0x10E8C63CCCE89FA9.avsc" />
     <!-- Register 2021 schemas for smooth upgrade -->
     <schema name="Record-2021.0" file="avro/Record-0xEE727BE73E8D498.avsc" />
     <schema name="BulkCommand-2021.6" file="avro/BulkCommand-0x5F64BA8BF77C9B7D.avsc" />
