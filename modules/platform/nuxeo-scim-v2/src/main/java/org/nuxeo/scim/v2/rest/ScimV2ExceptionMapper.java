@@ -45,7 +45,7 @@ public class ScimV2ExceptionMapper extends WebEngineExceptionMapper {
     private static final Logger log = LogManager.getLogger(ScimV2ExceptionMapper.class);
 
     @Context
-    protected HttpHeaders headers;
+    protected HttpHeaders headers; // NOSONAR
 
     @Override
     public Response toResponse(Throwable t) {

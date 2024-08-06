@@ -30,7 +30,6 @@ import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.QueryParam;
 
-import com.sun.jersey.api.core.HttpContext;
 import org.nuxeo.ecm.core.api.NuxeoPrincipal;
 import org.nuxeo.ecm.platform.usermanager.UserManager;
 import org.nuxeo.ecm.webengine.WebEngine;
@@ -40,6 +39,7 @@ import org.nuxeo.runtime.api.Framework;
 import org.nuxeo.scim.v2.api.ScimV2MappingService;
 import org.nuxeo.scim.v2.api.ScimV2QueryContext;
 
+import com.sun.jersey.api.core.HttpContext;
 import com.unboundid.scim2.common.ScimResource;
 import com.unboundid.scim2.common.exceptions.ForbiddenException;
 import com.unboundid.scim2.common.exceptions.ScimException;
@@ -58,7 +58,7 @@ public abstract class ScimV2BaseUMObject {
 
     protected final WebContext webContext;
 
-    public ScimV2BaseUMObject(HttpContext httpContext) {
+    protected ScimV2BaseUMObject(HttpContext httpContext) {
         this.mappingService = Framework.getService(ScimV2MappingService.class);
         this.um = Framework.getService(UserManager.class);
         this.webContext = WebEngine.getActiveContext();
@@ -66,12 +66,12 @@ public abstract class ScimV2BaseUMObject {
         ((DefaultContext) this.webContext).setJerseyContext(null, httpContext);
         // compute base url of the current resource
         var pathAnnotation = getClass().getAnnotation(Path.class);
-        var baseURL = webContext.getServerURL().append(webContext.getUrlPath()).toString(); // http://localhost:8080/nuxeo/scim/v2/Users/foo
-        int idx = baseURL.lastIndexOf(pathAnnotation.value());
+        var serverBaseURL = webContext.getServerURL().append(webContext.getUrlPath()).toString(); // http://localhost:8080/nuxeo/scim/v2/Users/foo
+        int idx = serverBaseURL.lastIndexOf(pathAnnotation.value());
         if (idx > 0) {
-            baseURL = baseURL.substring(0, idx + pathAnnotation.value().length()); // http://localhost:8080/nuxeo/scim/v2/Users
+            serverBaseURL = serverBaseURL.substring(0, idx + pathAnnotation.value().length()); // http://localhost:8080/nuxeo/scim/v2/Users
         }
-        this.baseURL = baseURL;
+        this.baseURL = serverBaseURL;
     }
 
     @GET

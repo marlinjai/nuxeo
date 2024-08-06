@@ -57,26 +57,23 @@ public class UserToGroupObject extends DefaultObject {
     @POST
     public Response doAddUserToGroup() {
         UserManager um = Framework.getService(UserManager.class);
-        checkPrincipalCanAdministerGroupAndUser(um);
+        checkPrincipalCanAdministerGroupAndUser();
         addUserToGroup(principal, group);
         return Response.status(Status.CREATED).entity(um.getPrincipal(principal.getName())).build();
     }
 
-    private void checkPrincipalCanAdministerGroupAndUser(UserManager um) {
+    private void checkPrincipalCanAdministerGroupAndUser() {
         NuxeoPrincipal currentPrincipal = getContext().getCoreSession().getPrincipal();
-        if (!currentPrincipal.isAdministrator()) {
-            if (!currentPrincipal.isMemberOf("powerusers") || !UserRootObject.isAPowerUserEditableUser(principal)
-                    || !GroupRootObject.isAPowerUserEditableGroup(group)) {
-                throw new WebSecurityException("Cannot edit user");
-            }
+        if (!currentPrincipal.isAdministrator()
+                && (!currentPrincipal.isMemberOf("powerusers") || !UserRootObject.isAPowerUserEditableUser(principal)
+                        || !GroupRootObject.isAPowerUserEditableGroup(group))) {
+            throw new WebSecurityException("Cannot edit user");
         }
-
     }
 
     @DELETE
     public Response doRemoveUserFromGroup() {
-        UserManager um = Framework.getService(UserManager.class);
-        checkPrincipalCanAdministerGroupAndUser(um);
+        checkPrincipalCanAdministerGroupAndUser();
         removeUserFromGroup(principal, group);
         return Response.ok(principal.getName()).build();
     }

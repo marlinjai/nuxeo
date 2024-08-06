@@ -63,6 +63,7 @@ import org.nuxeo.runtime.api.Framework;
 import org.nuxeo.runtime.model.ComponentContext;
 import org.nuxeo.runtime.model.ComponentInstance;
 import org.nuxeo.runtime.model.DefaultComponent;
+import org.nuxeo.scim.v2.api.ScimV2Helper;
 import org.nuxeo.scim.v2.api.ScimV2Mapping;
 import org.nuxeo.scim.v2.api.ScimV2MappingService;
 import org.nuxeo.scim.v2.api.ScimV2QueryContext;
@@ -80,7 +81,6 @@ import com.unboundid.scim2.common.ScimResource;
 import com.unboundid.scim2.common.exceptions.BadRequestException;
 import com.unboundid.scim2.common.exceptions.NotImplementedException;
 import com.unboundid.scim2.common.exceptions.ResourceConflictException;
-import com.unboundid.scim2.common.exceptions.ResourceNotFoundException;
 import com.unboundid.scim2.common.exceptions.ScimException;
 import com.unboundid.scim2.common.exceptions.ServerErrorException;
 import com.unboundid.scim2.common.filters.Filter;
@@ -102,42 +102,6 @@ public class ScimV2MappingServiceImpl extends DefaultComponent implements ScimV2
 
     private static final Logger log = LogManager.getLogger(ScimV2MappingServiceImpl.class);
 
-    protected static String getAttribute(Filter filter) {
-        var path = filter.getAttributePath();
-        if (path == null) {
-            return null;
-        }
-        final StringBuilder builder = new StringBuilder();
-        Iterator<Element> it = path.iterator();
-        while (it.hasNext()) {
-            it.next().toString(builder);
-            if (it.hasNext()) {
-                builder.append(".");
-            }
-        }
-        return builder.toString();
-    }
-
-    protected static Object getValue(Filter filter) {
-        ValueNode vn = filter.getComparisonValue();
-        if (vn == null) {
-            return null;
-        } else if (vn instanceof TextNode tn) {
-            var v = tn.asText();
-            try {
-                // may be a string representing an ISO date time
-                return DateUtils.parseISODateTime(v);
-            } catch (DateTimeException e) {
-                return v;
-            }
-        } else if (vn instanceof NumericNode nn) {
-            return nn.numberValue();
-        } else if (vn instanceof BooleanNode bn) {
-            return bn.asBoolean();
-        }
-        return vn.toString();
-    }
-
     protected Deque<ScimV2MappingDescriptor> descriptors = new LinkedList<>();
 
     protected List<String> groupCaseSensitiveFields = new ArrayList<>();
@@ -157,10 +121,9 @@ public class ScimV2MappingServiceImpl extends DefaultComponent implements ScimV2
         // create new group
         DocumentModel newGroup = um.getBareGroupModel();
         newGroup.setProperty(um.getGroupSchemaName(), um.getGroupIdField(), UUID.randomUUID().toString());
-        getMapping().beforeCreateGroup(newGroup, group);
+        newGroup = getMapping().beforeCreateGroup(newGroup, group);
         newGroup = um.createGroup(newGroup);
-        newGroup = getMapping().afterCreateGroup(newGroup, group);
-        return newGroup;
+        return getMapping().afterCreateGroup(newGroup, group);
     }
 
     @Override
@@ -175,8 +138,7 @@ public class ScimV2MappingServiceImpl extends DefaultComponent implements ScimV2
         newUser.setProperty(um.getUserSchemaName(), um.getUserIdField(), userId);
         newUser = getMapping().beforeCreateUser(newUser, user);
         newUser = um.createUser(newUser);
-        newUser = getMapping().afterCreateUser(newUser, user);
-        return newUser;
+        return getMapping().afterCreateUser(newUser, user);
     }
 
     @Override
@@ -185,8 +147,8 @@ public class ScimV2MappingServiceImpl extends DefaultComponent implements ScimV2
     }
 
     @Override
-    public GroupResource getGroupResourceFromNuxeoGroup(DocumentModel userModel, String baseURL) throws ScimException {
-        return getMapping().getGroupResourceFromNuxeoGroup(userModel, baseURL);
+    public GroupResource getGroupResourceFromNuxeoGroup(DocumentModel groupModel, String baseURL) throws ScimException {
+        return getMapping().getGroupResourceFromNuxeoGroup(groupModel, baseURL);
     }
 
     @Override
@@ -212,14 +174,12 @@ public class ScimV2MappingServiceImpl extends DefaultComponent implements ScimV2
 
     @Override
     public DocumentModel patchNuxeoUser(String uid, PatchRequest patch) throws ScimException {
-        UserManager um = Framework.getService(UserManager.class);
-        DocumentModel userModel = getUserModel(um, uid);
+        DocumentModel userModel = ScimV2Helper.getUserModel(uid);
         UserResource userResource = getUserResourceFromNuxeoUser(userModel, null);
         userResource = (UserResource) patchScimResource(userResource, patch);
         userModel = getMapping().beforeUpdateUser(userModel, userResource);
-        um.updateUser(userModel);
-        userModel = getMapping().afterUpdateUser(userModel, userResource);
-        return userModel;
+        Framework.getService(UserManager.class).updateUser(userModel);
+        return getMapping().afterUpdateUser(userModel, userResource);
     }
 
     @Override
@@ -262,22 +222,34 @@ public class ScimV2MappingServiceImpl extends DefaultComponent implements ScimV2
 
     @Override
     public DocumentModel updateNuxeoGroupFromGroupResource(String uid, GroupResource group) throws ScimException {
-        UserManager um = Framework.getService(UserManager.class);
-        DocumentModel groupModel = getGroupModel(um, uid);
+        DocumentModel groupModel = ScimV2Helper.getGroupModel(uid, true);
         groupModel = getMapping().beforeUpdateGroup(groupModel, group);
-        um.updateGroup(groupModel);
-        groupModel = getMapping().afterUpdateGroup(groupModel, group);
-        return groupModel;
+        Framework.getService(UserManager.class).updateGroup(groupModel);
+        return getMapping().afterUpdateGroup(groupModel, group);
     }
 
     @Override
     public DocumentModel updateNuxeoUserFromUserResource(String uid, UserResource user) throws ScimException {
-        UserManager um = Framework.getService(UserManager.class);
-        DocumentModel userModel = getUserModel(um, uid);
+        DocumentModel userModel = ScimV2Helper.getUserModel(uid);
         userModel = getMapping().beforeUpdateUser(userModel, user);
-        um.updateUser(userModel);
-        userModel = getMapping().afterUpdateUser(userModel, user);
-        return userModel;
+        Framework.getService(UserManager.class).updateUser(userModel);
+        return getMapping().afterUpdateUser(userModel, user);
+    }
+
+    protected String getAttribute(Filter filter) {
+        var path = filter.getAttributePath();
+        if (path == null) {
+            return null;
+        }
+        final StringBuilder builder = new StringBuilder();
+        Iterator<Element> it = path.iterator();
+        while (it.hasNext()) {
+            it.next().toString(builder);
+            if (it.hasNext()) {
+                builder.append(".");
+            }
+        }
+        return builder.toString();
     }
 
     protected Predicate getPredicate(Filter filter, ScimV2ResourceType type, BiFunction<String, Object, String> colMap)
@@ -364,6 +336,26 @@ public class ScimV2MappingServiceImpl extends DefaultComponent implements ScimV2
         return queryBuilder;
     }
 
+    protected Object getValue(Filter filter) {
+        ValueNode vn = filter.getComparisonValue();
+        if (vn == null) {
+            return null;
+        } else if (vn instanceof TextNode tn) {
+            var v = tn.asText();
+            try {
+                // may be a string representing an ISO date time
+                return DateUtils.parseISODateTime(v);
+            } catch (DateTimeException e) {
+                return v;
+            }
+        } else if (vn instanceof NumericNode nn) {
+            return nn.numberValue();
+        } else if (vn instanceof BooleanNode bn) {
+            return bn.asBoolean();
+        }
+        return vn.toString();
+    }
+
     protected boolean isCaseSensitive(String attribute, ScimV2ResourceType type) {
         return switch (type) {
             case SCIM_V2_RESOURCE_TYPE_USER -> userCaseSensitiveFields.contains(attribute.toLowerCase());
@@ -392,16 +384,12 @@ public class ScimV2MappingServiceImpl extends DefaultComponent implements ScimV2
             throws ScimException {
         UserManager um = Framework.getService(UserManager.class);
         DocumentModelList list = switch (type) {
-            case SCIM_V2_RESOURCE_TYPE_USER -> Framework.getService(UserManager.class)
-                                                        .searchUsers(getQueryBuilder(queryCtx.getStartIndex(), queryCtx.getCount(),
-                                                                queryCtx.getFilterString(), queryCtx.getSortBy(),
-                                                                queryCtx.isDescending(), type,
-                                                                this::mapUserColumnName));
-            case SCIM_V2_RESOURCE_TYPE_GROUP -> Framework.getService(UserManager.class)
-                                                         .searchGroups(getQueryBuilder(queryCtx.getStartIndex(), queryCtx.getCount(),
-                                                                 queryCtx.getFilterString(), queryCtx.getSortBy(),
-                                                                 queryCtx.isDescending(), type,
-                                                                 this::mapGroupColumnName));
+            case SCIM_V2_RESOURCE_TYPE_USER -> um.searchUsers(
+                    getQueryBuilder(queryCtx.getStartIndex(), queryCtx.getCount(), queryCtx.getFilterString(),
+                            queryCtx.getSortBy(), queryCtx.isDescending(), type, this::mapUserColumnName));
+            case SCIM_V2_RESOURCE_TYPE_GROUP -> um.searchGroups(
+                    getQueryBuilder(queryCtx.getStartIndex(), queryCtx.getCount(), queryCtx.getFilterString(),
+                            queryCtx.getSortBy(), queryCtx.isDescending(), type, this::mapGroupColumnName));
             default -> throw new NotImplementedException("Unsupported resource type: " + type);
         };
         int totalResults;
@@ -419,28 +407,12 @@ public class ScimV2MappingServiceImpl extends DefaultComponent implements ScimV2
             case SCIM_V2_RESOURCE_TYPE_GROUP -> {
                 if (!queryCtx.isContextParamFalse(FETCH_GROUP_MEMBERS_CTX_PARAM)) {
                     // searchGroups lazy fetches attributes such as members
-                    model = um.getGroupModel(model.getId());
+                    model = ScimV2Helper.getGroupModel(model.getId(), true);
                 }
                 yield queryCtx.getTransform().apply(getGroupResourceFromNuxeoGroup(model, queryCtx.getBaseURL()));
             }
             default -> throw new NotImplementedException("Unsupported resource type: " + type);
         })).toList(), queryCtx.getStartIndex() != null ? queryCtx.getStartIndex() : 1, queryCtx.getCount());
-    }
-
-    protected DocumentModel getGroupModel(UserManager userManager, String uid) throws ResourceNotFoundException {
-        DocumentModel groupModel = userManager.getGroupModel(uid);
-        if (groupModel == null) {
-            throw new ResourceNotFoundException("Cannot find group: " + uid);
-        }
-        return groupModel;
-    }
-
-    protected DocumentModel getUserModel(UserManager userManager, String uid) throws ResourceNotFoundException {
-        DocumentModel userModel = userManager.getUserModel(uid);
-        if (userModel == null) {
-            throw new ResourceNotFoundException("Cannot find user: " + uid);
-        }
-        return userModel;
     }
 
     protected ScimResource patchScimResource(ScimResource resource, PatchRequest patch) throws ScimException {
@@ -450,14 +422,14 @@ public class ScimV2MappingServiceImpl extends DefaultComponent implements ScimV2
         } catch (NullPointerException e) {
             // Case of path not provided for a REMOVE operation
             throw new BadRequestException(
-                    "Cannot patch SCIM resource: " + resource.getId() + " with path request: " + patch, NO_TARGET, e);
+                    "Cannot patch SCIM resource: " + resource.getId() + " with patch request: " + patch, NO_TARGET, e);
         }
         ObjectNode node = genericResource.getObjectNode();
         try {
             return JsonUtils.nodeToValue(node, resource.getClass());
         } catch (JsonProcessingException e) {
             throw new ServerErrorException(
-                    "Cannot patch SCIM resource: " + resource.getId() + " with path request: " + patch, null, e);
+                    "Cannot patch SCIM resource: " + resource.getId() + " with patch request: " + patch, null, e);
         }
     }
 }

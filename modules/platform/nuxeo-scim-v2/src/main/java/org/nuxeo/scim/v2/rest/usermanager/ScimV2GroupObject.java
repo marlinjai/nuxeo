@@ -39,9 +39,8 @@ import javax.ws.rs.core.Response;
 
 import org.nuxeo.common.function.ThrowableUnaryOperator;
 import org.nuxeo.ecm.core.api.DocumentModel;
-import org.nuxeo.ecm.core.query.sql.model.Predicates;
-import org.nuxeo.ecm.core.query.sql.model.QueryBuilder;
 import org.nuxeo.ecm.directory.DirectoryException;
+import org.nuxeo.scim.v2.api.ScimV2Helper;
 import org.nuxeo.scim.v2.api.ScimV2QueryContext;
 
 import com.sun.jersey.api.core.HttpContext;
@@ -112,19 +111,7 @@ public class ScimV2GroupObject extends ScimV2BaseUMObject {
     }
 
     protected GroupResource resolveGroupResource(String uid) throws ScimException {
-        DocumentModel groupModel = null;
-        if (isFetchMembers()) {
-            groupModel = um.getGroupModel(uid);
-        } else {
-            // searchGroups lazy fetches attributes such as members
-            var groups = um.searchGroups(new QueryBuilder().predicate(Predicates.like("groupname", uid)).limit(1));
-            if (!groups.isEmpty()) {
-                groupModel = groups.get(0);
-            }
-        }
-        if (groupModel == null) {
-            throw new ResourceNotFoundException("Cannot find group: " + uid); // NOSONAR
-        }
+        DocumentModel groupModel = ScimV2Helper.getGroupModel(uid, isFetchMembers());
         return mappingService.getGroupResourceFromNuxeoGroup(groupModel, baseURL);
     }
 
@@ -161,11 +148,8 @@ public class ScimV2GroupObject extends ScimV2BaseUMObject {
         var uriInfo = webContext.getUriInfo();
         var excludedAttributes = uriInfo.getQueryParameters().getFirst(QUERY_PARAMETER_EXCLUDED_ATTRIBUTES);
         var includedAttributes = uriInfo.getQueryParameters().getFirst(QUERY_PARAMETER_ATTRIBUTES);
-        if ((excludedAttributes != null && excludedAttributes.contains("members"))
-                || includedAttributes != null && !includedAttributes.contains("members")) {
-            return false;
-        }
-        return true;
+        return (excludedAttributes == null || !excludedAttributes.contains("members"))
+                && (includedAttributes == null || includedAttributes.contains("members"));
     }
 
 }

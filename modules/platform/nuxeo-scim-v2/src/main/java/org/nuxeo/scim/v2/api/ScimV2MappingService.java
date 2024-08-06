@@ -20,7 +20,6 @@ package org.nuxeo.scim.v2.api;
 
 import org.nuxeo.ecm.core.api.DocumentModel;
 
-import com.unboundid.scim2.common.GenericScimResource;
 import com.unboundid.scim2.common.ScimResource;
 import com.unboundid.scim2.common.exceptions.ScimException;
 import com.unboundid.scim2.common.messages.ListResponse;
