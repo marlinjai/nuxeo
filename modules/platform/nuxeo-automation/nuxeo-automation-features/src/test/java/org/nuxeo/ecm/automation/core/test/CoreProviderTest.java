@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2006-2011 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2006-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,14 +16,12 @@
  * Contributors:
  *     Nuxeo
  */
-
 package org.nuxeo.ecm.automation.core.test;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
 
 import java.util.Calendar;
 import java.util.HashMap;
@@ -65,10 +63,10 @@ import org.nuxeo.runtime.test.runner.FeaturesRunner;
 public class CoreProviderTest {
 
     @Inject
-    AutomationService service;
+    protected AutomationService service;
 
     @Inject
-    CoreSession session;
+    protected CoreSession session;
 
     @Before
     public void initRepo() throws Exception {
@@ -253,7 +251,7 @@ public class CoreProviderTest {
     @Test
     public void testRunOnPageProviderOperation() throws Exception {
         try (OperationContext context = new OperationContext(session)) {
-            service.run(context, "runOnProviderTestchain");
+            service.run(context, "runOnProviderTestChain");
             DocumentModelList list = (DocumentModelList) context.get("result");
             assertEquals(3, list.size());
         }
@@ -328,17 +326,16 @@ public class CoreProviderTest {
      * @since 7.1
      */
     @Test
-    public void testPageProviderWithNamedParametersInvalid() throws Exception {
+    public void testPageProviderWithNamedParametersInvalid() {
         try (OperationContext ctx = new OperationContext(session)) {
             Map<String, Object> params = getNamedParamsProps("namedParamProviderInvalid", null, null);
-            try {
-                service.run(ctx, DocumentPageProviderOperation.ID, params);
-                fail("Should have raised an OperationException");
-            } catch (OperationException e) {
-                assertNotNull(e.getMessage());
-                assertTrue(e.getMessage().contains(
-                        "Failed to execute query: SELECT * FROM Document where dc:title=:foo ORDER BY dc:title, Lexical Error: Illegal character <:> at offset 38"));
-            }
+            var e = assertThrows(OperationException.class,
+                    () -> service.run(ctx, DocumentPageProviderOperation.ID, params));
+            assertNotNull(e.getMessage());
+            assertTrue(
+                    e.getMessage()
+                     .contains(
+                             "Failed to execute query: SELECT * FROM Document where dc:title=:foo ORDER BY dc:title, Lexical Error: Illegal character <:> at offset 38"));
         }
     }
 
@@ -363,17 +360,16 @@ public class CoreProviderTest {
      * @since 7.1
      */
     @Test
-    public void testPageProviderWithNamedParametersAndDocInvalid() throws Exception {
+    public void testPageProviderWithNamedParametersAndDocInvalid() {
         try (OperationContext ctx = new OperationContext(session)) {
             Map<String, Object> params = getNamedParamsProps("namedParamProviderWithDocInvalid", "np:title", "WS1");
-            try {
-                service.run(ctx, DocumentPageProviderOperation.ID, params);
-                fail("Should have raised an OperationException");
-            } catch (OperationException e) {
-                assertNotNull(e.getMessage());
-                assertTrue(e.getMessage().contains(
-                        "Failed to execute query: SELECT * FROM Document where dc:title=:foo ORDER BY dc:title, Lexical Error: Illegal character <:> at offset 38"));
-            }
+            var e = assertThrows(OperationException.class,
+                    () -> service.run(ctx, DocumentPageProviderOperation.ID, params));
+            assertNotNull(e.getMessage());
+            assertTrue(
+                    e.getMessage()
+                     .contains(
+                             "Failed to execute query: SELECT * FROM Document where dc:title=:foo ORDER BY dc:title, Lexical Error: Illegal character <:> at offset 38"));
         }
     }
 
