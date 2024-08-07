@@ -26,12 +26,17 @@ import static org.junit.Assert.assertTrue;
 import java.util.Calendar;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeoutException;
+import java.util.concurrent.atomic.AtomicLong;
 
 import javax.inject.Inject;
 
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.nuxeo.common.concurrent.ThreadFactories;
+import org.nuxeo.common.function.ThrowableRunnable;
 import org.nuxeo.ecm.automation.AutomationService;
 import org.nuxeo.ecm.automation.OperationChain;
 import org.nuxeo.ecm.automation.OperationContext;
@@ -45,12 +50,19 @@ import org.nuxeo.ecm.automation.jaxrs.io.documents.PaginableDocumentModelListImp
 import org.nuxeo.ecm.core.api.CoreSession;
 import org.nuxeo.ecm.core.api.DocumentModel;
 import org.nuxeo.ecm.core.api.DocumentModelList;
+import org.nuxeo.ecm.core.api.NuxeoException;
+import org.nuxeo.ecm.core.api.PathRef;
 import org.nuxeo.ecm.core.test.CoreFeature;
 import org.nuxeo.ecm.core.test.annotations.Granularity;
 import org.nuxeo.ecm.core.test.annotations.RepositoryConfig;
+import org.nuxeo.ecm.platform.query.api.PageProviderService;
+import org.nuxeo.runtime.api.Framework;
+import org.nuxeo.runtime.kv.KeyValueService;
 import org.nuxeo.runtime.test.runner.Deploy;
 import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.FeaturesRunner;
+import org.nuxeo.runtime.test.runner.TransactionalFeature;
+import org.nuxeo.runtime.transaction.TransactionHelper;
 
 @RunWith(FeaturesRunner.class)
 @Features(CoreFeature.class)
@@ -67,6 +79,9 @@ public class CoreProviderTest {
 
     @Inject
     protected CoreSession session;
+
+    @Inject
+    protected TransactionalFeature txFeature;
 
     @Before
     public void initRepo() throws Exception {
@@ -255,6 +270,58 @@ public class CoreProviderTest {
             DocumentModelList list = (DocumentModelList) context.get("result");
             assertEquals(3, list.size());
         }
+    }
+
+    // NXP-32817
+    @Test
+    public void testRunOnPageProviderOperationDoNotLoopInfinitely() {
+        // we want to check that the operation doesn't end in an infinite loop when there's concurrent update
+        var providerService = Framework.getService(PageProviderService.class);
+        var provider = providerService.getPageProviderDefinition("simpleProviderTest4");
+        var pageSize = provider.getPageSize();
+        var nbDocs = pageSize * 10;
+        for (int i = 0; i < nbDocs; i++) {
+            var doc = session.createDocumentModel("/", "file_%02d".formatted(i), "File");
+            doc.setPropertyValue("dc:format", "before-chain-run");
+            doc.setPropertyValue("dc:title", "file_%02d".formatted(i));
+            session.createDocument(doc);
+        }
+        session.save();
+        txFeature.nextTransaction(); // make the change visible to other threads
+        var executor = Executors.newSingleThreadExecutor(ThreadFactories.newThreadFactory("concurrent-updater", true));
+        try (OperationContext context = new OperationContext(session)) {
+            executor.submit(createRunnableForConcurrentUpdate());
+            var e = assertThrows(NuxeoException.class,
+                    () -> service.run(context, "testRunOnProviderAChainThatChangeTheProviderResult"));
+            assertTrue("Exception message incorrect, actual: " + e.getMessage(),
+                    e.getMessage()
+                     .contains(
+                             "Infinite loop detected while running automation: testUpdateFormat on pageProvider: simpleProviderTest4"));
+        }
+        executor.shutdown();
+    }
+
+    protected Runnable createRunnableForConcurrentUpdate() {
+        var atomicLong = new AtomicLong(0);
+        return () -> TransactionHelper.runInTransaction(ThrowableRunnable.asRunnable(() -> {
+            var keyValueService = Framework.getService(KeyValueService.class);
+            var keyValueStore = keyValueService.getKeyValueStore("concurrentUpdateStore");
+            // wait for the pagination to start
+            long begin = System.currentTimeMillis();
+            while (!"true".equals(keyValueStore.getString("waitForConcurrentUpdate"))) {
+                if (System.currentTimeMillis() - begin > 1_000) {
+                    throw new TimeoutException("Timed out waiting for: concurrentUpdateStore/waitForConcurrentUpdate");
+                }
+                Thread.sleep(100);
+            }
+            // do the update - increment should be in synced with doc under operation processing
+            var doc = session.getDocument(new PathRef("/file_%02d".formatted(atomicLong.getAndIncrement())));
+            doc.setPropertyValue("dc:format", "concurrent-update-outside-chain");
+            session.saveDocument(doc);
+            session.save();
+            // let the chain knows the update is performed
+            keyValueStore.compareAndSet("updateDone", keyValueStore.getString("updateDone"), "true");
+        }));
     }
 
     @Test

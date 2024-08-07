@@ -29,6 +29,14 @@
       <pageSize>2</pageSize>
     </coreQueryPageProvider>
 
+    <coreQueryPageProvider name="simpleProviderTest4">
+      <pattern>
+        SELECT * FROM Document where dc:format=?
+      </pattern>
+      <sort column="dc:title" ascending="true" />
+      <pageSize>2</pageSize>
+    </coreQueryPageProvider>
+
     <coreQueryPageProvider name="namedParamProvider">
       <pattern>
         SELECT * FROM Document where dc:title=:parameter1

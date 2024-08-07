@@ -1,6 +1,8 @@
 <component name="org.nuxeo.ecm.core.automation.test-operations" version="1.0">
 
   <extension target="org.nuxeo.ecm.core.operation.OperationServiceComponent" point="operations">
+    <operation class="org.nuxeo.ecm.automation.core.operations.services.kv.KeyValueStoreSetOperation"/>
+    <operation class="org.nuxeo.ecm.automation.core.operations.services.kv.KeyValueStoreWaitOperation"/>
     <operation class="org.nuxeo.ecm.automation.core.test.PushListElementsOperation"/>
   </extension>
 
@@ -16,6 +18,35 @@
       <operation id="RunOperationOnProvider">
         <param type="string" name="id">testChain</param>
         <param type="boolean" name="isolate">false</param>
+      </operation>
+    </chain>
+    <chain id="testRunOnProviderAChainThatChangeTheProviderResult">
+      <operation id="Repository.PageProvider">
+        <!-- provider querying "SELECT * FROM Document where dc:format=? ORDER BY dc:title" -->
+        <param type="string" name="providerName">simpleProviderTest4</param>
+        <param type="string" name="queryParams">before-chain-run</param>
+      </operation>
+      <operation id="RunOperationOnProvider">
+        <param type="string" name="id">testUpdateFormat</param>
+        <param type="boolean" name="isolate">false</param>
+      </operation>
+    </chain>
+    <chain id="testUpdateFormat">
+      <operation id="Document.SetProperty">
+        <param type="string" name="xpath">dc:format</param>
+        <param type="string" name="value">after-chain-run</param>
+      </operation>
+      <!-- allow to let the test do a concurrent update during the pagination -->
+      <operation id="Test.KeyValueStoreSet">
+        <param type="string" name="keyValueStoreName">concurrentUpdateStore</param>
+        <param type="string" name="key">waitForConcurrentUpdate</param>
+        <param type="string" name="value">true</param>
+      </operation>
+      <!-- allow to resume the processing once the update has been done -->
+      <operation id="Test.KeyValueStoreWait">
+        <param type="string" name="keyValueStoreName">concurrentUpdateStore</param>
+        <param type="string" name="key">updateDone</param>
+        <param type="string" name="value">true</param>
       </operation>
     </chain>
     <chain id="testChainParameterType">
