@@ -26,6 +26,18 @@ import org.apache.logging.log4j.MarkerManager;
  */
 public final class NuxeoLoggingConstants {
 
+    /** A Console appender that prints WARN logs and higher, and logs with {@link #MARKER_CONSOLE_OVERRIDE}. */
+    public static final String APPENDER_CONSOLE = "CONSOLE";
+
+    /** A Console appender that prints INFO logs. */
+    public static final String APPENDER_CONSOLE_INFO = "CONSOLE-INFO";
+
+    /** A Console appender that prints DEBUG logs. */
+    public static final String APPENDER_CONSOLE_DEBUG = "CONSOLE-DEBUG";
+
+    /** A File appender that prints DEBUG logs and higher. */
+    public static final String APPENDER_FILE = "FILE";
+
     public static final Marker MARKER_CONSOLE_OVERRIDE = MarkerManager.getMarker("CONSOLE_OVERRIDE");
 
     private NuxeoLoggingConstants() {

@@ -46,4 +46,7 @@ public @interface LoggerLevel {
 
     /** The logger class on which we want to set the logger level **/
     Class<?> klass() default Object.class;
+
+    /** The log appender names to configure if not empty. The logger has additivity by default. */
+    String[] appenders() default {};
 }

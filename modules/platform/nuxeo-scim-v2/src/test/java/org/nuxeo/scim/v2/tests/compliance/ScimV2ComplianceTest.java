@@ -20,6 +20,7 @@
 package org.nuxeo.scim.v2.tests.compliance;
 
 import static org.junit.Assert.assertTrue;
+import static org.nuxeo.common.test.logging.NuxeoLoggingConstants.APPENDER_CONSOLE_INFO;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -38,6 +39,7 @@ import org.nuxeo.runtime.api.Framework;
 import org.nuxeo.runtime.test.runner.Deploy;
 import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.FeaturesRunner;
+import org.nuxeo.runtime.test.runner.LoggerLevel;
 import org.nuxeo.scim.v2.api.ScimV2MappingService;
 import org.nuxeo.scim.v2.tests.ScimV2Feature;
 import org.wso2.scim2.testsuite.core.entities.TestResult;
@@ -60,6 +62,7 @@ import org.wso2.scim2.testsuite.core.utils.ComplianceConstants;
 @Features(ScimV2Feature.class)
 @Deploy("org.nuxeo.scim.v2:test-scim-v2-user-schema-override.xml")
 @Deploy("org.nuxeo.scim.v2:test-scim-v2-mapping-contrib.xml")
+@LoggerLevel(name = "org.nuxeo.scim.v2.tests.compliance", level = "DEBUG", appenders = APPENDER_CONSOLE_INFO)
 public class ScimV2ComplianceTest {
 
     private static final Logger log = LogManager.getLogger(ScimV2ComplianceTest.class);
