@@ -190,16 +190,17 @@ public class S3BlobProvider extends BlobStoreBlobProvider implements S3ManagedTr
         Date expiration = new Date(System.currentTimeMillis() + config.directDownloadExpire * 1000);
         try {
             if (config.cloudFront.enabled) {
-                return getURICloudFront(bucketKey, blob, expiration);
+                return getURICloudFront(bucketKey, blob, expiration, servletRequest);
             } else {
-                return getURIS3(bucketKey, blob, expiration);
+                return getURIS3(bucketKey, blob, expiration, servletRequest);
             }
         } catch (URISyntaxException e) {
             throw new IOException(e);
         }
     }
 
-    protected URI getURICloudFront(String bucketKey, ManagedBlob blob, Date expiration) throws URISyntaxException {
+    protected URI getURICloudFront(String bucketKey, ManagedBlob blob, Date expiration,
+            HttpServletRequest servletRequest) throws URISyntaxException {
         String[] parts = bucketKey.split(String.valueOf(VER_SEP));
         bucketKey = parts[0];
         CloudFrontConfiguration cloudFront = config.cloudFront;
@@ -212,7 +213,7 @@ public class S3BlobProvider extends BlobStoreBlobProvider implements S3ManagedTr
             uriBuilder.addParameter("versionId", parts[1]);
         }
         uriBuilder.addParameter("response-content-type", getContentTypeHeader(blob));
-        uriBuilder.addParameter("response-content-disposition", getContentDispositionHeader(blob));
+        uriBuilder.addParameter("response-content-disposition", getContentDispositionHeader(blob, servletRequest));
         if (cloudFront.fixEncoding) {
             // remove spaces in the values, as they're not encoded correctly due to a bug somewhere
             // this happens in particular for the Content-Disposition header
@@ -233,7 +234,8 @@ public class S3BlobProvider extends BlobStoreBlobProvider implements S3ManagedTr
         }
     }
 
-    protected URI getURIS3(String bucketKey, ManagedBlob blob, Date expiration) throws URISyntaxException {
+    protected URI getURIS3(String bucketKey, ManagedBlob blob, Date expiration, HttpServletRequest servletRequest)
+            throws URISyntaxException {
         // split version id if part of file key
         String[] parts = bucketKey.split(String.valueOf(VER_SEP));
         GeneratePresignedUrlRequest request = new GeneratePresignedUrlRequest(config.bucketName, parts[0],
@@ -242,7 +244,7 @@ public class S3BlobProvider extends BlobStoreBlobProvider implements S3ManagedTr
             request.setVersionId(parts[1]);
         }
         request.addRequestParameter("response-content-type", getContentTypeHeader(blob));
-        request.addRequestParameter("response-content-disposition", getContentDispositionHeader(blob));
+        request.addRequestParameter("response-content-disposition", getContentDispositionHeader(blob, servletRequest));
         request.setExpiration(expiration);
         URL url = config.amazonS3.generatePresignedUrl(request);
         return url.toURI();
@@ -252,8 +254,12 @@ public class S3BlobProvider extends BlobStoreBlobProvider implements S3ManagedTr
         return DownloadHelper.getContentTypeHeader(blob);
     }
 
-    protected String getContentDispositionHeader(Blob blob) {
-        return RFC2231.encodeContentDisposition(blob.getFilename(), false, null);
+    protected String getContentDispositionHeader(Blob blob, HttpServletRequest servletRequest) {
+        if (servletRequest != null) {
+            return DownloadHelper.getRFC2231ContentDisposition(servletRequest, blob.getFilename());
+        } else {
+            return RFC2231.encodeContentDisposition(blob.getFilename(), false, null);
+        }
     }
 
     @Override
