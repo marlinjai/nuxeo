@@ -138,7 +138,8 @@ public class ScimV2GroupObject extends ScimV2BaseUMObject {
             throw new BadRequestException("Cannot patch group without a patch request resource as request body",
                     INVALID_SYNTAX);
         }
-        DocumentModel groupModel = mappingService.patchNuxeoGroup(uid, patch);
+        mappingService.patchNuxeoGroup(uid, patch);
+        DocumentModel groupModel = ScimV2Helper.getGroupModel(uid, isFetchMembers());
         return mappingService.getGroupResourceFromNuxeoGroup(groupModel, baseURL);
     }
 

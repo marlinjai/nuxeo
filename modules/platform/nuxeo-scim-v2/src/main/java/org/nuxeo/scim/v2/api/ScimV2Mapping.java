@@ -123,6 +123,26 @@ public interface ScimV2Mapping {
     String getGroupAttributeName(String scimAttribute, Object filterValue);
 
     /**
+     * Gets the Nuxeo group model attribute name matching the SCIM attribute name used in SCIM patch request path
+     * filtering. E.g. in this case, the SCIM attribute to map is "value":
+     *
+     * <pre>{@code
+     * {
+     *   "schemas":["urn:ietf:params:scim:api:messages:2.0:PatchOp"],
+     *   "Operations":[{
+     *     "op":"remove",
+     *     "path":"members[value eq \"someGroupId\"]"
+     *    }]
+     * }
+     * }</pre>
+     *
+     * @param scimAttribute the SCIM attribute name
+     * @param filterValue the value of a filter expression to be converted if any
+     * @return the matching group model attribute
+     */
+    String getGroupMemberAttributeName(String scimAttribute, Object filterValue);
+
+    /**
      * Gets a group resource representation of a group model.
      *
      * @param groupModel the group model
@@ -143,6 +163,26 @@ public interface ScimV2Mapping {
     String getUserAttributeName(String scimAttribute, Object filterValue);
 
     /**
+     * Gets the Nuxeo user model attribute name matching the SCIM attribute name used in SCIM patch request path
+     * filtering. E.g. in this case, the SCIM attribute to map is "value":
+     *
+     * <pre>{@code
+     * {
+     *   "schemas":["urn:ietf:params:scim:api:messages:2.0:PatchOp"],
+     *   "Operations":[{
+     *     "op":"remove",
+     *     "path":"members[value eq \"someUserId\"]"
+     *    }]
+     * }
+     * }</pre>
+     *
+     * @param scimAttribute the SCIM attribute name
+     * @param filterValue the value of a filter expression to be converted if any
+     * @return the matching user model attribute
+     */
+    String getUserMemberAttributeName(String scimAttribute, Object filterValue);
+
+    /**
      * Gets a user resource representation of a user model.
      *
      * @param userModel the user model
@@ -151,5 +191,17 @@ public interface ScimV2Mapping {
      * @throws ScimException if an error occurred
      */
     UserResource getUserResourceFromNuxeoUser(DocumentModel userModel, String baseURL) throws ScimException;
+
+    /**
+     * Hook to be executed when a group is patched using JSON patch.
+     * <p>
+     * This is called when handling the attributes othen than "members" in a patch request operation.
+     *
+     * @param groupModel the group model to patch
+     * @param groupResource the group resource from which the group model is patched
+     * @return the patched group model
+     * @throws ScimException if an error occurred
+     */
+    DocumentModel patchGroup(DocumentModel groupModel, GroupResource groupResource) throws ScimException;
 
 }

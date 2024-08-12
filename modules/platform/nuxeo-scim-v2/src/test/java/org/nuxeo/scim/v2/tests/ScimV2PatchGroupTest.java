@@ -42,7 +42,9 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.unboundid.scim2.common.exceptions.BadRequestException;
+import com.unboundid.scim2.common.exceptions.NotImplementedException;
 import com.unboundid.scim2.common.exceptions.ScimException;
+import com.unboundid.scim2.common.exceptions.ServerErrorException;
 import com.unboundid.scim2.common.messages.PatchOpType;
 import com.unboundid.scim2.common.messages.PatchOperation;
 import com.unboundid.scim2.common.messages.PatchRequest;
@@ -76,18 +78,20 @@ public class ScimV2PatchGroupTest {
     public void testAdd1() throws JsonProcessingException, ScimException {
         newGroupModel("people", null); // NOSONAR
         var patch = newPatchRequest(ADD, null, "{\"displayName\":\"People\"}");
-        var groupModel = mappingService.patchNuxeoGroup("people", patch);
-        checkGroupModel(groupModel, "people", "People"); // NOSONAR
+        mappingService.patchNuxeoGroup("people", patch);
+        checkGroupModel("people", "People"); // NOSONAR
     }
 
     // RFC example: same as testAdd1 but with a set of attributes, among which a multi-valued attribute
     @Test
     public void testAdd1bis() throws JsonProcessingException, ScimException {
         newGroupModel("people", null, null, null);
+        createUser("joe");
+        createGroup("fooGroup"); // NOSONAR
         var patch = newPatchRequest(ADD, null,
-                "{\"displayName\":\"People\",\"members\":[{\"value\":\"joe\",\"type\":\"User\"},{\"value\":\"subGroup\",\"type\":\"Group\"}]}");
-        var groupModel = mappingService.patchNuxeoGroup("people", patch);
-        checkGroupModel(groupModel, "people", "People", List.of("joe"), List.of("subGroup"));
+                "{\"displayName\":\"People\",\"members\":[{\"value\":\"joe\",\"type\":\"User\"},{\"value\":\"fooGroup\",\"type\":\"Group\"}]}");
+        mappingService.patchNuxeoGroup("people", patch);
+        checkGroupModel("people", "People", List.of("joe"), List.of("fooGroup"));
     }
 
     // If the target location does not exist, the attribute and value are added.
@@ -95,8 +99,8 @@ public class ScimV2PatchGroupTest {
     public void testAdd2() throws JsonProcessingException, ScimException {
         newGroupModel("people", null);
         var patch = newPatchRequest(ADD, "displayName", "\"People\""); // NOSONAR
-        var groupModel = mappingService.patchNuxeoGroup("people", patch);
-        checkGroupModel(groupModel, "people", "People");
+        mappingService.patchNuxeoGroup("people", patch);
+        checkGroupModel("people", "People");
     }
 
     // If the target location specifies a complex attribute, a set of sub-attributes SHALL be specified in the "value"
@@ -106,10 +110,13 @@ public class ScimV2PatchGroupTest {
     // If the target location specifies a multi-valued attribute, a new value is added to the attribute.
     @Test
     public void testAdd4() throws JsonProcessingException, ScimException {
-        newGroupModel("people", null, List.of("joe"), null);
-        var patch = newPatchRequest(ADD, "members", "[{\"value\":\"jack\",\"type\":\"User\"}]"); // NOSONAR
-        var groupModel = mappingService.patchNuxeoGroup("people", patch);
-        checkGroupModel(groupModel, "people", null, List.of("joe", "jack"), List.of());
+        newGroupModel("people", null, List.of("joe"), List.of("fooGroup")); // NOSONAR
+        createUser("jack");
+        createGroup("barGroup"); // NOSONAR
+        var patch = newPatchRequest(ADD, "members", // NOSONAR
+                "[{\"value\":\"jack\",\"type\":\"User\"},{\"value\":\"barGroup\",\"type\":\"Group\"}]");
+        mappingService.patchNuxeoGroup("people", patch);
+        checkGroupModel("people", null, List.of("jack", "joe"), List.of("barGroup", "fooGroup"));
     }
 
     // If the target location specifies a single-valued attribute, the existing value is replaced.
@@ -117,8 +124,8 @@ public class ScimV2PatchGroupTest {
     public void testAdd5() throws JsonProcessingException, ScimException {
         newGroupModel("people", "People");
         var patch = newPatchRequest(ADD, "displayName", "\"Employees\"");
-        var groupModel = mappingService.patchNuxeoGroup("people", patch);
-        checkGroupModel(groupModel, "people", "Employees"); // NOSONAR
+        mappingService.patchNuxeoGroup("people", patch);
+        checkGroupModel("people", "Employees"); // NOSONAR
     }
 
     // If the target location specifies an attribute that does not exist (has no value), the attribute is added with the
@@ -135,8 +142,8 @@ public class ScimV2PatchGroupTest {
     public void testAdd8() throws JsonProcessingException, ScimException {
         newGroupModel("people", "People");
         var patch = newPatchRequest(ADD, "displayName", "\"People\"");
-        var groupModel = mappingService.patchNuxeoGroup("people", patch);
-        checkGroupModel(groupModel, "people", "People");
+        mappingService.patchNuxeoGroup("people", patch);
+        checkGroupModel("people", "People");
     }
 
     // ------------------------------ Remove ------------------------------
@@ -158,18 +165,18 @@ public class ScimV2PatchGroupTest {
         // simple attribute
         newGroupModel("people", "People");
         var patch = newRemovePatchRequest("displayName");
-        var groupModel = mappingService.patchNuxeoGroup("people", patch);
-        checkGroupModel(groupModel, "people", null);
+        mappingService.patchNuxeoGroup("people", patch);
+        checkGroupModel("people", null);
     }
 
     // If the target location is a multi-valued attribute and no filter is specified, the attribute and all values are
     // removed, and the attribute SHALL be considered unassigned.
     @Test
     public void testRemove3() throws ScimException {
-        newGroupModel("people", "People", List.of("joe", "jack"), null);
+        newGroupModel("people", "People", List.of("joe", "jack"), List.of("fooGroup", "barGroup")); //  NOSONAR
         var patch = newRemovePatchRequest("members");
-        var groupModel = mappingService.patchNuxeoGroup("people", patch);
-        checkGroupModel(groupModel, "people", "People", List.of(), List.of());
+        mappingService.patchNuxeoGroup("people", patch);
+        checkGroupModel("people", "People", List.of(), List.of());
     }
 
     // If the target location is a multi-valued attribute and a complex filter is specified comparing a "value", the
@@ -177,13 +184,13 @@ public class ScimV2PatchGroupTest {
     // multi-valued attribute SHALL be considered unassigned.
     @Test
     public void testRemove4() throws ScimException {
-        newGroupModel("people", "People", List.of("joe", "jack"), null);
-        var patch = newRemovePatchRequest("members[value eq \"joe\"]");
-        var groupModel = mappingService.patchNuxeoGroup("people", patch);
-        checkGroupModel(groupModel, "people", "People", List.of("jack"), List.of());
-        patch = newRemovePatchRequest("members[value eq \"jack\"]");
-        groupModel = mappingService.patchNuxeoGroup("people", patch);
-        checkGroupModel(groupModel, "people", "People", List.of(), List.of());
+        newGroupModel("people", "People", List.of("joe", "jack"), List.of("fooGroup", "jackGroup"));
+        var patch = newRemovePatchRequest("members[value eq \"joe\" or value eq \"fooGroup\"]");
+        mappingService.patchNuxeoGroup("people", patch);
+        checkGroupModel("people", "People", List.of("jack"), List.of("jackGroup"));
+        patch = newRemovePatchRequest("members[value sw \"jack\"]");
+        mappingService.patchNuxeoGroup("people", patch);
+        checkGroupModel("people", "People", List.of(), List.of());
     }
 
     // If the target location is a complex multi-valued attribute and a complex filter is specified based on the
@@ -201,8 +208,20 @@ public class ScimV2PatchGroupTest {
     public void testReplace1() throws JsonProcessingException, ScimException {
         newGroupModel("people", "People");
         var patch = newPatchRequest(REPLACE, null, "{\"displayName\":\"Employees\"}");
-        var groupModel = mappingService.patchNuxeoGroup("people", patch);
-        checkGroupModel(groupModel, "people", "Employees");
+        mappingService.patchNuxeoGroup("people", patch);
+        checkGroupModel("people", "Employees");
+    }
+
+    // RFC example: same as testReplace1 but with a set of attributes, among which a multi-valued attribute
+    @Test
+    public void testReplace1bis() throws JsonProcessingException, ScimException {
+        newGroupModel("people", "People", List.of("joe"), List.of("fooGroup"));
+        createUser("jack");
+        createGroup("barGroup");
+        var patch = newPatchRequest(REPLACE, null,
+                "{\"displayName\":\"Employees\",\"members\":[{\"value\":\"jack\",\"type\":\"User\"},{\"value\":\"barGroup\",\"type\":\"Group\"}]}");
+        mappingService.patchNuxeoGroup("people", patch);
+        checkGroupModel("people", "Employees", List.of("jack"), List.of("barGroup"));
     }
 
     // If the target location is a single-value attribute, the attributes value is replaced.
@@ -210,18 +229,22 @@ public class ScimV2PatchGroupTest {
     public void testReplace2() throws JsonProcessingException, ScimException {
         newGroupModel("people", "People");
         var patch = newPatchRequest(REPLACE, "displayName", "\"Employees\"");
-        var groupModel = mappingService.patchNuxeoGroup("people", patch);
-        checkGroupModel(groupModel, "people", "Employees");
+        mappingService.patchNuxeoGroup("people", patch);
+        checkGroupModel("people", "Employees");
     }
 
     // If the target location is a multi-valued attribute and no filter is specified, the attribute and all values are
     // replaced
     @Test
     public void testReplace3() throws JsonProcessingException, ScimException {
-        newGroupModel("people", "People", List.of("joe", "jack"), null);
-        var patch = newPatchRequest(REPLACE, "members", "[{\"value\":\"foo\"},{\"value\":\"bar\"}]");
-        var groupModel = mappingService.patchNuxeoGroup("people", patch);
-        checkGroupModel(groupModel, "people", "People", List.of("foo", "bar"), List.of());
+        newGroupModel("people", "People", List.of("joe", "jack"), List.of("fooGroup"));
+        createUser("foo");
+        createUser("bar");
+        createGroup("barGroup");
+        var patch = newPatchRequest(REPLACE, "members",
+                "[{\"value\":\"foo\"},{\"value\":\"bar\"},{\"value\":\"barGroup\",\"type\":\"Group\"}]");
+        mappingService.patchNuxeoGroup("people", patch);
+        checkGroupModel("people", "People", List.of("bar", "foo"), List.of("barGroup"));
     }
 
     // If the target location path specifies an attribute that does not exist, the service provider SHALL treat the
@@ -230,8 +253,8 @@ public class ScimV2PatchGroupTest {
     public void testReplace4() throws JsonProcessingException, ScimException {
         newGroupModel("people", null, null, null);
         var patch = newPatchRequest(REPLACE, "displayName", "\"People\"");
-        var groupModel = mappingService.patchNuxeoGroup("people", patch);
-        checkGroupModel(groupModel, "people", "People");
+        mappingService.patchNuxeoGroup("people", patch);
+        checkGroupModel("people", "People");
     }
 
     // If the target location specifies a complex attribute, a set of sub-attributes SHALL be specified in the "value"
@@ -243,21 +266,25 @@ public class ScimV2PatchGroupTest {
     // matches one or more values of the multi-valued attribute, then all matching record values SHALL be replaced.
     @Test
     public void testReplace6() throws JsonProcessingException, ScimException {
-        newGroupModel("people", "People", List.of("joe", "joey"), List.of());
+        newGroupModel("people", "People", List.of("joe", "joey"), List.of("fooGroup", "groupJoey"));
+        createUser("jack");
         var patch = newPatchRequest(REPLACE, "members[value ew \"oey\"]", "{\"value\":\"jack\"}");
-        var groupModel = mappingService.patchNuxeoGroup("people", patch);
-        checkGroupModel(groupModel, "people", "People", List.of("joe", "jack"), List.of());
+        mappingService.patchNuxeoGroup("people", patch);
+        checkGroupModel("people", "People", List.of("jack", "joe"), List.of("fooGroup", "groupJoey"));
     }
 
     // If the target location is a complex multi-valued attribute with a value selection filter ("valuePath") and a
     // specific sub-attribute (e.g., "addresses[type eq "work"].streetAddress"), the matching sub-attribute of all
     // matching records is replaced.
+    //
+    // We don't support this case for a Group resource in our implementation. We consider it as an invalid path since
+    // the only complex multi-valued attribute of a Group resource is "members", whose sub-attributes are all immutable.
     @Test
     public void testReplace7() throws JsonProcessingException, ScimException {
         newGroupModel("people", "People", List.of("joe", "joey"), List.of());
+        createUser("jack");
         var patch = newPatchRequest(REPLACE, "members[value ew \"oey\"].value", "\"jack\"");
-        var groupModel = mappingService.patchNuxeoGroup("people", patch);
-        checkGroupModel(groupModel, "people", "People", List.of("joe", "jack"), List.of());
+        assertThrows(BadRequestException.class, () -> mappingService.patchNuxeoGroup("people", patch));
     }
 
     // If the target location is a multi-valued attribute for which a value selection filter ("valuePath") has been
@@ -270,28 +297,112 @@ public class ScimV2PatchGroupTest {
         assertThrows(BadRequestException.class, () -> mappingService.patchNuxeoGroup("people", patch));
     }
 
+    // ------------------------------ Additional use cases ------------------------------
+
+    // A value must be specified in a patch operation with an unspecified path
+    @Test
+    public void testAdditional1() {
+        assertThrows(IllegalArgumentException.class, () -> newPatchRequest(ADD, null, null));
+    }
+
+    // The value of a patch operation with an unspecified path must be an object
+    @Test
+    public void testAdditional2() {
+        assertThrows(IllegalArgumentException.class, () -> newPatchRequest(ADD, null, "\"foo\""));
+    }
+
+    // The "members" attribute in the value of a patch operation must be an array
+    @Test
+    public void testAdditional3() throws JsonProcessingException, ScimException {
+        newGroupModel("people", null);
+        var patch = newPatchRequest(ADD, null, "{\"members\":\"bar\"}");
+        assertThrows(BadRequestException.class, () -> mappingService.patchNuxeoGroup("people", patch));
+    }
+
+    // The "members" attribute in the value of a patch operation with an unspecified path must be an array of Member
+    // objects
+    @Test
+    public void testAdditional4() throws JsonProcessingException, ScimException {
+        newGroupModel("people", null);
+        var patch = newPatchRequest(ADD, null, "{\"members\":[{\"foo\":\"bar\"}]}");
+        assertThrows(ServerErrorException.class, () -> mappingService.patchNuxeoGroup("people", patch));
+    }
+
+    // The value of an "add" or "replace" patch operation with a "members" path must be an array of Member objects
+    @Test
+    public void testAdditional5() throws JsonProcessingException, ScimException {
+        newGroupModel("people", null);
+        var patch = newPatchRequest(ADD, "members", "[{\"foo\":\"bar\"}]");
+        assertThrows(ServerErrorException.class, () -> mappingService.patchNuxeoGroup("people", patch));
+    }
+
+    // The path of an "add" patch operation must not include any value selection filters
+    @Test
+    public void testAdditional6() {
+        assertThrows(IllegalArgumentException.class,
+                () -> newPatchRequest(ADD, "members[value eq \"joe\"]", "{\"value\":\"jack\"}")); // NOSONAR
+    }
+
+    // The value of a "replace" patch operation with a "members" path must be a Member object
+    @Test
+    public void testAdditional7() throws JsonProcessingException, ScimException {
+        newGroupModel("people", null);
+        var patch = newPatchRequest(REPLACE, "members[value eq \"joe\"]", "\"foo\"");
+        assertThrows(ServerErrorException.class, () -> mappingService.patchNuxeoGroup("people", patch));
+    }
+
+    // The "type" attribute in a value selection filter of a patch operation is not handled
+    @Test
+    public void testAdditional8() throws ScimException {
+        newGroupModel("people", null);
+        var patch = newRemovePatchRequest("members[type eq \"User\" and value eq \"joe\"]");
+        assertThrows(NotImplementedException.class, () -> mappingService.patchNuxeoGroup("people", patch));
+    }
+
+    // Multiple operations
+    @Test
+    public void testAdditional9() throws JsonProcessingException, ScimException {
+        newGroupModel("people", "People", List.of("joe", "jack"), List.of("fooGroup", "barGroup"));
+        createUser("foo");
+        createGroup("zooGroup");
+        var op1 = newRemovePatchOperation("members[value eq \"joe\"]");
+        var op2 = newPatchOperation(ADD, null, "{\"displayName\":\"Employees\",\"members\":[{\"value\":\"foo\"}]}");
+        var op3 = newPatchOperation(REPLACE, "members[value ew \"Group\"]",
+                "{\"value\":\"zooGroup\",\"type\":\"Group\"}");
+        var patch = new PatchRequest(op1, op2, op3);
+        mappingService.patchNuxeoGroup("people", patch);
+        checkGroupModel("people", "Employees", List.of("foo", "jack"), List.of("zooGroup"));
+    }
+
     protected PatchRequest newPatchRequest(PatchOpType op, String path, String value)
             throws JsonProcessingException, ScimException {
+        PatchOperation operation = newPatchOperation(op, path, value);
+        return new PatchRequest(operation);
+    }
+
+    protected PatchOperation newPatchOperation(PatchOpType op, String path, String value)
+            throws JsonProcessingException, ScimException {
         JsonNode node = MAPPER.readTree(value);
-        PatchOperation operation = switch (op) {
+        return switch (op) {
             case ADD -> path == null ? PatchOperation.add(node) : PatchOperation.add(path, node);
             case REMOVE -> PatchOperation.remove(path);
             case REPLACE -> PatchOperation.replace(path, node);
         };
-        return new PatchRequest(operation);
     }
 
     protected PatchRequest newRemovePatchRequest(String path) throws ScimException {
-        PatchOperation operation = PatchOperation.remove(path);
+        PatchOperation operation = newRemovePatchOperation(path);
         return new PatchRequest(operation);
     }
 
+    protected PatchOperation newRemovePatchOperation(String path) throws ScimException {
+        return PatchOperation.remove(path);
+    }
+
     protected DocumentModel newGroupModel(String groupName, String groupLabel) {
-        Objects.requireNonNull(groupName);
-        var groupModel = userManager.getBareGroupModel();
-        groupModel.setPropertyValue("group:groupname", groupName);
+        DocumentModel groupModel = createGroup(groupName);
         groupModel.setPropertyValue("group:grouplabel", groupLabel);
-        groupModel = userManager.createGroup(groupModel);
+        userManager.updateGroup(groupModel);
         return groupModel;
     }
 
@@ -300,9 +411,7 @@ public class ScimV2PatchGroupTest {
         var groupModel = newGroupModel(groupName, groupLabel);
         if (members != null) {
             for (String member : members) {
-                var userModel = userManager.getBareUserModel();
-                userModel.setPropertyValue("username", member);
-                userManager.createUser(userModel);
+                createUser(member);
             }
         }
         groupModel.setPropertyValue("group:members", (Serializable) members);
@@ -318,15 +427,32 @@ public class ScimV2PatchGroupTest {
         return groupModel;
     }
 
-    protected void checkGroupModel(DocumentModel groupModel, String groupName, String groupLabel) {
-        assertEquals(groupName, groupModel.getPropertyValue("group:groupname"));
-        assertEquals(groupLabel, groupModel.getPropertyValue("group:grouplabel"));
+    protected DocumentModel createUser(String username) {
+        Objects.requireNonNull(username);
+        var userModel = userManager.getBareUserModel();
+        userModel.setPropertyValue("username", username);
+        return userManager.createUser(userModel);
     }
 
-    protected void checkGroupModel(DocumentModel groupModel, String groupName, String groupLabel, List<String> members,
+    protected DocumentModel createGroup(String groupName) {
+        Objects.requireNonNull(groupName);
+        var groupModel = userManager.getBareGroupModel();
+        groupModel.setPropertyValue("group:groupname", groupName);
+        return userManager.createGroup(groupModel);
+    }
+
+    protected DocumentModel checkGroupModel(String groupName, String groupLabel) {
+        var groupModel = userManager.getGroupModel(groupName);
+        assertEquals(groupName, groupModel.getPropertyValue("group:groupname"));
+        assertEquals(groupLabel, groupModel.getPropertyValue("group:grouplabel"));
+        return groupModel;
+    }
+
+    protected DocumentModel checkGroupModel(String groupName, String groupLabel, List<String> members,
             List<String> subGroups) {
-        checkGroupModel(groupModel, groupName, groupLabel);
+        var groupModel = checkGroupModel(groupName, groupLabel);
         assertEquals(members, groupModel.getPropertyValue("group:members"));
         assertEquals(subGroups, groupModel.getPropertyValue("group:subGroups"));
+        return groupModel;
     }
 }

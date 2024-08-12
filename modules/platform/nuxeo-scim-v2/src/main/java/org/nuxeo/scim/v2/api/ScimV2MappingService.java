@@ -82,10 +82,9 @@ public interface ScimV2MappingService {
      *
      * @param uid the group uid
      * @param patch the patch request
-     * @return the patched group
      * @throws ScimException if an error occurred
      */
-    DocumentModel patchNuxeoGroup(String uid, PatchRequest patch) throws ScimException;
+    void patchNuxeoGroup(String uid, PatchRequest patch) throws ScimException;
 
     /**
      * Patches a Nuxeo user model according to the patch request.

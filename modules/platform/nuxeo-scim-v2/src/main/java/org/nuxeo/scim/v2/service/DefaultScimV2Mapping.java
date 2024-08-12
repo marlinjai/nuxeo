@@ -211,6 +211,14 @@ public class DefaultScimV2Mapping implements ScimV2Mapping {
     }
 
     @Override
+    public String getGroupMemberAttributeName(String scimAttribute, Object filterValue) {
+        return switch (scimAttribute) {
+            case "value" -> Framework.getService(UserManager.class).getGroupIdField();
+            default -> scimAttribute;
+        };
+    }
+
+    @Override
     public String getUserAttributeName(String column, Object filterValue) {
         return switch (column.toLowerCase()) {
             case "id", "username" -> Framework.getService(UserManager.class).getUserIdField();
@@ -219,6 +227,22 @@ public class DefaultScimV2Mapping implements ScimV2Mapping {
             case "familyname" -> LAST_NAME;
             default -> column;
         };
+    }
+
+    @Override
+    public String getUserMemberAttributeName(String scimAttribute, Object filterValue) {
+        return switch (scimAttribute) {
+            case "value" -> Framework.getService(UserManager.class).getUserIdField();
+            default -> scimAttribute;
+        };
+    }
+
+    @Override
+    public DocumentModel patchGroup(DocumentModel groupModel, GroupResource groupResource) throws ScimException {
+        UserManager um = Framework.getService(UserManager.class);
+        String groupSchemaName = um.getGroupSchemaName();
+        groupModel.setProperty(groupSchemaName, um.getGroupLabelField(), groupResource.getDisplayName());
+        return groupModel;
     }
 
     protected DocumentModel updateNuxeoGroupFromGroupResource(DocumentModel groupModel, GroupResource groupResource) {
@@ -234,7 +258,7 @@ public class DefaultScimV2Mapping implements ScimV2Mapping {
         }
         List<String> groupMembers = new ArrayList<>();
         List<String> groupSubGroups = new ArrayList<>();
-        members.stream().forEach(member -> {
+        members.stream().filter(m -> m.getValue() != null).forEach(member -> {
             String value = member.getValue();
             if (SCIM_V2_RESOURCE_TYPE_GROUP.equalsString(member.getType())) {
                 groupSubGroups.add(value);
