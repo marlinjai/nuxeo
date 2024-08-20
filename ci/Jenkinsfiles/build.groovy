@@ -17,7 +17,7 @@
  *     Antoine Taillefer <ataillefer@nuxeo.com>
  *     Thomas Roger <troger@nuxeo.com>
  */
-library identifier: "platform-ci-shared-library@v0.0.33"
+library identifier: "platform-ci-shared-library@v0.0.37"
 
 dockerNamespace = 'nuxeo'
 repositoryUrl = 'https://github.com/nuxeo/nuxeo-lts'
@@ -234,6 +234,7 @@ pipeline {
     DOCKER_TAG = nxUtils.getMajorMovingVersion(version: env.VERSION)
     CHANGE_BRANCH = "${env.CHANGE_BRANCH != null ? env.CHANGE_BRANCH : BRANCH_NAME}"
     CHANGE_TARGET = "${env.CHANGE_TARGET != null ? env.CHANGE_TARGET : BRANCH_NAME}"
+    REFERENCE_BRANCH = nxGitHub.getReferenceBranch()
     GITHUB_REPO = 'nuxeo-lts'
     AWS_REGION = 'eu-west-3'
     AWS_ROLE_ARN = 'arn:aws:iam::783725821734:role/nuxeo-s3directupload-role'
@@ -302,14 +303,7 @@ pipeline {
       steps {
         container('maven') {
           script {
-            def branch = env.CHANGE_TARGET
-            // retrieve reference branch (ie: 202x) if PR targets another PR
-            if (nxUtils.isPullRequest()) {
-              withCredentials([string(credentialsId: 'github', variable: 'GITHUB_TOKEN')]) {
-                branch = sh(returnStdout: true, script: "gh pr view ${branch} --json baseRefName -q .baseRefName 2>/dev/null || echo '${branch}'")
-              }
-            }
-            nxGit.cloneRepository(name: 'nuxeo-hf-protection', branch: branch, relativePath: 'nuxeo-patches')
+            nxGit.cloneRepository(name: 'nuxeo-hf-protection', branch: env.REFERENCE_BRANCH, relativePath: 'nuxeo-patches')
           }
           dir('nuxeo-patches') {
             sh './prepare-patches'
@@ -319,20 +313,48 @@ pipeline {
     }
 
     stage('Build') {
-      environment {
-        MAVEN_CLI_ARGS = "${MAVEN_CLI_ARGS} ${nxUtils.isPullRequest() ? '' : '-Pjavadoc -DadditionalJOption=-J-Xmx3g -DadditionalJOption=-J-Xms3g'}"
-        MAVEN_OPTS = "${MAVEN_OPTS} ${nxUtils.isPullRequest() ? '-Xms6g -Xmx6g' : '-Xms3g -Xmx3g'}"
-      }
-      steps {
-        container('maven') {
-          nxWithGitHubStatus(context: 'maven/build', message: 'Build') {
-            echo """
-            ----------------------------------------
-            Compile
-            ----------------------------------------"""
-            echo "MAVEN_OPTS=$MAVEN_OPTS"
-            sh "mvn ${MAVEN_CLI_ARGS} -V -T4C -DskipTests install"
-            sh "mvn ${MAVEN_CLI_ARGS} -f server/pom.xml -DskipTests install"
+      parallel {
+        stage('Compile') {
+          environment {
+            MAVEN_CLI_ARGS = "${MAVEN_CLI_ARGS} ${nxUtils.isPullRequest() ? '' : '-Pjavadoc -DadditionalJOption=-J-Xmx3g -DadditionalJOption=-J-Xms3g'}"
+            MAVEN_OPTS = "${MAVEN_OPTS} ${nxUtils.isPullRequest() ? '-Xms6g -Xmx6g' : '-Xms3g -Xmx3g'}"
+          }
+          steps {
+            container('maven') {
+              nxWithGitHubStatus(context: 'maven/build', message: 'Build') {
+                echo """
+                ----------------------------------------
+                Compile
+                ----------------------------------------"""
+                echo "MAVEN_OPTS=$MAVEN_OPTS"
+                sh "mvn ${MAVEN_CLI_ARGS} -V -T4C -DskipTests install"
+                sh "mvn ${MAVEN_CLI_ARGS} -f server/pom.xml -DskipTests install"
+              }
+            }
+          }
+        }
+        stage('Formatting check') {
+          when {
+            // if current version is higher than default branch (aka: version in maintenance) run formatting check
+            expression { nxGitHub.getDefaultBranch().toInteger() < env.REFERENCE_BRANCH.toInteger() }
+          }
+          environment {
+            // env variable defined to workaround https://github.com/diffplug/spotless/pull/2238
+            MAVEN_CLI_ARGS = "${MAVEN_CLI_ARGS} --settings /root/.m2/settings.xml -Duser.home=/home/jenkins"
+          }
+          steps {
+            container('maven-mongodb') {
+              warnError(message: 'Formatting check has failed') {
+                nxWithGitHubStatus(context: 'maven/lint', message: 'Lint') {
+                  echo """
+                  ----------------------------------------
+                  Check formatting
+                  ----------------------------------------"""
+                  sh "git fetch origin 2023:origin/2023"
+                  sh "mvn ${MAVEN_CLI_ARGS} -V -T4C -Pdistrib,docker,ftestsTier5,ftestsTier6,ftestsTier7 spotless:check"
+                }
+              }
+            }
           }
         }
       }
