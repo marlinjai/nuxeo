@@ -128,7 +128,7 @@ public class PageProviderHelper {
      * @since 11.1
      */
     public static PageProviderDefinition getQueryPageProviderDefinition(String query, Map<String, String> properties,
-                                                                        boolean escapeParameters, boolean quoteParameters) {
+            boolean escapeParameters, boolean quoteParameters) {
         CoreQueryPageProviderDescriptor desc = new CoreQueryPageProviderDescriptor();
         desc.setName(StringUtils.EMPTY);
         desc.setPattern(query);
@@ -323,7 +323,7 @@ public class PageProviderHelper {
             }
 
             query = NXQLQueryBuilder.getQuery(pattern, parameters, def.getQuotePatternParameters(),
-                    def.getEscapePatternParameters(), searchDocumentModel, null);
+                    def.getEscapePatternParameters(), searchDocumentModel);
         } else {
             if (searchDocumentModel == null) {
                 throw new NuxeoException(
@@ -331,7 +331,7 @@ public class PageProviderHelper {
                                 provider.getName()));
             }
             String additionalClause = NXQLQueryBuilder.appendClause(aggregatesClause, quickFiltersClause);
-            query = NXQLQueryBuilder.getQuery(searchDocumentModel, whereClause, additionalClause, parameters, null);
+            query = NXQLQueryBuilder.getQuery(searchDocumentModel, whereClause, additionalClause, parameters);
         }
         return query;
     }
@@ -354,7 +354,7 @@ public class PageProviderHelper {
                     // the JSON serialization of the named parameters
                     List<String> keys = StreamSupport.stream(node.spliterator(), false)
                                                      .map(value -> value.asText().replaceAll("^\"|\"$", ""))
-                                                     .collect(Collectors.toList());
+                                                     .toList();
                     // Build aggregate clause from given keys in the named parameters
                     String aggClause = aggregate.getBuckets()
                                                 .stream()
@@ -377,14 +377,12 @@ public class PageProviderHelper {
     protected static String getClauseFromBucket(Bucket bucket, String field) {
         String clause;
         // Replace potential '.' path separator with '/' character
-        field = field.replaceAll("\\.", "/");
+        field = field.replace("\\.", "/");
         if (bucket instanceof BucketTerm) {
             clause = field + "='" + bucket.getKey() + "'";
-        } else if (bucket instanceof BucketRange) {
-            BucketRange bucketRange = (BucketRange) bucket;
+        } else if (bucket instanceof BucketRange bucketRange) {
             clause = getRangeClause(field, bucketRange);
-        } else if (bucket instanceof BucketRangeDate) {
-            BucketRangeDate bucketRangeDate = (BucketRangeDate) bucket;
+        } else if (bucket instanceof BucketRangeDate bucketRangeDate) {
             clause = getRangeDateClause(field, bucketRangeDate);
         } else {
             throw new NuxeoException("Unknown bucket instance for NXQL translation : " + bucket.getClass());
@@ -397,7 +395,7 @@ public class PageProviderHelper {
         Double from = bucketRange.getFrom() != null ? bucketRange.getFrom() : Double.NEGATIVE_INFINITY;
         Double to = bucketRange.getTo() != null ? bucketRange.getTo() : Double.POSITIVE_INFINITY;
         if (type instanceof IntegerType) {
-            return field + " BETWEEN " + from.intValue() + " AND " + to.intValue();
+            return field + " BETWEEN " + from.intValue() + " AND " + to.intValue(); // NOSONAR
         } else if (type instanceof LongType) {
             return field + " BETWEEN " + from.longValue() + " AND " + to.longValue();
         }

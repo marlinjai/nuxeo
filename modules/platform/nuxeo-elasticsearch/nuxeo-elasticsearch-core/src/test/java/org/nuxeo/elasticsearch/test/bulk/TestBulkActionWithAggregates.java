@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2018 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2018-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,6 +21,7 @@ package org.nuxeo.elasticsearch.test.bulk;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
+
 import java.io.Serializable;
 import java.time.Duration;
 import java.time.ZonedDateTime;
@@ -28,7 +29,6 @@ import java.time.format.DateTimeFormatter;
 import java.util.GregorianCalendar;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.TimeUnit;
 
 import javax.inject.Inject;
 
@@ -38,6 +38,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.nuxeo.ecm.automation.AutomationService;
 import org.nuxeo.ecm.automation.OperationContext;
+import org.nuxeo.ecm.automation.OperationException;
 import org.nuxeo.ecm.automation.core.operations.services.bulk.BulkRunAction;
 import org.nuxeo.ecm.automation.core.util.Properties;
 import org.nuxeo.ecm.core.api.CoreSession;
@@ -49,14 +50,12 @@ import org.nuxeo.ecm.core.bulk.action.SetPropertiesAction;
 import org.nuxeo.ecm.core.bulk.message.BulkStatus;
 import org.nuxeo.ecm.core.test.annotations.Granularity;
 import org.nuxeo.ecm.core.test.annotations.RepositoryConfig;
-import org.nuxeo.ecm.core.work.api.WorkManager;
-import org.nuxeo.elasticsearch.api.ElasticSearchAdmin;
 import org.nuxeo.elasticsearch.test.RepositoryElasticSearchFeature;
 import org.nuxeo.runtime.test.runner.Deploy;
 import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.FeaturesRunner;
+import org.nuxeo.runtime.test.runner.TransactionalFeature;
 import org.nuxeo.runtime.transaction.TransactionHelper;
-import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
  * @since 10.10
@@ -71,6 +70,10 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 @RepositoryConfig(cleanup = Granularity.METHOD)
 public class TestBulkActionWithAggregates {
 
+    protected static final int DOCUMENT_COUNT = 20;
+
+    protected static final String ERROR_MESSAGE = "Bulk action didn't finish";
+
     @Inject
     protected CoreSession session;
 
@@ -78,13 +81,10 @@ public class TestBulkActionWithAggregates {
     protected BulkService bulkService;
 
     @Inject
-    protected WorkManager workManager;
-
-    @Inject
-    protected ElasticSearchAdmin esa;
-
-    @Inject
     protected AutomationService automationService;
+
+    @Inject
+    public TransactionalFeature transactionalFeature;
 
     protected ZonedDateTime now;
 
@@ -95,7 +95,7 @@ public class TestBulkActionWithAggregates {
     protected OperationContext ctx;
 
     @Before
-    public void before() throws Exception {
+    public void before() {
         if (!TransactionHelper.isTransactionActive()) {
             TransactionHelper.startTransaction();
         }
@@ -105,7 +105,7 @@ public class TestBulkActionWithAggregates {
         lastWeek = now.minusWeeks(1);
 
         // Create some documents
-        for (int i = 0; i < 20; i++) {
+        for (int i = 0; i < DOCUMENT_COUNT; i++) {
             String name = "file" + i;
             DocumentModel doc = session.createDocumentModel("/", name, "File");
             doc.setPropertyValue("dc:nature", "nature" + i);
@@ -116,12 +116,7 @@ public class TestBulkActionWithAggregates {
                     i % 5 == 0 ? GregorianCalendar.from(dayBeforYesterday) : GregorianCalendar.from(lastWeek));
             session.createDocument(doc);
         }
-        TransactionHelper.commitOrRollbackTransaction();
-        TransactionHelper.startTransaction();
-        // wait for async jobs
-        workManager.awaitCompletion(20, TimeUnit.SECONDS);
-        esa.prepareWaitForIndexing().get(20, TimeUnit.SECONDS);
-        esa.refresh();
+        transactionalFeature.nextTransaction();
         ctx = new OperationContext(session);
     }
 
@@ -131,9 +126,7 @@ public class TestBulkActionWithAggregates {
     }
 
     @Test
-    public void testAction() throws Exception {
-
-        String errorMessage = "Bulk action didn't finish";
+    public void testAction() throws OperationException, InterruptedException {
 
         // username and repository are retrieved from CoreSession
         Map<String, Serializable> params = new HashMap<>();
@@ -143,16 +136,13 @@ public class TestBulkActionWithAggregates {
         Properties namedParameters = new Properties();
 
         // Test with term aggregate and one value
-        namedParameters.put("nature_agg", "[\"nature1\"]");
-        params.put("namedParameters", namedParameters);
-
-        HashMap<String, Serializable> actionParams = new HashMap<>();
-        actionParams.put("dc:title", "dummy title");
-        params.put("parameters", new ObjectMapper().writeValueAsString(actionParams));
+        namedParameters.put("nature_agg", "[\"nature1\"]"); // NOSONAR
+        params.put("namedParameters", namedParameters); // NOSONAR
 
         BulkStatus result = (BulkStatus) automationService.run(ctx, BulkRunAction.ID, params);
-        assertTrue(errorMessage, bulkService.await(result.getId(), Duration.ofSeconds(60)));
+        assertTrue(ERROR_MESSAGE, bulkService.await(result.getId(), Duration.ofSeconds(60)));
         BulkStatus status = bulkService.getStatus(result.getId());
+        // file1
         assertEquals(1, status.getProcessed());
 
         // Test with term aggregate and multiple values
@@ -160,18 +150,20 @@ public class TestBulkActionWithAggregates {
         params.put("namedParameters", namedParameters);
 
         result = (BulkStatus) automationService.run(ctx, BulkRunAction.ID, params);
-        assertTrue(errorMessage, bulkService.await(result.getId(), Duration.ofSeconds(60)));
+        assertTrue(ERROR_MESSAGE, bulkService.await(result.getId(), Duration.ofSeconds(60)));
         status = bulkService.getStatus(result.getId());
+        // file1, file2, file3
         assertEquals(3, status.getProcessed());
 
         // Test with range aggregate and one value
         namedParameters.remove("nature_agg");
-        namedParameters.put("size_agg", "[\"big\"]");
+        namedParameters.put("size_agg", "[\"big\"]"); // NOSONAR
         params.put("namedParameters", namedParameters);
 
         result = (BulkStatus) automationService.run(ctx, BulkRunAction.ID, params);
-        assertTrue(errorMessage, bulkService.await(result.getId(), Duration.ofSeconds(60)));
+        assertTrue(ERROR_MESSAGE, bulkService.await(result.getId(), Duration.ofSeconds(60)));
         status = bulkService.getStatus(result.getId());
+        // file0, file2, file4, ..., file 18
         assertEquals(10, status.getProcessed());
 
         // Test with range aggregate and multiple values
@@ -179,18 +171,20 @@ public class TestBulkActionWithAggregates {
         params.put("namedParameters", namedParameters);
 
         result = (BulkStatus) automationService.run(ctx, BulkRunAction.ID, params);
-        assertTrue(errorMessage, bulkService.await(result.getId(), Duration.ofSeconds(60)));
+        assertTrue(ERROR_MESSAGE, bulkService.await(result.getId(), Duration.ofSeconds(60)));
         status = bulkService.getStatus(result.getId());
+        // file0, file1, file2, ..., file 19
         assertEquals(20, status.getProcessed());
 
         // Test with date range aggregate and one value
         namedParameters.remove("size_agg");
-        namedParameters.put("modified_agg", "[\"lastWeek\"]");
+        namedParameters.put("modified_agg", "[\"lastWeek\"]"); // NOSONAR
         params.put("namedParameters", namedParameters);
 
         result = (BulkStatus) automationService.run(ctx, BulkRunAction.ID, params);
-        assertTrue(errorMessage, bulkService.await(result.getId(), Duration.ofSeconds(60)));
+        assertTrue(ERROR_MESSAGE, bulkService.await(result.getId(), Duration.ofSeconds(60)));
         status = bulkService.getStatus(result.getId());
+        // file0, file3, file6, ..., file 18
         assertEquals(7, status.getProcessed());
 
         // Test with date range aggregate and multiple values
@@ -198,8 +192,9 @@ public class TestBulkActionWithAggregates {
         params.put("namedParameters", namedParameters);
 
         result = (BulkStatus) automationService.run(ctx, BulkRunAction.ID, params);
-        assertTrue(errorMessage, bulkService.await(result.getId(), Duration.ofSeconds(60)));
+        assertTrue(ERROR_MESSAGE, bulkService.await(result.getId(), Duration.ofSeconds(60)));
         status = bulkService.getStatus(result.getId());
+        // file0, file1, file2, ..., file 19
         assertEquals(20, status.getProcessed());
 
         // Test with date histogram aggregate and one value
@@ -207,12 +202,13 @@ public class TestBulkActionWithAggregates {
 
         String formattedDayBeforeYesterday = dayBeforYesterday.format(DateTimeFormatter.ofPattern("dd-MM-yyyy"));
 
-        namedParameters.put("created_agg", "[\"" + formattedDayBeforeYesterday + "\"]");
+        namedParameters.put("created_agg", "[\"" + formattedDayBeforeYesterday + "\"]"); // NOSONAR
         params.put("namedParameters", namedParameters);
 
         result = (BulkStatus) automationService.run(ctx, BulkRunAction.ID, params);
-        assertTrue(errorMessage, bulkService.await(result.getId(), Duration.ofSeconds(60)));
+        assertTrue(ERROR_MESSAGE, bulkService.await(result.getId(), Duration.ofSeconds(60)));
         status = bulkService.getStatus(result.getId());
+        // file0, file5, file10, file 15
         assertEquals(4, status.getProcessed());
 
         // Test with date histogram aggregate and multiple values
@@ -222,8 +218,9 @@ public class TestBulkActionWithAggregates {
         params.put("namedParameters", namedParameters);
 
         result = (BulkStatus) automationService.run(ctx, BulkRunAction.ID, params);
-        assertTrue(errorMessage, bulkService.await(result.getId(), Duration.ofSeconds(60)));
+        assertTrue(ERROR_MESSAGE, bulkService.await(result.getId(), Duration.ofSeconds(60)));
         status = bulkService.getStatus(result.getId());
+        // file0, file1, file2, ..., file 19
         assertEquals(20, status.getProcessed());
 
         // Test with multiple aggregates
@@ -234,8 +231,9 @@ public class TestBulkActionWithAggregates {
         params.put("namedParameters", namedParameters);
 
         result = (BulkStatus) automationService.run(ctx, BulkRunAction.ID, params);
-        assertTrue(errorMessage, bulkService.await(result.getId(), Duration.ofSeconds(60)));
+        assertTrue(ERROR_MESSAGE, bulkService.await(result.getId(), Duration.ofSeconds(60)));
         status = bulkService.getStatus(result.getId());
+        // file0, file6
         assertEquals(2, status.getProcessed());
 
     }
