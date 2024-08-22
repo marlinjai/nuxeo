@@ -20,6 +20,7 @@ package org.nuxeo.ecm.blob.s3;
 
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
+import static org.nuxeo.ecm.blob.s3.S3BlobStoreConfiguration.KEYSTORE_LEGACY_MODE_PROPERTY;
 import static org.nuxeo.ecm.blob.s3.S3BlobStoreConfiguration.KEYSTORE_FILE_PROPERTY;
 import static org.nuxeo.ecm.blob.s3.S3BlobStoreConfiguration.KEYSTORE_PASS_PROPERTY;
 import static org.nuxeo.ecm.blob.s3.S3BlobStoreConfiguration.PRIVKEY_ALIAS_PROPERTY;
@@ -47,6 +48,7 @@ import org.nuxeo.runtime.test.runner.WithFrameworkProperty;
 @WithFrameworkProperty(name = SYSTEM_PROPERTY_PREFIX + "." + KEYSTORE_PASS_PROPERTY, value = "test_s3")
 @WithFrameworkProperty(name = SYSTEM_PROPERTY_PREFIX + "." + PRIVKEY_ALIAS_PROPERTY, value = "test_s3")
 @WithFrameworkProperty(name = SYSTEM_PROPERTY_PREFIX + "." + PRIVKEY_PASS_PROPERTY, value = "test_s3")
+@WithFrameworkProperty(name = SYSTEM_PROPERTY_PREFIX + "." + KEYSTORE_LEGACY_MODE_PROPERTY, value = "true")
 @Features(S3BlobProviderFeature.class)
 public class TestS3BlobStoreClientEncryption extends TestAbstractBlobStore {
 

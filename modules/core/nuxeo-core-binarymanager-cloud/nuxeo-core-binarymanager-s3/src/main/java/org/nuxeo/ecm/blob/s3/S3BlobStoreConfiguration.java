@@ -126,6 +126,11 @@ public class S3BlobStoreConfiguration extends CloudBlobStoreConfiguration {
 
     public static final String KEYSTORE_PASS_PROPERTY = "crypt.keystore.password";
 
+    /**
+     * @since 2023.18
+     */
+    public static final String KEYSTORE_LEGACY_MODE_PROPERTY = "crypt.keystore.legacymode";
+
     public static final String SERVERSIDE_ENCRYPTION_PROPERTY = "crypt.serverside";
 
     public static final String SERVERSIDE_ENCRYPTION_KMS_KEY_PROPERTY = "crypt.kms.key";
@@ -341,8 +346,10 @@ public class S3BlobStoreConfiguration extends CloudBlobStoreConfiguration {
             EncryptionMaterialsProvider emp;
             if (useKeyStoreClientSideEncryption) {
                 log.info("Client-side encryption enabled with local key store");
-                // The following setting allows the client to read V1 encrypted objects
-                cryptoConfig.withCryptoMode(CryptoMode.AuthenticatedEncryption);
+                if (getBooleanProperty(KEYSTORE_LEGACY_MODE_PROPERTY)) {
+                    // The following setting allows the client to read V1 encrypted objects
+                    cryptoConfig.withCryptoMode(CryptoMode.AuthenticatedEncryption);
+                }
                 emp = new StaticEncryptionMaterialsProvider(encryptionMaterials);
             } else {
                 // KMS client-side encryption

@@ -26,6 +26,7 @@ nuxeo.s3storage.pathstyleaccess=false
 nuxeo.s3storage.accelerateMode=false
 nuxeo.s3storage.bucket_prefix=
 nuxeo.s3storage.crypt.keystore.file=
+nuxeo.s3storage.crypt.keystore.legacymode=true
 nuxeo.s3storage.crypt.keystore.password=
 nuxeo.s3storage.crypt.key.alias=
 nuxeo.s3storage.crypt.key.password=
