@@ -384,6 +384,7 @@
 
     <genericPageProvider name="BULK_ACTION_WITH_AGGREGATES"
       class="org.nuxeo.elasticsearch.provider.ElasticSearchNxqlPageProvider">
+      <searchDocumentType>AdvancedSearch</searchDocumentType>
       <pattern>
         SELECT * FROM Document where ecm:isVersion = 0
       </pattern>
@@ -391,7 +392,7 @@
         <aggregate id="nature_agg" parameter="dc:nature" type="terms">
           <field name="nature_agg" schema="advanced_search"/>
           <properties>
-            <property name="size">20</property>
+            <property name="size">10</property>
           </properties>
         </aggregate>
         <aggregate id="size_agg" parameter="file:content/length" type="range">

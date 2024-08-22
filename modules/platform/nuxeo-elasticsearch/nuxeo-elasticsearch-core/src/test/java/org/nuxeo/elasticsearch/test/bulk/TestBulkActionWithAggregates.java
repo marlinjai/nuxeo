@@ -108,7 +108,7 @@ public class TestBulkActionWithAggregates {
         for (int i = 0; i < DOCUMENT_COUNT; i++) {
             String name = "file" + i;
             DocumentModel doc = session.createDocumentModel("/", name, "File");
-            doc.setPropertyValue("dc:nature", "nature" + i);
+            doc.setPropertyValue("dc:nature", "nature" + i / 2);
             doc.setPropertyValue("file:content", i % 2 == 0 ? new StringBlob("I am a blob !") : new StringBlob(""));
             doc.setPropertyValue("dc:modified",
                     i % 3 == 0 ? GregorianCalendar.from(dayBeforYesterday) : GregorianCalendar.from(now));
@@ -142,8 +142,8 @@ public class TestBulkActionWithAggregates {
         BulkStatus result = (BulkStatus) automationService.run(ctx, BulkRunAction.ID, params);
         assertTrue(ERROR_MESSAGE, bulkService.await(result.getId(), Duration.ofSeconds(60)));
         BulkStatus status = bulkService.getStatus(result.getId());
-        // file1
-        assertEquals(1, status.getProcessed());
+        // file2, file3
+        assertEquals(2, status.getProcessed());
 
         // Test with term aggregate and multiple values
         namedParameters.put("nature_agg", "[\"nature1\",\"nature2\",\"nature3\"]");
@@ -152,8 +152,8 @@ public class TestBulkActionWithAggregates {
         result = (BulkStatus) automationService.run(ctx, BulkRunAction.ID, params);
         assertTrue(ERROR_MESSAGE, bulkService.await(result.getId(), Duration.ofSeconds(60)));
         status = bulkService.getStatus(result.getId());
-        // file1, file2, file3
-        assertEquals(3, status.getProcessed());
+        // file2, file3, file4, file5, file6, file7
+        assertEquals(6, status.getProcessed());
 
         // Test with range aggregate and one value
         namedParameters.remove("nature_agg");
@@ -233,9 +233,35 @@ public class TestBulkActionWithAggregates {
         result = (BulkStatus) automationService.run(ctx, BulkRunAction.ID, params);
         assertTrue(ERROR_MESSAGE, bulkService.await(result.getId(), Duration.ofSeconds(60)));
         status = bulkService.getStatus(result.getId());
-        // file0, file6
-        assertEquals(2, status.getProcessed());
+        // file0, file6, file12
+        assertEquals(3, status.getProcessed());
+    }
 
+    // NXP-32825
+    @Test
+    public void testAggregateBucketCountExceeded() throws OperationException, InterruptedException {
+        // Create a document with a "nature" value not already set in the existing documents.
+        // This adds an bucket to the "nature" aggregate, exceeding the aggregate's maximum bucket count (10).
+        DocumentModel doc = session.createDocumentModel("/", "fileOther", "File");
+        doc.setPropertyValue("dc:nature", "natureOther");
+        session.createDocument(doc);
+        transactionalFeature.nextTransaction();
+
+        Map<String, Serializable> params = new HashMap<>();
+        params.put("action", SetPropertiesAction.ACTION_NAME);
+        params.put("providerName", "BULK_ACTION_WITH_AGGREGATES");
+        Properties namedParameters = new Properties();
+        namedParameters.put("nature_agg", "[\"natureOther\"]");
+        params.put("namedParameters", namedParameters);
+
+        // Make sure that the bulk action runs on the document from the bucket matching the selected "nature" value,
+        // though this bucket is not returned by ES in the "regular" buckets because of the aggregate's maximum bucket
+        // count.
+        BulkStatus result = (BulkStatus) automationService.run(ctx, BulkRunAction.ID, params);
+        assertTrue(ERROR_MESSAGE, bulkService.await(result.getId(), Duration.ofSeconds(60)));
+        BulkStatus status = bulkService.getStatus(result.getId());
+        // fileOther
+        assertEquals(1, status.getProcessed());
     }
 
 }
