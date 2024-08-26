@@ -209,6 +209,13 @@ public class MimetypeRegistryService extends DefaultComponent implements Mimetyp
         }
         try {
             MagicMatch match = Magic.getMagicMatch(file, true, false);
+            if (match == null) {
+                throw new MagicMatchNotFoundException();
+            }
+            // handle MagicMatch undefined MIME type
+            if (UNDEFINED_MIMETYPE.equals(match.getMimeType())) {
+                match.setMimeType(DEFAULT_MIMETYPE);
+            }
 
             // Only take into account the first possibility.
             var possibilities = new ArrayList<MagicMatch>(match.getSubMatches());

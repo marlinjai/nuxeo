@@ -38,6 +38,13 @@ public interface MimetypeRegistry {
     String DEFAULT_MIMETYPE = "application/octet-stream";
 
     /**
+     * Undefined MIME type marker, can be returned by the jMimeMagic library.
+     *
+     * @since 2023.18
+     */
+    String UNDEFINED_MIMETYPE = "???";
+
+    /**
      * @since 2021.9
      */
     String XML_MIMETYPE = "text/xml";

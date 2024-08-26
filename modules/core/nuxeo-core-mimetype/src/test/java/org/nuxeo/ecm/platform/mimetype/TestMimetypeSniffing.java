@@ -22,6 +22,9 @@
 package org.nuxeo.ecm.platform.mimetype;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyBoolean;
 
 import java.io.File;
 
@@ -29,6 +32,8 @@ import javax.inject.Inject;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.MockedStatic;
+import org.mockito.Mockito;
 import org.nuxeo.common.utils.FileUtils;
 import org.nuxeo.ecm.platform.mimetype.interfaces.MimetypeRegistry;
 import org.nuxeo.ecm.platform.mimetype.service.MimetypeRegistryService;
@@ -36,6 +41,9 @@ import org.nuxeo.runtime.test.runner.Deploy;
 import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.FeaturesRunner;
 import org.nuxeo.runtime.test.runner.RuntimeFeature;
+
+import net.sf.jmimemagic.Magic;
+import net.sf.jmimemagic.MagicMatch;
 
 /**
  * Test binary files sniff.
@@ -175,6 +183,29 @@ public class TestMimetypeSniffing {
     @Test
     public void testXmlDocumentFromFile() {
         assertEquals("text/xml", mimetypeRegistry.getMimetypeFromFile(getXmlDocument()));
+    }
+
+    // NXP-32673
+    // MIME type cannot be computed from file content by jMimeMagic, fall back on file extension, throwing if
+    // unregistered.
+    @Test
+    public void testUnregisteredMimeType() {
+        assertThrows(MimetypeNotFoundException.class,
+                () -> mimetypeRegistry.getMimetypeFromFile(getFileFromResource("test-data/undefined-mime-type.opj")));
+    }
+
+    // NXP-32673
+    // MIME type is computed from file content by jMimeMagic as an undefined marker: "???", fall back on
+    // "application/octet-stream" to have a valid MIME type.
+    @Test
+    public void testUndefinedMimeType() {
+        try (MockedStatic<Magic> magicMock = Mockito.mockStatic(Magic.class)) {
+            MagicMatch match = new MagicMatch();
+            match.setMimeType("???");
+            magicMock.when(() -> Magic.getMagicMatch(any(File.class), anyBoolean(), anyBoolean())).thenReturn(match);
+            assertEquals("application/octet-stream",
+                    mimetypeRegistry.getMimetypeFromFile(getFileFromResource("test-data/undefined-mime-type.opj")));
+        }
     }
 
     // OOo 1.x Writer
