@@ -179,8 +179,8 @@ public interface MimetypeRegistry {
      * Retrieves the normalized mime type for the given {@code mimeType}.
      *
      * @param mimeType the mime for which we are looking for the normalized one
-     * @return an {@code Optional} with a present value if the normalized mime type can be found, otherwise an
-     *         empty {@code Optional}
+     * @return an {@code Optional} with a present value if the normalized mime type can be found, otherwise an empty
+     *         {@code Optional}
      * @since 11.1
      */
     Optional<String> getNormalizedMimeType(String mimeType);

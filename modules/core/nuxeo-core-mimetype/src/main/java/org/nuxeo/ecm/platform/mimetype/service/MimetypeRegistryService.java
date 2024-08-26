@@ -25,13 +25,13 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
@@ -68,11 +68,11 @@ public class MimetypeRegistryService extends DefaultComponent implements Mimetyp
 
     private static final Logger log = LogManager.getLogger(MimetypeRegistryService.class);
 
-    public static final ComponentName NAME = new ComponentName(
+    public static final ComponentName NAME = new ComponentName( // NOSONAR
             "org.nuxeo.ecm.platform.mimetype.service.MimetypeRegistryService");
 
     // 10 MB is the max size to allow full file scan
-    public static final long MAX_SIZE_FOR_SCAN = 10 * 1024 * 1024;
+    public static final long MAX_SIZE_FOR_SCAN = 10 * 1024 * 1024L;
 
     public static final String TMP_EXTENSION = "tmp";
 
@@ -124,11 +124,10 @@ public class MimetypeRegistryService extends DefaultComponent implements Mimetyp
             return;
         }
         for (Object contrib : contribs) {
-            if (contrib instanceof MimetypeDescriptor) {
-                MimetypeDescriptor mimetypeDescriptor = (MimetypeDescriptor) contrib;
+            if (contrib instanceof MimetypeDescriptor mimetypeDescriptor) {
                 registerMimetype(mimetypeDescriptor.getMimetype());
-            } else if (contrib instanceof ExtensionDescriptor) {
-                registerFileExtension((ExtensionDescriptor) contrib);
+            } else if (contrib instanceof ExtensionDescriptor extensionDescriptor) {
+                registerFileExtension(extensionDescriptor);
             }
         }
     }
@@ -153,11 +152,9 @@ public class MimetypeRegistryService extends DefaultComponent implements Mimetyp
             return;
         }
         for (Object contrib : contribs) {
-            if (contrib instanceof MimetypeDescriptor) {
-                MimetypeDescriptor mimetypeDescriptor = (MimetypeDescriptor) contrib;
+            if (contrib instanceof MimetypeDescriptor mimetypeDescriptor) {
                 unregisterMimetype(mimetypeDescriptor.getNormalized());
-            } else if (contrib instanceof ExtensionDescriptor) {
-                ExtensionDescriptor extensionDescriptor = (ExtensionDescriptor) contrib;
+            } else if (contrib instanceof ExtensionDescriptor extensionDescriptor) {
                 unregisterFileExtension(extensionDescriptor);
             }
         }
@@ -191,7 +188,7 @@ public class MimetypeRegistryService extends DefaultComponent implements Mimetyp
                                            .stream()
                                            .filter(e -> e.getValue().getMimetypes().contains(mimetypeName))
                                            .flatMap(e -> e.getValue().getExtensions().stream())
-                                           .collect(Collectors.toList());
+                                           .toList();
     }
 
     @Override
@@ -305,7 +302,7 @@ public class MimetypeRegistryService extends DefaultComponent implements Mimetyp
                 FileUtils.copyInputStreamToFile(is, file);
                 return getMimetypeFromFile(file);
             } finally {
-                file.delete();
+                Files.delete(file.toPath());
             }
         } catch (IOException e) {
             throw new MimetypeDetectionException(e.getMessage(), e);
@@ -363,7 +360,7 @@ public class MimetypeRegistryService extends DefaultComponent implements Mimetyp
         } else if (blob.getFilename() == null) {
             blob.setFilename(filename);
         }
-        if (withBlobMimetypeFallback) {
+        if (Boolean.TRUE.equals(withBlobMimetypeFallback)) {
             blob.setMimeType(getMimetypeFromFilenameWithBlobMimetypeFallback(filename, blob, DEFAULT_MIMETYPE));
         } else {
             blob.setMimeType(getMimetypeFromFilenameAndBlobWithDefault(filename, blob, DEFAULT_MIMETYPE));
