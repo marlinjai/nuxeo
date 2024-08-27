@@ -181,13 +181,6 @@ public class OperationBindingTest {
         assertTrue(trace.getOutput() instanceof Blob);
     }
 
-    @Test
-    public void automationResourceIsAlsoAvailableBehindAPIRoot() {
-        httpClient.buildGetRequest("/automation/doc")
-                  .accept("text/html")
-                  .executeAndConsume(new HttpStatusCodeHandler(), status -> assertEquals(SC_OK, status.intValue()));
-    }
-
     /**
      * @since 7.1
      */

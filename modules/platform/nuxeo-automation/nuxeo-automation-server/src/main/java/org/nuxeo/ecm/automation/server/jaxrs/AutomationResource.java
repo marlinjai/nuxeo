@@ -67,16 +67,6 @@ public class AutomationResource extends ModuleRoot {
         service = Framework.getService(AutomationService.class);
     }
 
-    @Path("/doc")
-    public Object getDocPage() {
-        return newObject("doc");
-    }
-
-    @Path("/debug")
-    public Object getDebugPage() {
-        return newObject("debug");
-    }
-
     /**
      * Gets the content of the blob or blobs (multipart/mixed) located by the given doc uid and property path.
      */
