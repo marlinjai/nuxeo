@@ -8,9 +8,5 @@ postgresql:
   enabled: true
 opensearch:
   enabled: true
-elasticsearch7:
-  enabled: false
-elasticsearch8:
-  enabled: false
 kafka:
   enabled: true

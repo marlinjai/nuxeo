@@ -1,3 +1,26 @@
+environments:
+  runtimeUnitTests:
+    values:
+    - environments/unit-tests-runtime.yaml
+  mongodbUnitTests:
+    values:
+    - environments/unit-tests-mongodb.yaml
+  postgresqlUnitTests:
+    values:
+    - environments/unit-tests-postgresql.yaml
+  elasticsearch7UnitTests:
+    values:
+    - environments/unit-tests-elasticsearch-7.yaml
+  elasticsearch8UnitTests:
+    values:
+    - environments/unit-tests-elasticsearch-8.yaml
+  upgradeTest:
+    values:
+    - environments/upgrade-test.yaml
+  benchmark:
+    values:
+    - environments/benchmark.yaml
+---
 {{- $valuesDir := ternary "unittests" .Environment.Name (regexMatch "^.*UnitTests$" .Environment.Name) -}}
 repositories:
 - name: bitnami
@@ -63,11 +86,11 @@ releases:
   values:
   - values/values-opensearch.yaml.gotmpl
   - values/{{ $valuesDir }}/values-opensearch.yaml.gotmpl
+{{ if eq .Environment.Name "elasticsearch7UnitTests" }}
 - name: elasticsearch7
   chart: elastic/elasticsearch
   version: 7.17.3
   namespace: {{ requiredEnv "NAMESPACE" }}
-  condition: elasticsearch7.enabled
   values:
   - values/values-elasticsearch.yaml.gotmpl
   - values/values-elasticsearch-7.yaml.gotmpl
@@ -90,11 +113,12 @@ releases:
             # The node.ml env var is set since ES 7.12 chart version, and it is not available in the oss version
             - name: node.ml
               $patch: delete
+{{ end }}
+{{ if eq .Environment.Name "elasticsearch8UnitTests" }}
 - name: elasticsearch8
   chart: elastic/elasticsearch
   version: 8.5.1
   namespace: {{ requiredEnv "NAMESPACE" }}
-  condition: elasticsearch8.enabled
   values:
   - values/values-elasticsearch.yaml.gotmpl
   - values/values-elasticsearch-8.yaml.gotmpl
@@ -114,6 +138,7 @@ releases:
             env:
             - name: discovery.seed_hosts
               $patch: delete
+{{ end }}
 - name: kafka
   chart: oci://registry-1.docker.io/bitnamicharts/kafka
   version: 26.4.3
@@ -122,26 +147,3 @@ releases:
   values:
   - values/values-kafka.yaml.gotmpl
   - values/{{ $valuesDir }}/values-kafka.yaml.gotmpl
-
-environments:
-  runtimeUnitTests:
-    values:
-    - environments/unit-tests-runtime.yaml
-  mongodbUnitTests:
-    values:
-    - environments/unit-tests-mongodb.yaml
-  postgresqlUnitTests:
-    values:
-    - environments/unit-tests-postgresql.yaml
-  elasticsearch7UnitTests:
-    values:
-    - environments/unit-tests-elasticsearch-7.yaml
-  elasticsearch8UnitTests:
-    values:
-    - environments/unit-tests-elasticsearch-8.yaml
-  upgradeTest:
-    values:
-    - environments/upgrade-test.yaml
-  benchmark:
-    values:
-    - environments/benchmark.yaml

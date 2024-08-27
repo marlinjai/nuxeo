@@ -1,5 +1,5 @@
 extraDeploy:
-  {{- if or .Values.elasticsearch7.enabled .Values.elasticsearch8.enabled }}
+  {{- if or (eq .Environment.Name "elasticsearch7UnitTests") (eq .Environment.Name "elasticsearch8UnitTests") }}
   # Elasticsearch PDB doesn't allow us to customize the minAvailable spec
   - |
     apiVersion: policy/v1
