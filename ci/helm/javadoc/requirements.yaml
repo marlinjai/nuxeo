@@ -1,9 +1,0 @@
-dependencies:
-  - alias: expose
-    name: exposecontroller
-    repository: https://jenkins-x-charts.github.io/v2/
-    version: ~2.3.118
-  - alias: cleanup
-    name: exposecontroller
-    repository: https://jenkins-x-charts.github.io/v2/
-    version: ~2.3.118

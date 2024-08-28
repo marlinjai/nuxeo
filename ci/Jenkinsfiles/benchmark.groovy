@@ -323,9 +323,8 @@ pipeline {
             nxGit.cloneRepository(name: "${BENCH_SITE_REPO}", branch: 'master')
             dir("${BENCH_SITE_REPO}") {
               // configure git credentials & master branch
+              nxGit.setupCredentials()
               sh """
-                jx step git credentials
-                git config credential.helper store
                 git checkout master
                 git branch --set-upstream-to=origin/master master
               """
