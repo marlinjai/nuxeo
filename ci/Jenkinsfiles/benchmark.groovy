@@ -16,7 +16,7 @@
  * Contributors:
  *     Kevin Leturc <kleturc@nuxeo.com>
  */
-library identifier: "platform-ci-shared-library@v0.0.33"
+library identifier: "platform-ci-shared-library@v0.0.38"
 
 boolean isTriggeredByCron() {
   return currentBuild.getBuildCauses('org.jenkinsci.plugins.parameterizedscheduler.ParameterizedTimerTriggerCause')
@@ -90,7 +90,6 @@ pipeline {
     BENCHMARK_NAMESPACE = "${CURRENT_NAMESPACE}-benchmark"
     SERVICE_TAG = "benchmark-${BUILD_NUMBER}"
     BENCHMARK_NB_DOCS = '100000'
-    HELMFILE_COMMAND = "helmfile --file ci/helm/helmfile.yaml --helm-binary /usr/bin/helm3"
     MAVEN_CLI_ARGS = '-B -nsu -P-nexus,nexus-private,bench -Dnuxeo.bench.itests=false'
     MAVEN_OPTS = "$MAVEN_OPTS -Xms2g -Xmx2g -XX:+TieredCompilation -XX:TieredStopAtLevel=1"
     NUXEO_DOCKER_IMAGE = "${NUXEO_DOCKER_IMAGE_WITH_VERSION.replaceAll(':.*', '')}"
