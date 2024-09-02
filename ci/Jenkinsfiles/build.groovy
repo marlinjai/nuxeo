@@ -346,12 +346,15 @@ pipeline {
             container('maven-mongodb') {
               warnError(message: 'Formatting check has failed') {
                 nxWithGitHubStatus(context: 'maven/lint', message: 'Lint') {
-                  echo """
-                  ----------------------------------------
-                  Check formatting
-                  ----------------------------------------"""
-                  sh "git fetch origin 2023:origin/2023"
-                  sh "mvn ${MAVEN_CLI_ARGS} -V -T4C -Pdistrib,docker,ftestsTier5,ftestsTier6,ftestsTier7 spotless:check"
+                  script {
+                    echo """
+                    ----------------------------------------
+                    Check formatting
+                    ----------------------------------------"""
+                    sh "git fetch origin 2023:origin/2023"
+                    def profiles = 'distrib,docker,ftestsTier5,ftestsTier6,ftestsTier7'
+                    sh "mvn ${MAVEN_CLI_ARGS} -V -T4C -P${profiles} -Dcustom.environment=spotless spotless:check"
+                  }
                 }
               }
             }
