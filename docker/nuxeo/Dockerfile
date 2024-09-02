@@ -4,7 +4,7 @@
 #
 # It uses a multi-stage build to copy and unzip the Nuxeo server ZIP file.
 
-ARG ROCKY_LINUX_VERSION=9.2
+ARG ROCKY_LINUX_VERSION=9
 
 # ------------------------------------------------------------------------
 # Build stage
@@ -41,7 +41,7 @@ ARG BUILD_TAG
 ARG SCM_REF
 ARG VERSION
 
-ARG ROCKY_LINUX_VERSION=9.2
+ARG ROCKY_LINUX_VERSION=9
 ARG LIBREOFFICE_VERSION=7.5.8
 ARG TARGETPLATFORM
 
