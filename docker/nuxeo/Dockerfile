@@ -8,7 +8,7 @@ ARG ROCKY_LINUX_VERSION=9
 
 # ------------------------------------------------------------------------
 # Build stage
-FROM azul/zulu-openjdk:17 as builder
+FROM azul/zulu-openjdk:17 AS builder
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
   procps \
@@ -112,16 +112,16 @@ RUN find / -ignore_readdir_race -perm 6000 -type f -exec chmod a-s {} \; || true
 RUN chmod g=u /etc/passwd
 
 # Set an UTF-8 LANG
-ENV LANG en_US.utf8
+ENV LANG=en_US.utf8
 
 # Add a nuxeo user with a fixed UID
 # We chose an arbitrary UID that doesn't conflict with possibly existing users
-ENV NUXEO_USER nuxeo
+ENV NUXEO_USER=nuxeo
 RUN useradd -m -d /home/$NUXEO_USER -u 900 -s /bin/bash $NUXEO_USER
 
-ENV NUXEO_HOME /opt/nuxeo/server
-ENV NUXEO_CONF /etc/nuxeo/nuxeo.conf
-ENV PATH $NUXEO_HOME/bin:$PATH
+ENV NUXEO_HOME=/opt/nuxeo/server
+ENV NUXEO_CONF=/etc/nuxeo/nuxeo.conf
+ENV PATH=$NUXEO_HOME/bin:$PATH
 
 # Copy scripts and configuration files and create needed folders
 # COPY --chmod only supports octal notation, using 775 that is equivalent to rwxrwxr-x
