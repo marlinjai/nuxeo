@@ -21,8 +21,9 @@ service:
     dev.nuxeo.com/usage: benchmark
 amazonS3:
   enabled: true
-  accessKeyId: {{ requiredEnv "AWS_ACCESS_KEY_ID" }}
-  secretAccessKey: {{ requiredEnv "AWS_SECRET_ACCESS_KEY" }}
+  auth:
+    accessKeyId: {{ requiredEnv "AWS_ACCESS_KEY_ID" }}
+    secretKey: {{ requiredEnv "AWS_SECRET_ACCESS_KEY" }}
   region: us-east-1
   bucket: nuxeo-platform-benchmark
   ## The bucket prefix needs to end with /
@@ -42,7 +43,6 @@ customProperties:
     launcher.log4j2.file=/etc/nuxeo/log4j2-launcher.xml
     nuxeo.append.templates.benchmark=docker-json,perf,tomcat-logs
     nuxeo.docker-json.log4j.layout.attributes=compact="true" eventEol="true" properties="true" stacktraceAsString="true"
-    nuxeo.core.binarymanager=org.nuxeo.ecm.blob.s3.S3BlobProvider
     nuxeo.db.transactiontimeout=3600
     JAVA_OPTS=$JAVA_OPTS -XX:SoftRefLRUPolicyMSPerMB=0
     JAVA_OPTS=$JAVA_OPTS -XX:-OmitStackTraceInFastThrow
