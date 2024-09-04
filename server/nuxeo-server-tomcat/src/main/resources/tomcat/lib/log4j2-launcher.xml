@@ -1,6 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Configuration shutdownHook="disable">
+  <!-- Log4j Configuration for launcher -->
+<Configuration monitorInterval="30" shutdownHook="disable">
   <Appenders>
+    <!-- ============================== -->
+    <!-- Append messages to the console -->
+    <!-- ============================== -->
     <Console name="CONSOLE" target="SYSTEM_OUT">
       <ThresholdFilter level="DEBUG" onMatch="ACCEPT" />
       <PatternLayout>
@@ -9,6 +13,10 @@
         </MarkerPatternSelector>
       </PatternLayout>
     </Console>
+
+    <!-- ================================= -->
+    <!-- Preserve messages in a local file -->
+    <!-- ================================= -->
     <RollingFile name="FILE-ORIGINAL" fileName="${sys:nuxeo.log.dir}/console.log"
                  filePattern="${sys:nuxeo.log.dir}/console-%d{yyyy-MM-dd}.log.gz" append="true">
       <PatternLayout pattern="%d{ISO8601} %-5p [%t] [%c] %m%n" />

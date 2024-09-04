@@ -2813,28 +2813,10 @@
       </dependency>
       <dependency>
         <groupId>org.apache.logging.log4j</groupId>
-        <artifactId>log4j-api</artifactId>
+        <artifactId>log4j-bom</artifactId>
         <version>${org.apache.log4j.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>org.apache.logging.log4j</groupId>
-        <artifactId>log4j-core</artifactId>
-        <version>${org.apache.log4j.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>org.apache.logging.log4j</groupId>
-        <artifactId>log4j-1.2-api</artifactId> <!-- redirect log4j to log4j2 -->
-        <version>${org.apache.log4j.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>org.apache.logging.log4j</groupId>
-        <artifactId>log4j-jcl</artifactId> <!-- redirect commons-logging to log4j2 -->
-        <version>${org.apache.log4j.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>org.apache.logging.log4j</groupId>
-        <artifactId>log4j-slf4j-impl</artifactId> <!-- use log4j-slf4j18-impl when upgrading SLF4j to 1.8 -->
-        <version>${org.apache.log4j.version}</version>
+        <type>pom</type>
+        <scope>import</scope>
       </dependency>
       <dependency>
         <groupId>org.slf4j</groupId>

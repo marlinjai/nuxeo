@@ -178,10 +178,6 @@ if [ $cygwin = false ]; then
   fi
 fi
 
-## java.util.logging configuration
-JUL_CONFIG="-Djava.util.logging.config.file=conf/logging.properties -Djava.util.logging.manager=org.apache.juli.ClassLoaderLogManager"
-JAVA_OPTS="$JAVA_OPTS $JUL_CONFIG"
-
 ## Jigsaw modules
 # Opens/Exports for hotreload
 MODULE_OPTS="--add-opens=java.base/sun.net.www.protocol.jar=ALL-UNNAMED"
@@ -212,6 +208,10 @@ if [ "$cygwin" = "true" ]; then
   TMP_DIR=`cygpath -am "$TMP_DIR"`
 fi
 
+## Log4j2 configuration (launcher.log4j2.file)
+NUXEO_LAUNCHER_LOG4J2=$(grep "^launcher.log4j2.file=" "$NUXEO_CONF" | cut -d= -f2- | tail -n 1)
+# Defaults
+: ${NUXEO_LAUNCHER_LOG4J2:="$NUXEO_HOME"/lib/log4j2-launcher.xml}
 
 ## Launcher
 NUXEO_LAUNCHER="$NUXEO_HOME"/bin/nuxeo-launcher.jar
@@ -235,14 +235,14 @@ while true; do
   done
   cp "$NUXEO_LAUNCHER" "$TMPLAUNCHER"
   if [ "$VERBOSE" = true ]; then
-    echo [`date`] "Launcher command: $JAVA  \"-Xbootclasspath/a:$JAVA_TOOLS\" $MODULE_OPTS $LAUNCHER_DEBUG \"-Dlauncher.java.opts=$JAVA_OPTS\" \"-Dnuxeo.home=$NUXEO_HOME\" \"-Dnuxeo.conf=$NUXEO_CONF\" \"-Dnuxeo.log.dir=$LOG_DIR\" -jar \"$TMPLAUNCHER\" \"$@\" <&0" >> "$LOG_DIR"/nuxeoctl.log
+    echo [`date`] "Launcher command: $JAVA  \"-Xbootclasspath/a:$JAVA_TOOLS\" $MODULE_OPTS $LAUNCHER_DEBUG \"-Dlog4j2.configurationFile=$NUXEO_LAUNCHER_LOG4J2\" \"-Dlauncher.java.opts=$JAVA_OPTS\" \"-Dnuxeo.home=$NUXEO_HOME\" \"-Dnuxeo.conf=$NUXEO_CONF\" \"-Dnuxeo.log.dir=$LOG_DIR\" -jar \"$TMPLAUNCHER\" \"$@\" <&0" >> "$LOG_DIR"/nuxeoctl.log
   fi
   # any signal sent to a bash script is not propagated to its child processes by design
   # this is an issue in Docker because nuxeoctl is PID 1 and responsible to kill its child processes
   # thus we need to use trap/wait to forward signal to the java process
   # we also need to redirect standard input since the process is in background
   trap 'kill -TERM $PID' TERM INT
-  "$JAVA" "-Xbootclasspath/a:$JAVA_TOOLS" $MODULE_OPTS $LAUNCHER_DEBUG "-Dlauncher.java.opts=$JAVA_OPTS" "-Dnuxeo.home=$NUXEO_HOME" "-Dnuxeo.conf=$NUXEO_CONF" "-Dnuxeo.log.dir=$LOG_DIR" -jar "$TMPLAUNCHER" "$@" <&0 &
+  "$JAVA" "-Xbootclasspath/a:$JAVA_TOOLS" $MODULE_OPTS $LAUNCHER_DEBUG "-Dlog4j2.configurationFile=$NUXEO_LAUNCHER_LOG4J2" "-Dlauncher.java.opts=$JAVA_OPTS" "-Dnuxeo.home=$NUXEO_HOME" "-Dnuxeo.conf=$NUXEO_CONF" "-Dnuxeo.log.dir=$LOG_DIR" -jar "$TMPLAUNCHER" "$@" <&0 &
   PID=$!
   wait $PID
   trap - TERM INT

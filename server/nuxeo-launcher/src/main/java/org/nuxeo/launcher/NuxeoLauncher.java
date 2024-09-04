@@ -701,7 +701,8 @@ public class NuxeoLauncher {
     protected Collection<? extends String> getServerProperties() {
         File home = configurationGenerator.getConfigurationHolder().getHomePath().toFile();
         return List.of(formatPropertyToCommandLine("catalina.base", home.getPath()),
-                formatPropertyToCommandLine("catalina.home", home.getPath()));
+                formatPropertyToCommandLine("catalina.home", home.getPath()),
+                formatPropertyToCommandLine("java.util.logging.manager", "org.apache.juli.ClassLoaderLogManager"));
     }
 
     private File getJavaExecutable() {

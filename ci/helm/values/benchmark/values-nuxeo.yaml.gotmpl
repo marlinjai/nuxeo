@@ -39,6 +39,7 @@ customEnvs:
       fieldPath: status.hostIP
 customProperties:
   benchmark: |
+    launcher.log4j2.file=/etc/nuxeo/log4j2-launcher.xml
     nuxeo.append.templates.benchmark=docker-json,perf
     nuxeo.docker-json.log4j.layout.attributes=compact="true" eventEol="true" properties="true" stacktraceAsString="true"
     nuxeo.core.binarymanager=org.nuxeo.ecm.blob.s3.S3BlobProvider
@@ -56,6 +57,52 @@ customProperties:
 {{- if eq (env "INSTALL_NEEDED_PACKAGES") "true" }}
 packages: amazon-s3-online-storage nuxeo-platform-importer nuxeo-web-ui
 {{- end }}
+extraVolumeMounts:
+- name: log4j2-launcher
+  mountPath: /etc/nuxeo/log4j2-launcher.xml
+  subPath: log4j2-launcher.xml
+extraVolumes:
+- name: log4j2-launcher
+  secret:
+    secretName: nuxeo-log4j2-launcher
+extraStringSecrets:
+  nuxeo-log4j2-launcher:
+    log4j2-launcher.xml: |-
+      <?xml version="1.0" encoding="UTF-8"?>
+        <!-- Log4j Configuration for launcher -->
+      <Configuration monitorInterval="30" shutdownHook="disable">
+        <Appenders>
+          <!-- ============================== -->
+          <!-- Append messages to the console -->
+          <!-- ============================== -->
+          <Console name="ConsoleJSONAppender-ORIGINAL" target="SYSTEM_OUT">
+            <JsonLayout compact="true" eventEol="true" properties="true" stacktraceAsString="true"/>
+          </Console>
+  
+          <Rewrite name="ConsoleJSONAppender">
+            <AppenderRef ref="ConsoleJSONAppender-ORIGINAL"/>
+            <MaskSensitiveData />
+          </Rewrite>
+        </Appenders>
+        <Loggers>
+          <Logger name="org.nuxeo" level="warn" />
+          <Logger name="org.nuxeo.launcher" level="info" />
+          <Logger name="org.nuxeo.connect" level="info" />
+          <Logger name="org.nuxeo.ecm.admin" level="info" />
+          <Logger name="org.nuxeo.runtime.deployment.preprocessor" level="info" />
+          <Logger name="org.eclipse.equinox.p2.cudf" level="warn" />
+          <!-- NXP-11424/NXBT-550 Relocated package in nuxeo-connect-client -->
+          <Logger name="hidden.org.eclipse.equinox.p2.cudf" level="warn" />
+          <!-- Hide warning from HttpMethodBase: << Going to buffer response body of large
+          or unknown size. Using getResponseBodyAsStream instead is recommended. >> -->
+          <Logger name="org.apache.commons.httpclient.HttpMethodBase" level="error" />
+          <Logger name="org.apache.commons.vfs2.impl.StandardFileSystemManager" level="warn" />
+          <Root level="warn">
+            <AppenderRef ref="ConsoleJSONAppender" />
+          </Root>
+        </Loggers>
+      </Configuration>
+
 affinity:
   podAntiAffinity:
     requiredDuringSchedulingIgnoredDuringExecution:
