@@ -15,39 +15,6 @@
       <MaskSensitiveData />
     </Rewrite>
 
-    <!-- Clustering logging -->
-    <!-- Uncomment the following to redirect the org.jgroups and org.jboss.ha categories to a cluster.log file.
-    <File name="CLUSTER" fileName="${sys:nuxeo.log.dir}/cluster.log" append="false">
-      <PatternLayout pattern="%d{ISO8601} %-5p [%t] [%c] %m%n" />
-    </File>
-    -->
-
-    <!-- VCS Storage logging -->
-    <!--
-    <File name="STORAGE" fileName="${sys:nuxeo.log.dir}/storage.log" append="false">
-      <PatternLayout pattern="%d{ISO8601} %-5p [%t] [%c] %m%n" />
-    </File>
-    -->
-    <!-- Elasticsearch logging -->
-    <!--
-    <File name="ELASTIC" fileName="${sys:nuxeo.log.dir}/elastic.log" append="false">
-      <PatternLayout pattern="%d{ISO8601} %-5p [%t] [%c] %m%n" />
-    </File>
-    -->
-
-    <!-- ====================== -->
-    <!-- More Appender examples -->
-    <!-- ====================== -->
-
-    <!-- Automation Trace appender - add ref into automation.core category
-    <RollingFile name="AUTOMATION" fileName="${sys:nuxeo.log.dir}/automation.log"
-                 filePattern="${sys:nuxeo.log.dir}/automation-%d{yyyy-MM-dd}.log.gz" append="true">
-      <PatternLayout pattern="%d{ISO8601} %-5p [%t] [%c] %m%n" />
-      <CronTriggeringPolicy schedule="0 0 0 * * ?" evaluateOnStartup="true" />
-      <DefaultRolloverStrategy />
-    </RollingFile>
-    -->
-
     <!-- Buffer events and log them asynchronously
     <Async name="ASYNC" >
       <AppenderRef ref="FILE" />
@@ -208,6 +175,8 @@
     <Logger name="org.apache.myfaces.shared_tomahawk" level="warn" />
 
     <Logger name="org.elasticsearch.bootstrap" level="error" />
+    <!-- Remove WARN on deprecated on [ignore_throttled] parameter -->
+    <Logger name="org.opensearch.client.RestClient" level="error" />
 
     <Root level="warn">
       <AppenderRef ref="CONSOLE" />
