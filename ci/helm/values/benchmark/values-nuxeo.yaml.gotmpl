@@ -40,7 +40,7 @@ customEnvs:
 customProperties:
   benchmark: |
     launcher.log4j2.file=/etc/nuxeo/log4j2-launcher.xml
-    nuxeo.append.templates.benchmark=docker-json,perf
+    nuxeo.append.templates.benchmark=docker-json,perf,tomcat-logs
     nuxeo.docker-json.log4j.layout.attributes=compact="true" eventEol="true" properties="true" stacktraceAsString="true"
     nuxeo.core.binarymanager=org.nuxeo.ecm.blob.s3.S3BlobProvider
     nuxeo.db.transactiontimeout=3600

@@ -1,13 +1,27 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!-- Log4j Configuration - For more configuration information and examples see https://logging.apache.org/log4j/2.x/ -->
 <Configuration monitorInterval="30">
+  <Properties>
+    <Property name="defaultConsoleLayout">
+      <![CDATA[%d{ISO8601} %-5p [%c{1}] %m%n]]>
+    </Property>
+    <Property name="consoleLayout">
+      <![CDATA[${sys:nuxeo.common.logging.console.layout:-${defaultConsoleLayout}}]]>
+    </Property>
+    <Property name="defaultFileLayout">
+      <![CDATA[%d{ISO8601} %-5p [%t] [%c] %m%n]]>
+    </Property>
+    <Property name="fileLayout">
+      <![CDATA[${sys:nuxeo.common.logging.file.layout:-${defaultFileLayout}}]]>
+    </Property>
+  </Properties>
   <Appenders>
     <!-- ================================= -->
     <!-- Preserve messages in a local file -->
     <!-- ================================= -->
     <RollingFile name="FILE-ORIGINAL" fileName="${sys:nuxeo.log.dir}/server.log"
                  filePattern="${sys:nuxeo.log.dir}/server-%d{yyyy-MM-dd}.log.gz" append="true">
-      <PatternLayout pattern="%d{ISO8601} %-5p [%t] [%c] %m%n" />
+      <PatternLayout pattern="${fileLayout}" />
       <CronTriggeringPolicy schedule="0 0 0 * * ?" evaluateOnStartup="true" /> <!-- Rollover at midnight every day -->
       <DefaultRolloverStrategy />
     </RollingFile>
@@ -22,7 +36,7 @@
     <!-- ============================= -->
     <RollingFile name="ERROR-FILE" fileName="${sys:nuxeo.log.dir}/nuxeo-error.log"
                  filePattern="${sys:nuxeo.log.dir}/nuxeo-error-%d{yyyy-MM-dd}.log.gz" append="true">
-      <PatternLayout pattern="%d{ISO8601} %-5p [%t] [%c] %m%n" />
+      <PatternLayout pattern="${fileLayout}" />
       <CronTriggeringPolicy schedule="0 0 0 * * ?" evaluateOnStartup="true" /> <!-- Rollover at midnight every day -->
       <DefaultRolloverStrategy />
     </RollingFile>
@@ -30,9 +44,10 @@
     <!-- ============================= -->
     <!-- Gather stderr in a local file -->
     <!-- ============================= -->
+    <!-- deprecated, will be removed in 2025 -->
     <RollingFile name="STDERR-FILE" fileName="${sys:nuxeo.log.dir}/stderr.log"
                  filePattern="${sys:nuxeo.log.dir}/stderr-%d{yyyy-MM-dd}.log.gz" append="true">
-      <PatternLayout pattern="%d{ISO8601} %-5p [%t] [%c] %m%n" />
+      <PatternLayout pattern="${fileLayout}" />
       <CronTriggeringPolicy schedule="0 0 0 * * ?" evaluateOnStartup="true" /> <!-- Rollover at midnight every day -->
       <DefaultRolloverStrategy />
     </RollingFile>
@@ -42,7 +57,7 @@
     <!-- ============================== -->
     <Console name="CONSOLE-ORIGINAL" target="SYSTEM_OUT">
       <ThresholdFilter level="INFO" onMatch="ACCEPT" />
-      <PatternLayout pattern="%d{ISO8601} %-5p [%c{1}] %m%n" />
+      <PatternLayout pattern="${consoleLayout}" />
     </Console>
 
     <Rewrite name="CONSOLE">
@@ -50,10 +65,20 @@
       <MaskSensitiveData />
     </Rewrite>
 
+    <!-- deprecated, will be removed in 2025, logs are now routed to CATALINA -->
     <File name="CLASSLOADER" fileName="${sys:nuxeo.log.dir}/classloader.log" append="false">
       <PatternLayout pattern="%d{ISO8601} %-5p [%t] [%c] %m%n" />
     </File>
 
+    <!-- Tomcat logging -->
+    <RollingFile name="CATALINA" fileName="${sys:nuxeo.log.dir}/catalina.log"
+                 filePattern="${sys:nuxeo.log.dir}/catalina-%d{yyyy-MM-dd}.log.gz" append="true">
+      <PatternLayout pattern="${fileLayout}" />
+      <CronTriggeringPolicy schedule="0 0 0 * * ?" evaluateOnStartup="true" /> <!-- Rollover at midnight every day -->
+      <DefaultRolloverStrategy />
+    </RollingFile>
+
+    <!-- deprecated, will be removed in 2025, logs are now routed to CATALINA -->
     <File name="TOMCAT" fileName="${sys:nuxeo.log.dir}/tomcat.log" append="false">
       <PatternLayout pattern="%d{ISO8601} %-5p [%t] [%c] %m%n" />
     </File>
@@ -61,20 +86,20 @@
     <!-- Clustering logging -->
     <!-- Uncomment the following to redirect the org.jgroups and org.jboss.ha categories to a cluster.log file.
     <File name="CLUSTER" fileName="${sys:nuxeo.log.dir}/cluster.log" append="false">
-      <PatternLayout pattern="%d{ISO8601} %-5p [%t] [%c] %m%n" />
+      <PatternLayout pattern="${fileLayout}" />
     </File>
     -->
 
     <!-- VCS Storage logging -->
     <!--
     <File name="STORAGE" fileName="${sys:nuxeo.log.dir}/storage.log" append="false">
-      <PatternLayout pattern="%d{ISO8601} %-5p [%t] [%c] %m%n" />
+      <PatternLayout pattern="${fileLayout}" />
     </File>
     -->
     <!-- Elasticsearch logging -->
     <!--
     <File name="ELASTIC" fileName="${sys:nuxeo.log.dir}/elastic.log" append="false">
-      <PatternLayout pattern="%d{ISO8601} %-5p [%t] [%c] %m%n" />
+      <PatternLayout pattern="${fileLayout}" />
     </File>
     -->
 
@@ -85,7 +110,7 @@
     <!-- Automation Trace appender - add ref into automation.core category
     <RollingFile name="AUTOMATION" fileName="${sys:nuxeo.log.dir}/automation.log"
                  filePattern="${sys:nuxeo.log.dir}/automation-%d{yyyy-MM-dd}.log.gz" append="true">
-      <PatternLayout pattern="%d{ISO8601} %-5p [%t] [%c] %m%n" />
+      <PatternLayout pattern="${fileLayout}" />
       <CronTriggeringPolicy schedule="0 0 0 * * ?" evaluateOnStartup="true" />
       <DefaultRolloverStrategy />
     </RollingFile>
@@ -196,11 +221,36 @@
     <!-- =================== -->
     <!-- Third Party Loggers -->
     <!-- =================== -->
-    <Logger name="org.apache.catalina.loader" level="warn" additivity="false">
+    <!-- Tomcat loggers works only with the tomcat-logs template, it will be the default in 2025 -->
+    <!-- Tomcat catalina loggers -->
+    <Logger name="org.apache.catalina" level="warn" additivity="false">
+      <AppenderRef ref="CATALINA" />
+    </Logger>
+    <Logger name="org.apache.catalina.core.AprLifecycleListener" level="info">
+      <!-- AppenderRef is kept for backward compatibility, TOMCAT will be removed in 2025 -->
+      <AppenderRef ref="TOMCAT" />
+    </Logger>
+    <Logger name="org.apache.catalina.core.ContainerBase" level="info" />
+    <!-- Logger "org.apache.catalina.loader" is kept for backward compatibility, CLASSLOADER will be removed in 2025 -->
+    <Logger name="org.apache.catalina.loader" level="warn">
       <AppenderRef ref="CLASSLOADER" />
     </Logger>
-    <Logger name="org.apache.catalina.core.AprLifecycleListener" level="info" additivity="false">
-      <AppenderRef ref="TOMCAT" />
+    <Logger name="org.apache.catalina.startup.Catalina" level="info">
+      <AppenderRef ref="CONSOLE" />
+    </Logger>
+    <Logger name="org.apache.catalina.startup.VersionLoggerListener" level="info" />
+    <!-- Tomcat coyote loggers -->
+    <Logger name="org.apache.coyote" level="warn" additivity="false">
+      <AppenderRef ref="CATALINA" />
+    </Logger>
+    <!-- Tomcat jasper loggers -->
+    <Logger name="org.apache.jasper" level="warn" additivity="false">
+      <AppenderRef ref="CATALINA" />
+    </Logger>
+    <!-- System.err redirected by Tomcat to a logger STDERR with level ERROR -->
+    <Logger name="STDERR" level="error" additivity="false">
+      <AppenderRef ref="STDERR-FILE" /> <!-- for backward compatibility -->
+      <AppenderRef ref="CATALINA" />
     </Logger>
 
     <Logger name="org.jboss.ejb3" level="warn" />
@@ -270,15 +320,9 @@
     <!-- Remove WARN on deprecated on [ignore_throttled] parameter -->
     <Logger name="org.opensearch.client.RestClient" level="error" />
 
-    <!-- See org.nuxeo.ecm.platform.ui.web.shield.ErrorPageForwarder and
-    org.nuxeo.ecm.platform.web.common.exceptionhandling.service.ExceptionHandlingContrib in
-    nuxeo-services/nuxeo-platform-web-common/src/main/resources/OSGI-INF/exception-handling-contrib.xml -->
+    <!-- See nuxeo-services/nuxeo-platform-web-common/src/main/resources/OSGI-INF/exception-handling-contrib.xml -->
     <Logger name="nuxeo-error-log" level="trace">
       <AppenderRef ref="ERROR-FILE" />
-    </Logger>
-    <!-- System.err redirected by Tomcat to a logger STDERR with level ERROR -->
-    <Logger name="STDERR" level="error" additivity="false">
-      <AppenderRef ref="STDERR-FILE" />
     </Logger>
     <Root level="warn">
       <AppenderRef ref="CONSOLE" />

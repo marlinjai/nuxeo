@@ -1,13 +1,21 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!-- Log4j Configuration - For more configuration information and examples see https://logging.apache.org/log4j/2.x/ -->
 <Configuration monitorInterval="30">
+  <Properties>
+    <Property name="defaultConsoleLayout">
+      <![CDATA[%d{ISO8601} %-5p [%c{1}] %m%n]]>
+    </Property>
+    <Property name="consoleLayout">
+      <![CDATA[${sys:nuxeo.common.logging.console.layout:-${defaultConsoleLayout}}]]>
+    </Property>
+  </Properties>
   <Appenders>
     <!-- ============================== -->
     <!-- Append messages to the console -->
     <!-- ============================== -->
     <Console name="CONSOLE-ORIGINAL" target="SYSTEM_OUT">
       <ThresholdFilter level="INFO" onMatch="ACCEPT" />
-      <PatternLayout pattern="%d{ISO8601} %-5p [%c{1}] %m%n" />
+      <PatternLayout pattern="${consoleLayout}" />
     </Console>
 
     <Rewrite name="CONSOLE">
@@ -111,6 +119,19 @@
     <!-- =================== -->
     <!-- Third Party Loggers -->
     <!-- =================== -->
+    <!-- Tomcat catalina loggers -->
+    <Logger name="org.apache.catalina" level="warn" />
+    <Logger name="org.apache.catalina.core.AprLifecycleListener" level="info" />
+    <Logger name="org.apache.catalina.core.ContainerBase" level="info" />
+    <Logger name="org.apache.catalina.startup.Catalina" level="info" />
+    <Logger name="org.apache.catalina.startup.VersionLoggerListener" level="info" />
+    <!-- Tomcat coyote loggers -->
+    <Logger name="org.apache.coyote" level="warn" />
+    <!-- Tomcat jasper loggers -->
+    <Logger name="org.apache.jasper" level="warn" />
+    <!-- System.err redirected by Tomcat to a logger STDERR with level ERROR -->
+    <Logger name="STDERR" level="error" />
+
     <Logger name="org.jboss.ejb3" level="warn" />
     <Logger name="org.jboss.ejb3.cache.simple.StatefulSessionFilePersistenceManager" level="warn" />
     <Logger name="org.jboss.management" level="info" /> <!-- Limit the JSR77 categories -->

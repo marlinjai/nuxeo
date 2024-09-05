@@ -83,6 +83,19 @@
     <!-- =================== -->
     <!-- Third Party Loggers -->
     <!-- =================== -->
+    <!-- Tomcat catalina loggers -->
+    <Logger name="org.apache.catalina" level="warn" />
+    <Logger name="org.apache.catalina.core.AprLifecycleListener" level="info" />
+    <Logger name="org.apache.catalina.core.ContainerBase" level="info" />
+    <Logger name="org.apache.catalina.startup.Catalina" level="info" />
+    <Logger name="org.apache.catalina.startup.VersionLoggerListener" level="info" />
+    <!-- Tomcat coyote loggers -->
+    <Logger name="org.apache.coyote" level="warn" />
+    <!-- Tomcat jasper loggers -->
+    <Logger name="org.apache.jasper" level="warn" />
+    <!-- System.err redirected by Tomcat to a logger STDERR with level ERROR -->
+    <Logger name="STDERR" level="error" />
+
     <Logger name="org.jboss.ejb3" level="warn" />
     <Logger name="org.jboss.ejb3.cache.simple.StatefulSessionFilePersistenceManager" level="warn" />
     <Logger name="org.jboss.management" level="info" /> <!-- Limit the JSR77 categories -->

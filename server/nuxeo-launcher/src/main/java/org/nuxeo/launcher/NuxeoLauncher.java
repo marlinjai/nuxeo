@@ -700,9 +700,16 @@ public class NuxeoLauncher {
 
     protected Collection<? extends String> getServerProperties() {
         File home = configurationGenerator.getConfigurationHolder().getHomePath().toFile();
-        return List.of(formatPropertyToCommandLine("catalina.base", home.getPath()),
-                formatPropertyToCommandLine("catalina.home", home.getPath()),
+        var serverProperties = new ArrayList<String>();
+        serverProperties.add(formatPropertyToCommandLine("catalina.base", home.getPath()));
+        serverProperties.add(formatPropertyToCommandLine("catalina.home", home.getPath()));
+        if (!configurationGenerator.getConfigurationHolder().getIncludedTemplateNames().contains("tomcat-logs")) {
+            serverProperties.add(
+                    formatPropertyToCommandLine("java.util.logging.config.file", "conf/logging.properties"));
+        }
+        serverProperties.add(
                 formatPropertyToCommandLine("java.util.logging.manager", "org.apache.juli.ClassLoaderLogManager"));
+        return serverProperties;
     }
 
     private File getJavaExecutable() {
@@ -710,8 +717,12 @@ public class NuxeoLauncher {
     }
 
     protected String getClassPath() {
-        File binDir = configurationGenerator.getConfigurationHolder().getHomePath().resolve(BIN).toFile();
+        var homePath = configurationGenerator.getConfigurationHolder().getHomePath();
+        File binDir = homePath.resolve(BIN).toFile();
         String cp = ".";
+        // allow Tomcat to load log4j2 and log with it
+        cp += File.pathSeparator + homePath.resolve("lib"); // resources (log4j2.xml, ...)
+        cp += File.pathSeparator + homePath.resolve("lib") + File.separator + "*"; // jars (log4j2-api-*.jar, ...)
         cp = addToClassPath(cp, "nxserver" + File.separator + "lib");
         cp = addToClassPath(cp, getBinJarName(binDir, ConfigurationGenerator.BOOTSTRAP_JAR_REGEX));
         // since Tomcat 7, we need tomcat-juli.jar for bootstrap as well
