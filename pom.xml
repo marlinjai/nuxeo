@@ -4917,7 +4917,7 @@
             <dependency>
               <groupId>org.nuxeo</groupId>
               <artifactId>nuxeo-build-tools</artifactId>
-              <version>1</version>
+              <version>2</version>
             </dependency>
           </dependencies>
           <configuration>
