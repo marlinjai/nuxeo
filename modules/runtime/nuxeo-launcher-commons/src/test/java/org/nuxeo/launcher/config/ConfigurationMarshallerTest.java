@@ -125,6 +125,14 @@ public class ConfigurationMarshallerTest {
         assertNuxeoConf();
     }
 
+    // NXP-32489
+    @Test
+    public void testPersistNuxeoConfWithUTF8Characters() throws Exception {
+        marshaller.persistNuxeoConf(configHolder);
+
+        assertNuxeoConf();
+    }
+
     protected void assertNuxeoConf() throws IOException {
         var expectedNuxeoConf = testDirectory.resolve("expected-nuxeo.conf");
         var expectedNuxeoConfFile = expectedNuxeoConf.toFile();

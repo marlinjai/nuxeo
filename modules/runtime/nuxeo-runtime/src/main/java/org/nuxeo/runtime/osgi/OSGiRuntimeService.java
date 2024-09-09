@@ -23,19 +23,20 @@ package org.nuxeo.runtime.osgi;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
 
-import java.io.BufferedInputStream;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.Reader;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Properties;
 import java.util.Set;
 import java.util.StringTokenizer;
 import java.util.concurrent.ConcurrentHashMap;
@@ -369,8 +370,8 @@ public class OSGiRuntimeService extends AbstractRuntimeService implements Framew
             CryptoProperties props = new CryptoProperties(System.getProperties());
             for (String name : names) {
                 if (isPropertiesFile(name)) {
-                    try (FileInputStream in = new FileInputStream(new File(dir, name))) {
-                        props.load(in);
+                    try (var reader = Files.newBufferedReader(dir.toPath().resolve(name))) {
+                        props.load(reader);
                     }
                 }
             }
@@ -393,19 +394,28 @@ public class OSGiRuntimeService extends AbstractRuntimeService implements Framew
     }
 
     public void loadProperties(File file) throws IOException {
-        try (InputStream in = new BufferedInputStream(new FileInputStream(file))) {
-            loadProperties(in);
+        try (var reader = Files.newBufferedReader(file.toPath())) {
+            loadProperties(reader);
         }
     }
 
     public void loadProperties(URL url) throws IOException {
         try (InputStream in = url.openStream()) {
-            loadProperties(in);
+            properties.load(in);
         }
     }
 
+    /**
+     * @deprecated since 2025.0, {@link Properties#load(InputStream)} loads properties with ISO-8859-1 encoding whereas
+     *             we want UTF-8, use {@link #loadProperties(Reader)} instead
+     */
+    @Deprecated(since = "2025.0", forRemoval = true)
     public void loadProperties(InputStream in) throws IOException {
         properties.load(in);
+    }
+
+    public void loadProperties(Reader reader) throws IOException {
+        properties.load(reader);
     }
 
     /**

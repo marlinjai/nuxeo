@@ -19,17 +19,11 @@
 
 package org.nuxeo.launcher.config;
 
-import static java.nio.charset.StandardCharsets.ISO_8859_1;
-import static java.nio.charset.StandardCharsets.US_ASCII;
-import static java.nio.charset.StandardCharsets.UTF_8;
-import static java.nio.file.StandardOpenOption.CREATE;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 import static org.nuxeo.launcher.config.ConfigurationConstants.ENV_NUXEO_ENVIRONMENT;
 
 import java.net.URL;
-import java.nio.charset.Charset;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Map;
 
@@ -94,36 +88,6 @@ public class ConfigurationLoaderTest {
         assertEquals("defaultValue", properties.getProperty("prop.to.replace.with.default"));
         assertEquals("very old", properties.getProperty("old.prop"));
         assertEquals("very old", properties.getProperty("new.prop"));
-    }
-
-    @Test
-    public void testCheckFileCharset() throws Exception {
-        var loader = newConfigurationLoader(Map.of());
-        Path tempFile = Files.createTempFile("", "");
-        // Test UTF8
-        Files.writeString(tempFile, "nuxéo", UTF_8, CREATE);
-        try {
-            Charset charset = loader.checkFileCharset(tempFile);
-            assertEquals(UTF_8, charset);
-        } finally {
-            Files.deleteIfExists(tempFile);
-        }
-        // test ISO_8859_1
-        Files.writeString(tempFile, "nuxéo", ISO_8859_1, CREATE);
-        try {
-            Charset charset = loader.checkFileCharset(tempFile);
-            assertEquals(ISO_8859_1, charset);
-        } finally {
-            Files.deleteIfExists(tempFile);
-        }
-        // test US_ASCII
-        Files.writeString(tempFile, "nuxeo", US_ASCII, CREATE);
-        try {
-            Charset charset = loader.checkFileCharset(tempFile);
-            assertEquals(US_ASCII, charset);
-        } finally {
-            Files.deleteIfExists(tempFile);
-        }
     }
 
     @Test

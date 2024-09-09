@@ -19,19 +19,13 @@
 
 package org.nuxeo.launcher.config;
 
-import static java.nio.charset.StandardCharsets.ISO_8859_1;
-import static java.nio.charset.StandardCharsets.US_ASCII;
-import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.nuxeo.launcher.config.ConfigurationConstants.ENV_NUXEO_ENVIRONMENT;
 import static org.nuxeo.launcher.config.ConfigurationConstants.FILE_NUXEO_DEFAULTS;
 import static org.nuxeo.launcher.config.ConfigurationGenerator.NUXEO_ENVIRONMENT_CONF_FORMAT;
 
 import java.io.IOException;
-import java.nio.charset.CharacterCodingException;
-import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.regex.Matcher;
@@ -97,9 +91,7 @@ public class ConfigurationLoader {
     }
 
     protected Properties loadProperties(Properties properties, Path propertiesFile) throws ConfigurationException {
-        Charset charset = checkFileCharset(propertiesFile);
-        log.debug("Opening: {} with: {}", propertiesFile, charset);
-        try (var reader = Files.newBufferedReader(propertiesFile, charset)) {
+        try (var reader = Files.newBufferedReader(propertiesFile)) {
             Properties p = new Properties();
             p.load(reader);
             p.stringPropertyNames().forEach(k -> {
@@ -118,27 +110,6 @@ public class ConfigurationLoader {
             throw new ConfigurationException("Unable to read: " + propertiesFile, e);
         }
         return properties;
-    }
-
-    /**
-     * @return The charset encoding for this file
-     */
-    @SuppressWarnings("StatementWithEmptyBody")
-    protected Charset checkFileCharset(Path propertiesFile) throws ConfigurationException {
-        List<Charset> charsetsToBeTested = List.of(US_ASCII, UTF_8, ISO_8859_1);
-        for (Charset charsetTest : charsetsToBeTested) {
-            try (var buffer = Files.newBufferedReader(propertiesFile, charsetTest)) {
-                while (buffer.read() != -1) {
-                    // empty we want to check readability
-                }
-                return charsetTest;
-            } catch (CharacterCodingException e) {
-                log.trace("Unable to read: {} with charset: {}", propertiesFile, charsetTest);
-            } catch (IOException e) {
-                throw new ConfigurationException("Unable to read: " + propertiesFile, e);
-            }
-        }
-        throw new ConfigurationException("Can't identify file charset for " + propertiesFile);
     }
 
     /**

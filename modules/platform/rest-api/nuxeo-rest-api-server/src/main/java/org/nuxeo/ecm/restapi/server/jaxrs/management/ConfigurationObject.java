@@ -75,7 +75,7 @@ public class ConfigurationObject extends AbstractResource<ResourceTypeImpl> {
             configurationProps = new Properties();
             var configProps = Path.of(Framework.getProperty(Environment.NUXEO_CONFIG_DIR))
                                   .resolve(ConfigurationConstants.FILE_CONFIGURATION_PROPERTIES);
-            try (var input = Files.newInputStream(configProps)) {
+            try (var input = Files.newBufferedReader(configProps)) {
                 configurationProps.load(input);
             }
         }
