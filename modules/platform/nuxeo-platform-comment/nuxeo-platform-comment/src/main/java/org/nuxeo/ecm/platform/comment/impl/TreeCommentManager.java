@@ -108,7 +108,7 @@ public class TreeCommentManager extends AbstractCommentManager {
     protected static final String GET_EXTERNAL_COMMENT_PAGE_PROVIDER_NAME = "GET_EXTERNAL_COMMENT_BY_ECM_ANCESTOR";
 
     protected static final String GET_COMMENTS_FOR_DOCUMENT_PAGE_PROVIDER_NAME = "GET_COMMENTS_FOR_DOCUMENT_BY_ECM_PARENT";
-    
+
     protected static final String GET_COMMENTS_FOR_DOCUMENTS_PAGE_PROVIDER_NAME = "GET_COMMENTS_FOR_DOCUMENTS_BY_COMMENT_ANCESTOR";
 
     protected static final String SERVICE_WITHOUT_IMPLEMENTATION_MESSAGE = "This service implementation does not implement deprecated API.";
@@ -353,11 +353,11 @@ public class TreeCommentManager extends AbstractCommentManager {
     @Override
     public boolean hasFeature(Feature feature) {
         switch (feature) {
-        case COMMENTS_LINKED_WITH_PROPERTY:
-        case COMMENTS_ARE_SPECIAL_CHILDREN:
-            return true;
-        default:
-            throw new UnsupportedOperationException(feature.name());
+            case COMMENTS_LINKED_WITH_PROPERTY:
+            case COMMENTS_ARE_SPECIAL_CHILDREN:
+                return true;
+            default:
+                throw new UnsupportedOperationException(feature.name());
         }
     }
 

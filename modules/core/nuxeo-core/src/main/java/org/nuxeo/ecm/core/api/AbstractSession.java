@@ -381,14 +381,14 @@ public abstract class AbstractSession implements CoreSession, Serializable {
         }
         int type = docRef.type();
         switch (type) {
-        case DocumentRef.ID:
-            return getSession().getDocumentByUUID((String) ref);
-        case DocumentRef.PATH:
-            return getSession().resolvePath((String) ref);
-        case DocumentRef.INSTANCE:
-            return getSession().getDocumentByUUID(((DocumentModel) ref).getId());
-        default:
-            throw new IllegalArgumentException("Invalid type: " + type);
+            case DocumentRef.ID:
+                return getSession().getDocumentByUUID((String) ref);
+            case DocumentRef.PATH:
+                return getSession().resolvePath((String) ref);
+            case DocumentRef.INSTANCE:
+                return getSession().getDocumentByUUID(((DocumentModel) ref).getId());
+            default:
+                throw new IllegalArgumentException("Invalid type: " + type);
         }
     }
 
@@ -2101,7 +2101,9 @@ public abstract class AbstractSession implements CoreSession, Serializable {
         // find versions
         String versionsQuery = String.format(FIND_VERSIONS_QUERY, docId);
         PartialList<Map<String, Serializable>> res = queryProjection(versionsQuery, 0, 0);
-        List<DocumentRef> versions = res.stream().map(m -> new IdRef((String) m.get(NXQL.ECM_UUID))).collect(Collectors.toList());
+        List<DocumentRef> versions = res.stream()
+                                        .map(m -> new IdRef((String) m.get(NXQL.ECM_UUID)))
+                                        .collect(Collectors.toList());
         if (versions.isEmpty()) {
             log.debug("No orphan version for: {}, there is no version.", docRef);
             return Collections.emptyList();
@@ -2118,7 +2120,9 @@ public abstract class AbstractSession implements CoreSession, Serializable {
         Collection<OrphanVersionRemovalFilter> filters = coreService.getOrphanVersionRemovalFilters();
         if (!filters.isEmpty()) {
             // Hopefully, this OrphanVersionRemovalFilter extension point is rarely used
-            List<String> versionIds = versions.stream().map(ref -> (String) ref.reference()).collect(Collectors.toList());
+            List<String> versionIds = versions.stream()
+                                              .map(ref -> (String) ref.reference())
+                                              .collect(Collectors.toList());
             for (OrphanVersionRemovalFilter filter : filters) {
                 ShallowDocumentModel deleted = new ShallowDocumentModel(docId, getRepositoryName(), "unknown", null,
                         "Unknown", false, false, false, false, Collections.emptyMap(), null, null);
