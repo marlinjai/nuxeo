@@ -38,6 +38,8 @@ import org.nuxeo.ecm.core.api.CoreInstance;
 import org.nuxeo.ecm.core.api.CoreSession;
 import org.nuxeo.ecm.core.api.DocumentModel;
 import org.nuxeo.ecm.core.api.DocumentModelList;
+import org.nuxeo.ecm.core.api.DocumentRef;
+import org.nuxeo.ecm.core.api.VersioningOption;
 import org.nuxeo.ecm.core.api.impl.DocumentModelListImpl;
 import org.nuxeo.ecm.core.test.CoreFeature;
 import org.nuxeo.ecm.core.test.annotations.Granularity;
@@ -72,6 +74,17 @@ public class TestGetOrCreateDocument {
             docs.add(session.createDocumentModel("/", "file_" + i, "File"));
         }
         return docs;
+    }
+
+    @Test
+    public void testGetOrCreateChildOfVersion() {
+        DocumentModel file = session.createDocumentModel("/", "file", "File");
+        file = session.createDocument(file);
+        DocumentRef vRef = session.checkIn(file.getRef(), VersioningOption.MAJOR, null);
+        DocumentModel version = session.getDocument(vRef);
+        var child1 = session.getOrCreateDocument(session.newDocumentModel(version.getRef(), "child", "File"));
+        var child2 = session.getOrCreateDocument(session.newDocumentModel(version.getRef(), "child", "File"));
+        assertEquals(child1.getPath(), child2.getPath());
     }
 
     @Test

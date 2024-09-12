@@ -60,8 +60,10 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
@@ -2975,21 +2977,30 @@ public abstract class AbstractSession implements CoreSession, Serializable {
     @Override
     public DocumentModel getOrCreateDocument(DocumentModel docModel,
             Function<DocumentModel, DocumentModel> postCreate) {
+        DocumentRef parentRef = docModel.getParentRef();
         DocumentRef ref = docModel.getRef();
-        // Check if the document exists
-        if (exists(ref)) {
-            return getDocument(ref);
-        }
-        // handle placeless documents, no locks are needed in this case
-        if (docModel.getParentRef() == null) {
-            return postCreate.apply(createDocument(docModel));
-        }
-        String key = computeKeyForAtomicCreation(docModel);
-        return LockHelper.doAtomically(key, () -> {
-            if (exists(ref)) {
-                return getDocument(ref);
+        Supplier<Optional<DocumentModel>> resolveDoc = () -> {
+            if (parentRef == null && exists(ref)) {
+                return Optional.of(getDocument(ref));
+            } else if (parentRef != null) {
+                Document parentDocument = resolveReference(parentRef);
+                if (parentDocument.hasChild(docModel.getName())) {
+                    Document childDoc = parentDocument.getChild(docModel.getName());
+                    checkPermission(childDoc, READ);
+                    return Optional.of(readModel(childDoc));
+                }
             }
-            return postCreate.apply(createDocument(docModel));
+            return Optional.empty();
+        };
+        // Check if the document exists
+        return resolveDoc.get().orElseGet(() -> {
+            // handle placeless documents, no locks are needed in this case
+            if (parentRef == null) {
+                return postCreate.apply(createDocument(docModel));
+            }
+            String key = computeKeyForAtomicCreation(docModel);
+            return LockHelper.doAtomically(key,
+                    () -> resolveDoc.get().orElseGet(() -> postCreate.apply(createDocument(docModel))));
         });
     }
 
