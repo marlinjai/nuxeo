@@ -15,7 +15,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
   unzip \
   && rm -rf /var/lib/apt/lists/*
 
-COPY target/distrib/nuxeo-server-tomcat-*.zip /tmp/nuxeo-distribution-tomcat.zip
+COPY server/nuxeo-server-tomcat/target/nuxeo-server-tomcat-*.zip /tmp/nuxeo-distribution-tomcat.zip
 
 ENV NUXEO_HOME=/distrib
 
@@ -124,17 +124,27 @@ ENV NUXEO_CONF=/etc/nuxeo/nuxeo.conf
 ENV PATH=$NUXEO_HOME/bin:$PATH
 
 # Copy scripts and configuration files and create needed folders
-# COPY --chmod only supports octal notation, using 775 that is equivalent to rwxrwxr-x
-COPY --chown=900:0 --chmod=775 rootfs /
+COPY --chown=900:0 --chmod=775 docker/nuxeo/rootfs /
 
 # Copy Nuxeo distribution
 COPY --chown=900:0 --from=builder /distrib $NUXEO_HOME
+
+# Copy the Nuxeo Web UI package
+COPY ./nuxeo-web-ui*.zip /docker-entrypoint-initnuxeo.d/nuxeo-web-ui.zip
+
+
+# Copy the custom-built Nuxeo S3 binary manager JAR
+COPY packages/nuxeo-amazon-s3-package/target/nuxeo-amazon-s3-package-2023.19-SNAPSHOT.zip /docker-entrypoint-initnuxeo.d/
+# Copy the custom S3 configuration file
+COPY s3.conf /etc/nuxeo/conf.d/s3.conf
+
 
 VOLUME /var/lib/nuxeo
 VOLUME /var/log/nuxeo
 VOLUME /tmp
 
 EXPOSE 8080
+
 ENTRYPOINT ["/docker-entrypoint.sh"]
 CMD ["nuxeoctl", "console"]
 

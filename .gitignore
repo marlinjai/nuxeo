@@ -41,3 +41,4 @@ marketplace/
 # Helm charts
 **/*.tgz
 **/*.lock
+s3.conf

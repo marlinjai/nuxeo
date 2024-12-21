@@ -98,10 +98,11 @@ if [ ! -f $NUXEO_HOME/configured ]; then
 fi
 
 # Handle shell scripts
-echo "ENTRYPOINT: Looking for shell scripts in /docker-entrypoint-initnuxeo.d"
+echo "ENTRYPOINT: Looking for shell scripts and packages in /docker-entrypoint-initnuxeo.d"
 for f in /docker-entrypoint-initnuxeo.d/*; do
   case "$f" in
     *.sh)  echo "Running $f"; /bin/bash "$f" ;;
+    *.zip) echo "Installing package $f"; nuxeoctl mp-install "$f" --accept=true --relax no ;;
     *)     echo "Ignoring $f" ;;
   esac
 done
